@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Sala de Questões · Professor</title>
+<style>
+:root{--ink:#2b2250;--purple:#6c4cf1;--yellow:#ffd23f;--green:#19c37d;--orange:#ff9f1c;--red:#ff4d5e;--grey:#c3bddb}
+*{box-sizing:border-box}body{margin:0;font-family:"Trebuchet MS","Segoe UI",system-ui,sans-serif;color:var(--ink);background:linear-gradient(160deg,#fff3c9,#d9f2ff);background-attachment:fixed;min-height:100vh}
+.card{background:#fff;border:3px solid var(--ink);border-radius:18px;box-shadow:0 4px 0 var(--ink)}
+.btn{font:inherit;font-weight:800;border:3px solid var(--ink);border-radius:12px;padding:6px 12px;background:#fff;color:var(--ink);cursor:pointer;box-shadow:0 3px 0 var(--ink)}
+.btn:active{transform:translateY(3px);box-shadow:none}.btn.pri{background:var(--purple);color:#fff}.btn.ok{background:var(--green);color:#fff}.btn.warn{background:var(--yellow)}.btn.bad{background:var(--red);color:#fff}
+.hidden{display:none!important}
+#app{max-width:1200px;margin:0 auto;padding:10px;display:flex;flex-direction:column;gap:10px}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.sp{flex:1}
+header{padding:10px 14px}h1{margin:0;font-size:19px;color:var(--purple)}
+input,select{font:inherit;font-weight:700;border:3px solid var(--ink);border-radius:10px;padding:6px 8px;background:#fff;color:var(--ink)}
+#login{max-width:420px;margin:40px auto;padding:20px;display:flex;flex-direction:column;gap:10px;text-align:center}
+#login input{width:100%}.err{color:#c0182c;font-weight:800;min-height:20px}
+.tabs{display:flex;gap:6px;flex-wrap:wrap}.tab{font:inherit;font-weight:900;border:3px solid var(--ink);border-radius:12px;padding:5px 12px;background:#fff;cursor:pointer;color:var(--ink)}.tab.cur{background:var(--yellow)}
+.panel{padding:12px;overflow:auto}
+table{border-collapse:collapse;font-size:13px;width:100%}th,td{border:2px solid var(--ink);padding:4px 6px;text-align:center;white-space:nowrap}
+th{background:#e4dcff;position:sticky;top:0}td.nm{text-align:left;font-weight:800;cursor:pointer}td.nm:hover{text-decoration:underline}
+.c4{background:#b8f2d6}.c3{background:#fff0c4}.c2{background:#ffd9a8}.c1{background:#ffc2c8}.c0{background:#f3f0fa;color:#aaa}
+.stat{display:flex;gap:10px;flex-wrap:wrap}.stat div{padding:8px 14px;border:3px solid var(--ink);border-radius:12px;background:#f3efff;font-weight:800}.stat b{font-size:20px;display:block}
+.qrow{display:grid;grid-template-columns:70px 1fr 90px 60px;gap:8px;align-items:center;padding:6px 8px;border-bottom:2px dashed var(--grey);font-size:14px}
+.bar{height:12px;border:2px solid var(--ink);border-radius:8px;background:#fff;overflow:hidden}.bar i{display:block;height:100%;background:var(--green)}
+.ph{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:8px}
+.ph button{font:inherit;font-weight:800;border:3px solid var(--ink);border-radius:12px;padding:8px;cursor:pointer;background:#d6f7e7;text-align:left;color:var(--ink)}.ph button.off{background:#ffdde1}
+.overlay{position:fixed;inset:0;background:rgba(43,34,80,.55);display:grid;place-items:center;z-index:50;padding:12px}.mc{max-width:480px;width:100%;padding:18px}
+.hint{font-size:13px;opacity:.75}
+@media print{body{background:#fff}header .row:last-child,.tabs,.btn,#flt{display:none!important}.card{box-shadow:none}}
+</style></head><body>
+<div id="app">
+ <section id="login" class="card">
+  <h1>👩‍🏫 Painel do Professor</h1><p class="hint">Fábrica Maluca do Relê · Sala de Questões</p>
+  <div id="cfgwarn" class="err hidden">O site ainda não foi configurado (arquivo config.js).</div>
+  <input id="em" type="email" placeholder="Seu e-mail" autocomplete="username"><input id="pw" type="password" placeholder="Sua senha" autocomplete="current-password">
+  <div id="lerr" class="err"></div><button class="btn pri" id="lgo">Entrar</button>
+ </section>
+ <div id="dash" class="hidden" style="display:flex;flex-direction:column;gap:10px">
+  <header class="card"><div class="row"><h1>👩‍🏫 Painel do Professor</h1><span class="sp"></span>
+   <button class="btn sm" id="ref">↻ Atualizar</button><button class="btn" id="csv">📊 Exportar Excel (CSV)</button><button class="btn" id="prt">🖨️ Imprimir / PDF</button><button class="btn" id="out">Sair</button></div>
+   <div class="row" style="margin-top:8px" id="flt"><label>Turma: <select id="cls"></select></label><label>Buscar: <input id="q" placeholder="nome do aluno"></label><div class="tabs"><button class="tab cur" data-t="notas">📋 Notas</button><button class="tab" data-t="quest">❓ Questões mais erradas</button><button class="tab" data-t="fases">🔒 Liberar fases</button></div></div>
+  </header>
+  <section class="card panel" id="stat"></section>
+  <section class="card panel" id="view"></section>
+ </div>
+</div>
+<div id="modal" class="overlay hidden"><div class="mc card" id="mb"></div></div>
+<script src="config.js"></script>
+<script>
+const META={"games": [{"id": "ladder", "name": "Lógica Ladder", "phases": [{"n": 1, "num": 1, "name": "Lâmpada da entrada", "qs": [{"id": "L1.1", "q": "Qual destes endereços representa uma <b>ENTRADA<\/b> digital do CLP?"}, {"id": "L1.2", "q": "Julgue cada frase com V ou F:"}, {"id": "L1.3", "q": "Com o botão apertado (I0.0 = 1) a lâmpada Q0.0 fica ligada ou desligada? E com o botão solto (I0.0 = 0)?"}, {"id": "L1.4", "q": "Monte o degrau: a lâmpada <b>Q0.1<\/b> acende enquanto o botão <b>I0.3<\/b> estiver apertado."}, {"id": "L1.5", "q": "O Ladder está certo (NA I0.0 → bobina Q0.0), mas a lâmpada não acende ao apertar o botão. Qual a melhor verificação?"}]}, {"n": 2, "num": 2, "name": "Esteira com botão de parar", "qs": [{"id": "L2.1", "q": "Um contato <b>NF<\/b> deixa a corrente lógica passar quando o bit do seu endereço é:"}, {"id": "L2.2", "q": "Complete a tabela do degrau abaixo (esteira Q0.0)."}, {"id": "L2.3", "q": "Julgue:"}, {"id": "L2.4", "q": "Monte: a bomba <b>Q0.2<\/b> funciona com a chave <b>I0.4<\/b> ligada E sem o sensor de nível alto <b>I0.5<\/b> acionado."}, {"id": "L2.5", "q": "Uma botoeira <b>física NF<\/b> de parada entrega I0.1 = 1 em repouso e I0.1 = 0 quando apertada. Para a máquina rodar em repouso e parar ao apertar, o contato de I0.1 no Ladder deve ser:"}]}, {"n": 3, "num": 3, "name": "Esteira com selo", "qs": [{"id": "L3.1", "q": "Para que serve o <b>selo<\/b> (auto-retenção)?"}, {"id": "L3.2", "q": "Qual contato forma o selo?"}, {"id": "L3.3", "q": "O Liga já foi solto (I0.0 = 0) e a saída está ligada (Q0.0 = 1). Por onde a corrente passa para manter o motor?"}, {"id": "L3.4", "q": "Monte a partida de uma bomba <b>Q0.1<\/b> com Liga <b>I0.2<\/b>, Desliga <b>I0.3<\/b> e selo."}, {"id": "L3.5", "q": "Julgue:"}]}, {"n": 4, "num": 4, "name": "Misturador com porta de segurança", "qs": [{"id": "L4.1", "q": "O misturador Q0.0 gira com a porta fechada (I0.4) E com Painel (I0.0) OU Remoto (I0.1)."}, {"id": "L4.2", "q": "Contatos em <b>paralelo<\/b> representam a lógica:"}, {"id": "L4.3", "q": "Monte: a serra <b>Q0.0<\/b> liga com a proteção fechada <b>I0.0<\/b> E (botão A <b>I0.1<\/b> OU botão B <b>I0.2<\/b>). Dica: use a linha de baixo da coluna para o OU."}, {"id": "L4.4", "q": "Julgue:"}, {"id": "L4.5", "q": "O misturador gira com a porta <b>aberta<\/b>. Qual o erro mais provável no Ladder?"}]}, {"n": 5, "num": 5, "name": "Forno que desliga sozinho", "qs": [{"id": "L5.1", "q": "O TON liga o seu bit de pronto quando:"}, {"id": "L5.2", "q": "T1 é um TON com <b>PT = 4 s<\/b>. Veja a entrada: em que instante T1 liga e quando desliga? E no segundo pulso?"}, {"id": "L5.3", "q": "Um TON T1 com <b>PT = 12 s<\/b> recebe entrada ligada sem parar a partir de t = 20 s. Em que instante T1 liga? Se a entrada cair em t = 28 s, T1 chega a ligar?"}, {"id": "L5.4", "q": "Monte: a lâmpada <b>Q0.0<\/b> acende <b>3 s depois<\/b> de apertar <b>I0.0<\/b> e apaga ao soltar. Linha 1: temporizador; linha 2: lâmpada."}, {"id": "L5.5", "q": "Julgue:"}]}, {"n": 6, "num": 6, "name": "Caixa com 10 balas", "qs": [{"id": "L6.1", "q": "O CTU soma 1 quando a entrada:"}, {"id": "L6.2", "q": "CTU C1 com <b>PV = 3<\/b> e o sensor dando 5 pulsos. Em qual pulso C1 liga? O que acontece no reset?"}, {"id": "L6.3", "q": "Caixa com <b>12 balas<\/b> (PV = 12). Já passaram 7. Quantas faltam? O contato C1 já está ligado?"}, {"id": "L6.4", "q": "Monte: o sensor <b>I0.3<\/b> conta peças; ao chegar a 12 a saída <b>Q0.0<\/b> fecha a caixa; <b>I0.0<\/b> zera."}, {"id": "L6.5", "q": "O contador soma <b>2<\/b> a cada peça. Qual a causa mais provável?"}]}, {"n": 7, "num": 7, "name": "Semáforo da fábrica", "qs": [{"id": "L7.1", "q": "Verde 3 s, amarelo 1 s e vermelho 3 s. Qual a duração de um ciclo? Quantos ciclos completos em 1 minuto?"}, {"id": "L7.2", "q": "Qual luz está acesa em cada instante?"}, {"id": "L7.3", "q": "Qual temporizador conta o <b>vermelho<\/b>?"}, {"id": "L7.4", "q": "Complete o degrau: o T2 (amarelo, 1 s) começa quando o T1 termina. Que contato entra no lugar do \"?\""}, {"id": "L7.5", "q": "Sem o contato NF de T3 na linha do T1, o que acontece no fim do ciclo?"}]}, {"n": 8, "num": 8, "name": "CHEFÃO: a linha completa", "qs": [{"id": "L8.1", "q": "A linha 1 do chefão tem 5 condições em série (Liga com selo, NF Desliga, NF Emergência, NA Porta, NF C1). A ordem delas muda a lógica?"}, {"id": "L8.2", "q": "Com a porta <b>aberta<\/b> (I0.4 = 0), o operador aperta Liga. A esteira liga?"}, {"id": "L8.3", "q": "Julgue:"}, {"id": "L8.4", "q": "Chegaram 5 balas e a esteira <b>não parou<\/b>. O que pode ter faltado no Ladder?"}, {"id": "L8.5", "q": "Monte a sirene: <b>Q0.2<\/b> toca enquanto a emergência <b>I0.2<\/b> (chave que vai a 1 ao acionar) estiver ativa."}]}, {"n": 9, "num": 9, "name": "Pisca-pisca de alerta", "qs": [{"id": "L9.1", "q": "Aceso 1 s e apagado 1 s. Qual o período? Quantas piscadas por minuto?"}, {"id": "L9.2", "q": "Na linha 1 do pisca, [NA chave] [NF T2] → TON T1, o NF T2 serve para:"}, {"id": "L9.3", "q": "Quero a lâmpada <b>acesa 2 s<\/b> e <b>apagada 0,5 s<\/b>. Quais presets de T1 e T2? (T1 conta o aceso; a lâmpada usa NF T1.)"}, {"id": "L9.4", "q": "Analise o pisca-pisca da figura."}, {"id": "L9.5", "q": "A lâmpada fica <b>sempre acesa<\/b>, sem piscar. Qual peça provavelmente faltou?"}]}, {"n": 10, "num": 10, "name": "Semáforo com botão de pedestre", "qs": [{"id": "L10.1", "q": "O que é <b>M0.0<\/b>?"}, {"id": "L10.2", "q": "Julgue:"}, {"id": "L10.3", "q": "Amarelo 2 s e vermelho 3 s. Quanto tempo vai do toque no botão até o verde voltar? Quanto dura o vermelho?"}, {"id": "L10.4", "q": "O pedestre soltou o botão (I0.0 = 0) mas M0.0 = 1. O pedido continua memorizado? Por qual caminho?"}, {"id": "L10.5", "q": "Depois do ciclo o semáforo faz <b>outro ciclo sozinho<\/b>. Por quê?"}]}, {"n": 11, "num": 11, "name": "Caixa que reabre sozinha", "qs": [{"id": "L11.1", "q": "O reset do CTU pode ser:"}, {"id": "L11.2", "q": "PV = 6, chegam 2 balas por segundo e a caixa fica fechada 3 s. Quanto dura um lote completo (encher + fechada)? Quantos lotes por minuto?"}, {"id": "L11.3", "q": "Observe o programa."}, {"id": "L11.4", "q": "Ordene os eventos de 1 a 5 (1 = primeiro):"}, {"id": "L11.5", "q": "A caixa fecha, mas <b>nunca reabre<\/b>. O que verificar?"}]}, {"n": 12, "num": 12, "name": "Misturador em 3 ciclos", "qs": [{"id": "L12.1", "q": "São 3 ciclos de <b>3 s girando + 2 s descansando<\/b>. Qual o tempo total? E o tempo total girando?"}, {"id": "L12.2", "q": "O que soma 1 no contador C1?"}, {"id": "L12.3", "q": "Veja o gráfico."}, {"id": "L12.4", "q": "O misturador está rodando; a porta abre e fecha de novo. O que acontece?"}, {"id": "L12.5", "q": "Quero <b>4 ciclos<\/b> em vez de 3. Qual o novo PV e o tempo total?"}]}, {"n": 13, "num": 13, "name": "CHEFÃO FINAL: partida com aviso", "qs": [{"id": "L13.1", "q": "Ordene de 1 a 5 (1 = primeiro):"}, {"id": "L13.2", "q": "Por que a sirene usa <b>NF T1<\/b> em série com M0.0?"}, {"id": "L13.3", "q": "Veja o gráfico."}, {"id": "L13.4", "q": "A esteira liga <b>junto com a sirene<\/b>, sem esperar os 3 s. Qual o erro provável?"}, {"id": "L13.5", "q": "Julgue:"}]}]}, {"id": "ligacoes", "name": "Ligações do CLP", "phases": [{"n": 101, "num": 1, "name": "Conheça o CLP", "qs": [{"id": "C1.1", "q": "Dê o <b>nome<\/b> dos bornes marcados de <b>A<\/b> a <b>F<\/b>."}, {"id": "C1.2", "q": "As letras <b>I<\/b> e <b>Q<\/b> nos endereços significam, respectivamente:"}, {"id": "C1.3", "q": "Julgue:"}, {"id": "C1.4", "q": "Associe cada borne à sua função:"}, {"id": "C1.5", "q": "Por que existem os bornes <b>comuns<\/b> (1M e 1L)?"}]}, {"n": 102, "num": 2, "name": "Dando energia ao CLP", "qs": [{"id": "C2.1", "q": "Veja a alimentação deste CLP. O que está errado?"}, {"id": "C2.2", "q": "Que alimentação o CLP do jogo precisa?"}, {"id": "C2.3", "q": "A fonte fornece <b>2 A<\/b> e o CLP consome <b>0,5 A<\/b>. Quanto de corrente sobra para as cargas?"}, {"id": "C2.4", "q": "Julgue:"}, {"id": "C2.5", "q": "Antes de mexer na fiação de um painel, o que fazer?"}]}, {"n": 103, "num": 3, "name": "Primeira entrada: botão Liga", "qs": [{"id": "C3.1", "q": "O botão está ligado ao +24 V e à entrada I0.0, mas o CLP <b>nunca lê 1<\/b> ao apertá-lo. O que falta?"}, {"id": "C3.2", "q": "Complete para o botão <b>NA<\/b>:"}, {"id": "C3.3", "q": "Ao pressionar um botão NA ligado entre +24 V e I0.0, a entrada:"}, {"id": "C3.4", "q": "Ligue o botão <b>Start (NA)<\/b> na entrada <b>I0.1<\/b>, com o comum."}, {"id": "C3.5", "q": "A lâmpada <b>acende sozinha<\/b>, sem apertar nada. Qual causa é possível na parte das entradas?"}]}, {"n": 104, "num": 4, "name": "NA e NF: Liga e Para", "qs": [{"id": "C4.1", "q": "Complete a tabela de botões NA e NF:"}, {"id": "C4.2", "q": "O fio do botão <b>Para (NF)<\/b> rompeu."}, {"id": "C4.3", "q": "Por que o botão <b>Para<\/b> costuma ser NF?"}, {"id": "C4.4", "q": "Ligue <b>Liga (NA)<\/b> em <b>I0.0<\/b> e <b>Para (NF)<\/b> em <b>I0.1<\/b>, com o comum."}, {"id": "C4.5", "q": "Julgue:"}]}, {"n": 105, "num": 5, "name": "Sensor de 3 fios (PNP)", "qs": [{"id": "C5.1", "q": "Associe cada fio do sensor à sua função:"}, {"id": "C5.2", "q": "O sensor <b>não funciona<\/b> (LED apagado). Olhe a ligação: o que falta?"}, {"id": "C5.3", "q": "Em um sensor <b>PNP<\/b>, ao detectar uma peça o fio preto:"}, {"id": "C5.4", "q": "Julgue:"}, {"id": "C5.5", "q": "O LED do sensor acende ao detectar, mas a entrada <b>I0.2 não muda<\/b>. Qual causa é possível?"}]}, {"n": 106, "num": 6, "name": "Primeira saída: lâmpada", "qs": [{"id": "C6.1", "q": "A lâmpada está ligada à saída Q0.0 e ao 0 V, mas <b>não acende<\/b>. O que falta?"}, {"id": "C6.2", "q": "A saída a relé do CLP:"}, {"id": "C6.3", "q": "Lâmpada de <b>24 V / 2 W<\/b>. Qual a corrente? Se a saída suporta <b>2 A<\/b>, quantas lâmpadas iguais no máximo?"}, {"id": "C6.4", "q": "Ligue a lâmpada na saída <b>Q0.1<\/b>."}, {"id": "C6.5", "q": "Julgue:"}]}, {"n": 107, "num": 7, "name": "Motor com contator", "qs": [{"id": "C7.1", "q": "Por que <b>não<\/b> ligar um motor direto na saída do CLP?"}, {"id": "C7.2", "q": "Observe o desenho do contator."}, {"id": "C7.3", "q": "Ordene de 1 a 4:"}, {"id": "C7.4", "q": "Julgue:"}, {"id": "C7.5", "q": "Q0.0 liga no programa, mas o <b>motor não gira<\/b>. Qual a melhor ordem de verificação?"}]}, {"n": 108, "num": 8, "name": "CHEFÃO: a esteira completa", "qs": [{"id": "C8.1", "q": "Associe cada elemento ao seu endereço:"}, {"id": "C8.2", "q": "Marque se cada ligação está <b>correta<\/b> (V) ou <b>errada<\/b> (F):"}, {"id": "C8.3", "q": "Ordene a rotina de diagnóstico de 1 a 5:"}, {"id": "C8.4", "q": "A <b>parada de emergência<\/b> real deve:"}, {"id": "C8.5", "q": "Ligue a <b>sinaleira verde<\/b> em <b>Q0.1<\/b> e a <b>buzina<\/b> em <b>Q0.2<\/b>."}]}]}]}; // jogos, fases e questões (só texto)
+const CFG=window.QCFG||{};const $=s=>document.querySelector(s);
+let TOK=null,REF=null,STU=[],CLOSED=[],QSTAT=[],tab='notas';
+const PH=META.games.flatMap(g=>g.phases.map(p=>({...p,game:g.id,short:(g.id==='ladder'?'L':'C')+p.num})));
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+async function authReq(path,body){const r=await fetch(CFG.url+'/auth/v1/'+path,{method:'POST',headers:{apikey:CFG.key,'Content-Type':'application/json'},body:JSON.stringify(body)});const j=await r.json().catch(()=>({}));if(!r.ok)throw new Error(j.error_description||j.msg||j.message||'Falha no login');return j}
+function setTok(j){TOK=j.access_token;REF=j.refresh_token;try{sessionStorage.setItem('qp_ref',REF)}catch(e){}}
+async function rpc(fn,args,retry=true){
+ let r;try{r=await fetch(CFG.url+'/rest/v1/rpc/'+fn,{method:'POST',headers:{apikey:CFG.key,Authorization:'Bearer '+TOK,'Content-Type':'application/json'},body:JSON.stringify(args||{})})}catch(e){throw new Error('Sem conexão com a internet.')}
+ if((r.status===401)&&retry&&REF){try{setTok(await authReq('token?grant_type=refresh_token',{refresh_token:REF}));return rpc(fn,args,false)}catch(e){logout();throw new Error('Sessão expirada. Entre de novo.')}}
+ const j=await r.json().catch(()=>null);if(!r.ok)throw new Error((j&&j.message)||'Erro '+r.status);return j}
+async function login(){
+ const err=$('#lerr');err.textContent='';if(!CFG.url||!CFG.key){$('#cfgwarn').classList.remove('hidden');return}
+ $('#lgo').disabled=true;
+ try{setTok(await authReq('token?grant_type=password',{email:$('#em').value.trim(),password:$('#pw').value}));
+  if(!(await rpc('teacher_check')))throw new Error('Esta conta não é de professor. Rode o comando final do arquivo supabase.sql.');
+  $('#login').classList.add('hidden');$('#dash').classList.remove('hidden');await load();
+ }catch(e){err.textContent=e.message==='Invalid login credentials'?'E-mail ou senha incorretos.':e.message;TOK=null}
+ $('#lgo').disabled=false}
+function logout(){TOK=REF=null;try{sessionStorage.removeItem('qp_ref')}catch(e){}$('#dash').classList.add('hidden');$('#login').classList.remove('hidden')}
+$('#lgo').onclick=login;$('#pw').onkeydown=e=>{if(e.key==='Enter')login()};$('#out').onclick=logout;
+if(!CFG.url||!CFG.key)$('#cfgwarn').classList.remove('hidden');
+(async()=>{let r=null;try{r=sessionStorage.getItem('qp_ref')}catch(e){}if(r&&CFG.url){try{setTok(await authReq('token?grant_type=refresh_token',{refresh_token:r}));if(await rpc('teacher_check')){$('#login').classList.add('hidden');$('#dash').classList.remove('hidden');load()}}catch(e){}}})();
+async function load(){
+ try{const o=await rpc('teacher_overview');STU=o.students;CLOSED=o.closed;
+  const cl=[...new Set(STU.map(s=>s.class))].sort();const cur=$('#cls').value;
+  $('#cls').innerHTML='<option value="">Todas as turmas</option>'+cl.map(c=>`<option ${c===cur?'selected':''}>${esc(c)}</option>`).join('');
+  QSTAT=await rpc('teacher_questions',{p_class:$('#cls').value||null});render()}
+ catch(e){$('#view').innerHTML='<p class="err">'+esc(e.message)+'</p>'}}
+$('#ref').onclick=load;$('#cls').onchange=load;$('#q').oninput=render;
+document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{tab=b.dataset.t;document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('cur',x===b));render()});
+const cls=p=>p===undefined?'c0':p>=85?'c4':p>=65?'c3':p>=40?'c2':'c1';
+function filt(){const c=$('#cls').value,q=$('#q').value.trim().toLowerCase();return STU.filter(s=>(!c||s.class===c)&&(!q||s.name.toLowerCase().includes(q)))}
+function pctOf(s,ph){const r=s.results.find(r=>r.phase===ph);return r?r.pct:undefined}
+function avgS(s){const v=s.results.map(r=>r.pct);return v.length?Math.round(v.reduce((a,b)=>a+b,0)/v.length):undefined}
+function render(){
+ const L=filt();let tot=0,n=0;L.forEach(s=>s.results.forEach(r=>{tot+=r.pct;n++}));
+ $('#stat').innerHTML=`<div class="stat"><div>Alunos<b>${L.length}</b></div><div>Média geral<b>${n?Math.round(tot/n)+'%':'—'}</b></div><div>Fases respondidas<b>${n}</b></div><div>Fases bloqueadas<b>${CLOSED.length}</b></div></div>`;
+ if(tab==='notas')notas(L);else if(tab==='quest')quest();else fases();
+}
+function notas(L){
+ if(!L.length){$('#view').innerHTML='<p>Nenhum aluno encontrado ainda. Passe o link do site para a turma criar os usuários.</p>';return}
+ const head=`<tr><th>Aluno</th><th>Turma</th>${PH.map(p=>`<th title="${esc(p.name)}">${p.short}</th>`).join('')}<th>Média</th><th>Feitas</th></tr>`;
+ const rows=L.map(s=>`<tr><td class="nm" data-id="${s.id}">${esc(s.name)}</td><td>${esc(s.class)}</td>${PH.map(p=>{const v=pctOf(s,p.n);return `<td class="${cls(v)}">${v===undefined?'':v}</td>`}).join('')}<td><b>${avgS(s)===undefined?'':avgS(s)}</b></td><td>${s.results.length}/${PH.length}</td></tr>`).join('');
+ const foot=`<tr><th colspan="2">Média da turma</th>${PH.map(p=>{const v=L.map(s=>pctOf(s,p.n)).filter(x=>x!==undefined);return `<th>${v.length?Math.round(v.reduce((a,b)=>a+b,0)/v.length):''}</th>`}).join('')}<th></th><th></th></tr>`;
+ $('#view').innerHTML=`<p class="hint">Notas em %. L = Ladder, C = Ligações do CLP. Clique no nome para redefinir PIN ou excluir. Verde ≥85 · amarelo ≥65 · laranja ≥40 · vermelho abaixo.</p><div style="overflow:auto"><table>${head}${rows}${foot}</table></div>`;
+ document.querySelectorAll('td.nm').forEach(td=>td.onclick=()=>studentModal(td.dataset.id));
+}
+const QI={};META.games.forEach(g=>g.phases.forEach(p=>p.qs.forEach(q=>QI[q.id]={ph:(g.id==='ladder'?'L':'C')+p.num,name:p.name,txt:q.q})));
+function quest(){
+ const L=QSTAT.filter(x=>QI[x.qid]).slice(0,25);
+ $('#view').innerHTML=L.length?`<p class="hint">As 25 questões com menor taxa de acerto (média do último resultado de cada aluno${$('#cls').value?' na turma '+esc($('#cls').value):''}). Ótimas para revisar no quadro.</p>`+L.map(x=>{const q=QI[x.qid],pc=Math.round(x.avg*100);return `<div class="qrow"><b>${q.ph}</b><span>${esc(q.txt.replace(/<[^>]+>/g,'').slice(0,160))}</span><div class="bar"><i style="width:${pc}%;background:${pc>=65?'var(--green)':pc>=40?'var(--orange)':'var(--red)'}"></i></div><b>${pc}%</b></div>`}).join(''):'<p>Ainda não há respostas.</p>';
+}
+function fases(){
+ $('#view').innerHTML=`<p class="hint">Clique para bloquear ou liberar uma fase para <b>todos</b> os alunos. Fases bloqueadas não aceitam novas notas.</p>`+META.games.map(g=>`<h3>${esc(g.name)}</h3><div class="ph">${g.phases.map(p=>`<button data-n="${p.n}" class="${CLOSED.includes(p.n)?'off':''}">${CLOSED.includes(p.n)?'🔒':'✅'} Fase ${p.num} · ${esc(p.name)}</button>`).join('')}</div>`).join('');
+ document.querySelectorAll('.ph button').forEach(b=>b.onclick=async()=>{const n=+b.dataset.n,open=CLOSED.includes(n);try{await rpc('teacher_set_phase',{p_phase:n,p_open:open});CLOSED=open?CLOSED.filter(x=>x!==n):[...CLOSED,n];render()}catch(e){alert(e.message)}});
+}
+function modal(h){$('#mb').innerHTML=h;$('#modal').classList.remove('hidden')}
+$('#modal').onclick=e=>{if(e.target.id==='modal')$('#modal').classList.add('hidden')};
+function studentModal(id){
+ const s=STU.find(x=>x.id===id);if(!s)return;
+ modal(`<h2 style="margin-top:0">${esc(s.name)}</h2><p>Turma ${esc(s.class)} · criado em ${new Date(s.created_at).toLocaleDateString('pt-BR')}</p>
+ <table><tr><th>Fase</th><th>Nota</th><th>★</th><th>Tentativas</th></tr>${s.results.sort((a,b)=>a.phase-b.phase).map(r=>{const p=PH.find(x=>x.n===r.phase);return `<tr><td style="text-align:left">${p?p.short+' '+esc(p.name):r.phase}</td><td class="${cls(r.pct)}">${r.pct}%</td><td>${r.stars}</td><td>${r.tries}</td></tr>`}).join('')||'<tr><td colspan="4">Sem respostas</td></tr>'}</table>
+ <p id="merr" class="err"></p><div class="row" style="margin-top:8px"><button class="btn warn" id="rpin">🔑 Novo PIN</button><button class="btn bad" id="del">🗑️ Excluir aluno</button><span class="sp"></span><button class="btn" id="cl">Fechar</button></div>`);
+ $('#cl').onclick=()=>$('#modal').classList.add('hidden');
+ $('#rpin').onclick=async()=>{const p=prompt('Novo PIN de 4 números para '+s.name+':');if(p===null)return;try{await rpc('teacher_reset_pin',{p_id:id,p_pin:p.trim()});$('#merr').style.color='#0a7a4b';$('#merr').textContent='PIN alterado. Avise o aluno.'}catch(e){$('#merr').textContent=e.message}};
+ $('#del').onclick=async()=>{if(!confirm('Excluir '+s.name+' e todas as notas? Isso não pode ser desfeito.'))return;try{await rpc('teacher_delete_student',{p_id:id});$('#modal').classList.add('hidden');load()}catch(e){$('#merr').textContent=e.message}};
+}
+$('#prt').onclick=()=>window.print();
+$('#csv').onclick=()=>{
+ const L=filt(),q=v=>'"'+String(v).replace(/"/g,'""')+'"';
+ let t='Aluno;Turma;'+PH.map(p=>p.short).join(';')+';Média;Fases feitas\r\n';
+ L.forEach(s=>{t+=[q(s.name),q(s.class),...PH.map(p=>{const v=pctOf(s,p.n);return v===undefined?'':v}),avgS(s)===undefined?'':avgS(s),s.results.length].join(';')+'\r\n'});
+ const a=document.createElement('a');a.href=URL.createObjectURL(new Blob(['﻿'+t],{type:'text/csv;charset=utf-8'}));a.download='notas_questoes_'+new Date().toISOString().slice(0,10)+'.csv';document.body.appendChild(a);a.click();a.remove();
+};
+</script></body></html>
