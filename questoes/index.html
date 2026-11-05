@@ -125,7 +125,7 @@ body.board #fb{font-size:22px}
 <div id="app">
  <header id="top" class="card">
   <div class="row">
-   <div class="logo">📝 Fábrica Maluca do Relê · Sala de Questões</div>
+   <div class="logo">📝 Fábrica Maluca do Relê · Sala de Questões</div><a class="btn sm" href="../index.html">🎮 Jogos</a>
    <span class="sp"></span>
    <button class="btn sm" id="bname" title="Sair da conta">👤 <span id="nm"></span> · Sair</button>
    <button class="btn sm" id="brep">📄 Relatório</button>
@@ -385,7 +385,7 @@ function authScreen(mode){
  <input type="text" id="a-cls" maxlength="30" placeholder="Turma (ex.: 2A Eletro)" autocomplete="off">
  <input type="password" id="a-pin" maxlength="4" inputmode="numeric" pattern="[0-9]*" placeholder="PIN de 4 números" autocomplete="off">
  <p id="a-err" style="color:#c0182c;font-weight:800;min-height:20px"></p>
- <div class="mbts"><button class="btn run" id="a-go">${mode==='in'?'Entrar 🚀':'Criar e começar 🚀'}</button></div>`);
+ <div class="mbts"><button class="btn run" id="a-go">${mode==='in'?'Entrar 🚀':'Criar e começar 🚀'}</button></div><p style="margin-top:10px"><a href="../index.html" style="color:#6c4cf1;font-weight:800">🎮 Voltar aos jogos</a></p>`);
  $('#a-in').onclick=()=>authScreen('in');$('#a-up').onclick=()=>authScreen('up');
  const go=async()=>{
   const name=$('#a-name').value.trim(),cls=$('#a-cls').value.trim(),pin=$('#a-pin').value.trim(),err=$('#a-err');

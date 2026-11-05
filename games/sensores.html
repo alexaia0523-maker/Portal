@@ -1,0 +1,721 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Detetive de Sensores</title>
+<style>
+:root{--ink:#2b2250;--bg1:#fff3c9;--bg2:#d9f2ff;--purple:#6c4cf1;--pink:#ff5fa2;--yellow:#ffd23f;--teal:#2ec4b6;--orange:#ff9f1c;--green:#19c37d;--grey:#c3bddb;--red:#ff4d5e;--card:#fff}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{font-family:"Trebuchet MS","Segoe UI",system-ui,sans-serif;color:var(--ink);background:linear-gradient(160deg,var(--bg1),var(--bg2));-webkit-user-select:none;user-select:none}
+h1,h2,p{margin:0}
+h2{font-size:15px}
+.card{background:var(--card);border:3px solid var(--ink);border-radius:18px;box-shadow:0 4px 0 var(--ink)}
+.hidden{display:none!important}
+#app{display:grid;height:100vh;height:100dvh;padding:10px;gap:10px;grid-template-columns:230px minmax(0,1fr) 300px;grid-template-rows:auto minmax(0,1fr) auto;grid-template-areas:"top top top" "cat stage side" "foot foot foot"}
+.btn{font:inherit;font-weight:800;border:3px solid var(--ink);border-radius:14px;padding:8px 14px;background:#fff;color:var(--ink);cursor:pointer;box-shadow:0 3px 0 var(--ink);transition:transform .06s;text-decoration:none;display:inline-block}
+.btn:active{transform:translateY(3px);box-shadow:0 0 0 var(--ink)}
+.btn[disabled]{opacity:.4;cursor:not-allowed}
+.btn.sm{padding:4px 10px;font-size:13px;border-radius:12px}
+.btn.run{background:var(--green);color:#fff}.btn.stop{background:var(--red);color:#fff}.btn.rst{background:var(--yellow)}.btn.chk{background:var(--purple);color:#fff}
+#top{grid-area:top;padding:8px 12px;display:flex;flex-direction:column;gap:6px}
+.row1,.row2{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.logo{font-weight:900;font-size:18px;color:var(--purple);white-space:nowrap}
+#lv{display:flex;gap:6px;flex:1;flex-wrap:wrap}
+.chip{width:42px;height:42px;border-radius:12px;border:3px solid var(--ink);background:#fff;font:inherit;font-weight:900;font-size:15px;line-height:1;cursor:pointer;padding:0;color:var(--ink)}
+.chip i{display:block;font-style:normal;font-size:8px;color:var(--orange);letter-spacing:-1px;margin-top:1px}
+.chip.cur{background:var(--yellow)}.chip.lock{opacity:.45;cursor:not-allowed}
+.row2{justify-content:space-between}
+.ttl{flex:1;min-width:220px}
+.ttl h1{font-size:19px}
+.ttl p{font-size:14px;margin-top:2px}
+.side{display:flex;align-items:center;gap:10px}
+#stars{font-size:26px;color:var(--orange);letter-spacing:2px}
+/* catalog */
+#cat{grid-area:cat;padding:10px;overflow:auto}
+#cat h2{margin-bottom:8px}
+.scard{display:flex;gap:8px;align-items:flex-start;padding:7px;border:3px solid var(--ink);border-radius:12px;background:#fff7d6;cursor:grab;margin-bottom:8px;font-size:12px;line-height:1.25}
+.scard .em{font-size:26px;line-height:1;flex:none}
+.scard b{display:block;font-size:13px}
+.scard small{display:block;font-weight:600;font-size:10.5px;opacity:.8;margin-top:2px}
+.scard.sel{background:var(--yellow);outline:4px solid var(--green)}
+.tip{font-size:11px;opacity:.75;margin-top:6px;line-height:1.3}
+/* stage */
+#stage{grid-area:stage;display:flex;flex-direction:column;min-height:0;min-width:0;padding:8px;gap:6px}
+#tabs{display:flex;gap:6px;flex-wrap:wrap}
+.tab{font:inherit;font-weight:800;font-size:13px;border:3px solid var(--ink);border-radius:12px;padding:4px 10px;background:#fff;cursor:pointer;color:var(--ink)}
+.tab.cur{background:var(--yellow)}.tab.okk{background:#b8f2d6}
+#brief{font-size:13px;font-weight:700;padding:2px 4px}
+#scenewrap{flex:1;min-height:0;border:3px dashed var(--grey);border-radius:14px;background:#eaf4ff;overflow:hidden}
+#scene{display:block;width:100%;height:100%}
+.ct{font-weight:900;font-size:14px;fill:#2b2250;font-family:inherit}
+.tiny{font-weight:800;font-size:11px;fill:#2b2250;font-family:inherit}
+/* side */
+#side{grid-area:side;padding:10px;overflow:auto;display:flex;flex-direction:column;gap:8px;min-height:0}
+.box2{background:#f3efff;border:3px solid var(--ink);border-radius:12px;padding:8px 10px;font-size:13px;line-height:1.35}
+.box2 b{font-size:14px}
+.box2 label{display:block;font-weight:800;margin:6px 0 2px;font-size:12px}
+.box2 input[type=range]{width:100%}
+.box2 input[type=number]{width:80px;font:inherit;font-weight:700;border:2px solid var(--ink);border-radius:8px;padding:2px 4px}
+.val{font-weight:900;color:var(--purple)}
+.res{list-style:none;padding:0;margin:4px 0 0}
+.res li{padding:5px 8px;border-radius:9px;margin-bottom:4px;font-size:12px;font-weight:700}
+.res li.ok{background:#d6f7e7}.res li.bad{background:#ffdde1}
+.res li small{display:block;font-weight:600;margin-top:1px}
+.badge{display:inline-block;border:2px solid var(--ink);border-radius:999px;padding:0 8px;font-size:11px;font-weight:800;background:#fff;margin-right:4px}
+/* footer */
+#foot{grid-area:foot;display:flex;align-items:center;gap:12px;padding:8px 12px}
+#relewrap{width:64px;flex:none}
+#rele{width:64px;height:70px;display:block;animation:bob 2.4s ease-in-out infinite}
+#bubble{flex:1;position:relative;background:#f3efff;border:3px solid var(--ink);border-radius:16px;padding:8px 12px;font-size:14px;line-height:1.3;min-height:48px;display:flex;align-items:center}
+#bubble::before{content:"";position:absolute;left:-12px;top:50%;margin-top:-8px;border:8px solid transparent;border-right-color:var(--ink);border-left:0}
+.btns{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+@keyframes bob{50%{transform:translateY(-4px)}}
+@keyframes blink{0%,92%,100%{transform:scaleY(1)}96%{transform:scaleY(.1)}}
+.eye{transform-origin:center;transform-box:fill-box;animation:blink 4s infinite}
+/* modal */
+.overlay{position:fixed;inset:0;background:rgba(43,34,80,.55);display:grid;place-items:center;z-index:50;padding:12px}
+.mcard{max-width:540px;width:100%;padding:18px;max-height:92vh;overflow:auto;text-align:center}
+.mcard.wide{max-width:720px}
+.mcard h2{font-size:22px;margin-bottom:8px}
+.mcard h3{margin:8px 0 4px;font-size:17px;color:var(--purple)}
+.mcard p{margin:6px 0;font-size:14px;line-height:1.4}
+.mcard a{color:var(--purple);font-size:12px;font-weight:700}
+.bigstars{font-size:44px;color:var(--orange);letter-spacing:4px}
+.pista{text-align:left;background:#fff7d6;border:3px solid var(--ink);border-radius:12px;padding:8px 12px;margin:8px 0;font-size:14px}
+.mbts{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:10px}
+.hintcard{text-align:left;background:#fff7d6;border:3px solid var(--ink);border-radius:12px;padding:8px 12px;margin:8px 0}
+.dots{display:flex;gap:6px;justify-content:center;margin:6px 0}
+.dots span{width:12px;height:12px;border-radius:50%;border:2px solid var(--ink);background:#fff}
+.dots span.on{background:var(--yellow)}
+.demo{border:3px dashed var(--grey);border-radius:14px;padding:10px;margin:8px 0;background:#fbfaff;text-align:left}
+.demo .pcs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px}
+.demo .pc{font:inherit;font-weight:800;font-size:12px;border:3px solid var(--ink);border-radius:10px;padding:4px 8px;background:#fff;cursor:pointer;color:var(--ink)}
+.demo .pc.sel{background:var(--yellow)}
+.demo input[type=range]{width:100%}
+.demo .out{margin-top:6px;font-size:13px;font-weight:700;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.led{width:22px;height:22px;border-radius:50%;border:3px solid var(--ink);background:#9a94b8;display:inline-block;flex:none}
+.led.on{background:var(--green)}
+@media(max-width:900px){
+ #app{height:auto;min-height:100dvh;grid-template-columns:minmax(0,1fr);grid-template-rows:auto;grid-template-areas:"top" "cat" "stage" "side" "foot"}
+ #app>*{min-width:0}
+ #cat{overflow:visible}#cat h2,.tip{display:none}
+ #catitems{display:flex;gap:8px;overflow:auto}
+ .scard{flex:none;width:200px;margin:0}
+ #scenewrap{height:300px;flex:none}
+ #foot{position:sticky;bottom:6px;z-index:20;flex-wrap:wrap;padding:6px 8px;gap:8px}
+ #relewrap,#rele{width:44px;height:48px}
+ #bubble{min-width:150px;font-size:12px;padding:6px 8px;min-height:40px}
+ .btns{width:100%;justify-content:center}
+ .btn{padding:6px 10px;font-size:13px}
+ .logo{font-size:15px}.ttl h1{font-size:16px}
+ #lv{flex:1 1 100%;order:5;justify-content:center}
+ .chip{width:36px;height:40px;font-size:14px}
+ .ttl{min-width:0;flex:1 1 100%}
+}
+</style>
+</head>
+<body>
+<div id="app">
+ <header id="top" class="card">
+  <div class="row1">
+   <div class="logo">🔍 Detetive de Sensores</div><a class="btn sm" href="../index.html" title="Voltar ao portal">🏠 Portal</a>
+   <nav id="lv"></nav>
+   <div><button class="btn sm" id="snd" title="Sons">🔊</button> <button class="btn sm" id="rstp" title="Zerar progresso">↺ Zerar</button></div>
+  </div>
+  <div class="row2">
+   <div class="ttl"><h1 id="ltitle"></h1><p id="lmission"></p></div>
+   <div class="side"><div id="stars"></div><button class="btn sm" id="lessonbtn">📖 Trilha</button><button class="btn sm rst" id="hintbtn">💡 Dica</button></div>
+  </div>
+ </header>
+ <aside id="cat" class="card"><h2>🧰 Catálogo de sensores</h2><div id="catitems"></div><p class="tip">Clique no sensor para escolher, ou arraste para a cena.</p></aside>
+ <main id="stage" class="card">
+  <div id="tabs"></div>
+  <div id="brief"></div>
+  <div id="scenewrap"><svg id="scene" viewBox="0 0 600 300" preserveAspectRatio="xMidYMid meet"></svg></div>
+ </main>
+ <aside id="side" class="card"></aside>
+ <footer id="foot" class="card">
+  <div id="relewrap">
+   <svg id="rele" viewBox="0 0 90 100">
+    <line x1="45" y1="8" x2="45" y2="22" stroke="#2b2250" stroke-width="4"/><circle cx="45" cy="7" r="6" fill="#ff5fa2" stroke="#2b2250" stroke-width="3"/>
+    <rect x="22" y="80" width="46" height="16" rx="7" fill="#ff9f1c" stroke="#2b2250" stroke-width="4"/>
+    <rect x="3" y="38" width="8" height="22" rx="4" fill="#ffd23f" stroke="#2b2250" stroke-width="3"/><rect x="79" y="38" width="8" height="22" rx="4" fill="#ffd23f" stroke="#2b2250" stroke-width="3"/>
+    <rect x="10" y="20" width="70" height="58" rx="17" fill="#7fd8ff" stroke="#2b2250" stroke-width="4"/>
+    <rect x="18" y="29" width="54" height="36" rx="11" fill="#2b2250"/>
+    <circle class="eye" id="e1" cx="35" cy="44" r="5" fill="#7cff8a"/><circle class="eye" id="e2" cx="55" cy="44" r="5" fill="#7cff8a"/>
+    <path id="mouth" d="M36 54Q45 63 54 54" stroke="#7cff8a" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+    <circle cx="25" cy="58" r="3" fill="#ff5fa2" opacity=".8"/><circle cx="65" cy="58" r="3" fill="#ff5fa2" opacity=".8"/>
+   </svg>
+  </div>
+  <div id="bubble"></div>
+  <div class="btns">
+   <button class="btn run" id="run">▶ RODAR</button>
+   <button class="btn rst" id="restart">↻ REINICIAR</button>
+   <button class="btn chk" id="chk">✓ VERIFICAR</button>
+  </div>
+ </footer>
+</div>
+<div id="modal" class="overlay hidden"><div class="mcard card" id="mbody"></div></div>
+
+<script>
+/*PURE_START*/
+const MATN={steel:'aço',inox:'aço inox',alu:'alumínio',plastic:'plástico',carton:'papelão',glass:'vidro',foil:'embalagem metalizada',sugar:'açúcar',liquid:'calda',dust:'pó de açúcar',empty:'parede vazia',rubber:'borracha'};
+const COLN={light:'peça clara',dark:'peça escura',shiny:'superfície brilhante',clear:'vidro transparente'};
+const F={steel:1,inox:.7,alu:.4};
+const DIEL={steel:100,alu:100,inox:100,foil:100,liquid:90,sugar:55,plastic:45,glass:40,carton:35,dust:25,rubber:20,empty:15};
+const CF={light:1,shiny:.6,dark:.25,clear:.08};
+const SENSORS={
+ limit:{type:'limit',name:'Fim de curso',emoji:'🕹️',out:'PNP',det:'qualquer objeto que encoste na alavanca',rng:'contato mecânico'},
+ ind12:{type:'ind',range:4,out:'PNP',name:'Indutivo M12',emoji:'🧲',det:'só metais',rng:'4 mm no aço'},
+ ind18:{type:'ind',range:8,out:'PNP',name:'Indutivo M18',emoji:'🧲',det:'só metais',rng:'8 mm no aço'},
+ ind12n:{type:'ind',range:4,out:'NPN',name:'Indutivo M12 · NPN',emoji:'🧲',det:'só metais',rng:'4 mm no aço · saída NPN'},
+ ind12p:{type:'ind',range:4,out:'PNP',name:'Indutivo M12 · PNP',emoji:'🧲',det:'só metais',rng:'4 mm no aço · saída PNP'},
+ ind18p:{type:'ind',range:8,out:'PNP',name:'Indutivo M18 · PNP',emoji:'🧲',det:'só metais',rng:'8 mm no aço · saída PNP'},
+ capac:{type:'capac',out:'PNP',name:'Capacitivo M30',emoji:'💧',det:'quase tudo: metal, líquido, pó, plástico',rng:'até 15 mm · sensibilidade ajustável'},
+ barrier:{type:'barrier',out:'PNP',name:'Óptico barreira',emoji:'🔦',det:'objetos opacos que cortam o feixe',rng:'emissor + receptor'},
+ retro:{type:'retro',out:'PNP',name:'Óptico retrorreflexivo',emoji:'🪞',det:'objetos opacos que cortam o feixe até o refletor',rng:'emissor/receptor + refletor'},
+ diffuse:{type:'diffuse',out:'PNP',name:'Óptico difuso',emoji:'💡',det:'objetos que refletem a luz',rng:'até 400 mm (peça clara)'},
+ ultra:{type:'ultra',out:'PNP',name:'Ultrassônico',emoji:'🔊',det:'superfícies que devolvem o eco',rng:'40 a 300 mm (zona cega abaixo de 40)'},
+ pt100:{type:'analog',name:'PT100 + transmissor',emoji:'🌡️',lo:0,hi:300,det:'temperatura precisa e estável',rng:'0 a 300 °C → 4–20 mA'},
+ tcK:{type:'analog',name:'Termopar K + transmissor',emoji:'🌡️',lo:0,hi:600,det:'temperatura em faixa larga',rng:'0 a 600 °C → 4–20 mA'},
+ ntc:{type:'analog',name:'NTC + transmissor',emoji:'🌡️',lo:0,hi:120,det:'temperatura baixa, barato',rng:'0 a 120 °C → 4–20 mA'}
+};
+const PARAM={
+ limit:{label:'Alavanca aciona após (mm de curso)',unit:'mm',min:0,max:12,step:.5,def:1},
+ ind:{label:'Folga sensor ↔ peça',unit:'mm',min:0,max:12,step:.1,def:9},
+ capac:{label:'Sensibilidade',unit:'%',min:0,max:100,step:1,def:95},
+ barrier:{label:'Altura do feixe acima da esteira',unit:'mm',min:0,max:120,step:1,def:90},
+ retro:{label:'Altura do feixe acima da esteira',unit:'mm',min:0,max:120,step:1,def:90},
+ diffuse:{label:'Distância sensor ↔ peça',unit:'mm',min:5,max:400,step:1,def:250},
+ ultra:{label:'Ponto de comutação',unit:'mm',min:20,max:300,step:1,def:250}
+};
+const ALL=['limit','ind12','ind18','capac','barrier','retro','diffuse','ultra'];
+function sense(e,p,a,st){
+ const bad=st.bad&&st.bad[e.type];
+ if(bad)return{hit:false,note:bad,bad:true};
+ if(st.plc&&e.out&&e.out!==st.plc)return{hit:false,note:`o sensor ${e.out} entrega 0 V ao detectar, mas esta entrada do CLP espera +24 V (PNP): o CLP nunca vê o sinal`,bad:true};
+ switch(e.type){
+  case 'limit':
+   if(a.travel===undefined)return{hit:false,note:'não há como encostar a alavanca nessa peça de forma confiável'};
+   return{hit:a.travel>=p,note:`a porta avança ${a.travel} mm e a alavanca aciona em ${p} mm`};
+  case 'ind':{
+   if(p<1)return{hit:false,crash:true,note:'sensor perto demais: a peça bate nele (folga mínima de 1 mm)'};
+   const f=F[a.mat]||0,r=e.range*f;
+   if(!f)return{hit:false,note:`o indutivo só enxerga metal: ${MATN[a.mat]||'a peça'} é invisível para ele`};
+   return{hit:p<=r,note:`alcance efetivo no ${MATN[a.mat]}: ${r.toFixed(1)} mm (folga em ${p} mm)`};}
+  case 'capac':{
+   const req=100-(DIEL[a.mat]===undefined?0:DIEL[a.mat]);
+   return{hit:p>=req,note:`${MATN[a.mat]||'a peça'} precisa de sensibilidade de pelo menos ${req}% (está em ${p}%)`};}
+  case 'barrier':
+  case 'retro':
+   if(p<5)return{hit:true,crash:true,note:'feixe muito baixo: bate na esteira e fica sempre bloqueado'};
+   if(a.color==='clear')return{hit:false,note:'o vidro transparente não interrompe o feixe'};
+   if(e.type==='retro'&&a.color==='shiny')return{hit:false,note:'a superfície brilhante devolve o feixe como se fosse o refletor, e o sensor não percebe a peça'};
+   return{hit:p<a.h,note:`feixe a ${p} mm e peça de ${a.h} mm de altura`};
+  case 'diffuse':{
+   if(p<20)return{hit:false,crash:true,note:'perto demais (menos de 20 mm): a lente satura'};
+   const r=Math.round(400*(CF[a.color]===undefined?1:CF[a.color]));
+   return{hit:p<=r,note:`alcance para ${COLN[a.color]||'a peça'}: ${r} mm (distância em ${p} mm)`};}
+  case 'ultra':{
+   if(a.foam)return{hit:false,note:'a espuma absorve o som: não volta eco'};
+   const d=a.d!==undefined?a.d:200-a.h;
+   if(d<40)return{hit:false,note:'a superfície está na zona cega (menos de 40 mm): sem leitura'};
+   return{hit:d<=p,note:`superfície a ${d} mm do sensor e ponto de comutação em ${p} mm`};}
+ }
+ return{hit:false,note:'sensor inválido'};
+}
+function evalAnalog(st,cfg){
+ const e=SENSORS[cfg.sensor],out=[];
+ for(const ev of st.events){
+  const T=ev.T,fr=Math.max(0,Math.min(1,(T-e.lo)/(e.hi-e.lo))),mA=4+16*fr,span=cfg.hi-cfg.lo;
+  const shown=span>0?cfg.lo+(mA-4)/16*span:NaN,err=Math.abs(shown-T);
+  const note=T>e.hi?`o sensor satura em ${e.hi} °C (20 mA): o CLP nunca passa disso`:`${mA.toFixed(1)} mA viram ${isNaN(shown)?'?':shown.toFixed(0)} °C na escala do CLP (${cfg.lo} a ${cfg.hi} °C)`;
+  out.push({ev,expect:T,got:shown,hit:null,mA,note,ok:err<=3});
+ }
+ return{results:out,ok:out.every(x=>x.ok),hazard:null};
+}
+function evalStation(st,cfg){
+ if(!cfg||!cfg.sensor)return{results:[],ok:false,hazard:null,missing:true};
+ if(st.kind==='analog')return evalAnalog(st,cfg);
+ const e=SENSORS[cfg.sensor],out=[];let hazard=null;
+ for(const ev of st.events){
+  const r=sense(e,cfg.p,ev.a,st);
+  if(r.crash&&!hazard)hazard=r.note;
+  out.push({ev,expect:ev.expect,hit:r.hit,note:r.note,ok:r.hit===ev.expect&&!r.crash});
+ }
+ return{results:out,ok:out.every(x=>x.ok)&&!hazard,hazard};
+}
+function resultMsg(st,r,res){
+ if(res&&res.hazard)return res.hazard.charAt(0).toUpperCase()+res.hazard.slice(1)+'.';
+ if(st.kind==='analog')return `Com a temperatura em ${r.ev.T} °C o CLP mostrou ${isNaN(r.got)?'?':r.got.toFixed(0)} °C. ${r.note.charAt(0).toUpperCase()+r.note.slice(1)}.`;
+ return `${r.ev.n}: ${r.expect?'precisava detectar':'não podia detectar'}, mas ${r.hit?'detectou':'não detectou'}. ${r.note.charAt(0).toUpperCase()+r.note.slice(1)}.`;
+}
+const ST={
+ door:{id:'door',kind:'door',title:'Porta do misturador',
+  brief:'Porta de acrílico transparente, com vapor e respingos. O misturador só pode ligar com a porta realmente fechada.',
+  catalog:['limit','ind12','capac','diffuse'],
+  bad:{capac:'vapor e respingos mantêm o sensor ligado o tempo todo',diffuse:'a porta de acrílico é transparente: o feixe atravessa'},
+  events:[{n:'Porta fechada',expect:true,a:{travel:10,mat:'plastic',color:'clear'}},{n:'Porta entreaberta (4 mm)',expect:false,a:{travel:4,mat:'plastic',color:'clear'}},{n:'Porta aberta',expect:false,a:{travel:0,mat:'plastic',color:'clear'}}]},
+ caps:{id:'caps',kind:'belt',title:'Tampas na esteira',
+  brief:'Tampas de aço e de alumínio devem ser contadas. As de plástico, que vêm misturadas, não.',
+  catalog:['ind12','ind18','diffuse','barrier','limit'],
+  bad:{capac:'respingos de calda na esteira deixam a sensibilidade instável'},
+  events:[{n:'Tampa de aço',expect:true,a:{mat:'steel',color:'shiny',h:15,shape:'cap'}},{n:'Tampa de alumínio',expect:true,a:{mat:'alu',color:'shiny',h:15,shape:'cap'}},{n:'Tampa de plástico',expect:false,a:{mat:'plastic',color:'light',h:15,shape:'cap'}}]},
+ silo:{id:'silo',kind:'tank',title:'Silo de açúcar',
+  brief:'Silo de plástico cheio de pó. O sensor fica do lado de fora e deve avisar quando o açúcar chegar na marca.',
+  catalog:['capac','ind18','ultra','diffuse'],
+  bad:{ultra:'a poeira de açúcar espalha o som: a leitura fica instável',diffuse:'o pó cobre a lente em poucos minutos',barrier:'a parede do silo é opaca: não há como instalar',retro:'a parede do silo é opaca: não há como instalar'},
+  events:[{n:'Silo vazio',expect:false,a:{mat:'empty',lvl:'empty'}},{n:'Pó grudado nas paredes',expect:false,a:{mat:'dust',lvl:'dust'}},{n:'Açúcar na marca',expect:true,a:{mat:'sugar',lvl:'mark'}}]},
+ boxes:{id:'boxes',kind:'belt',title:'Caixas e frascos',
+  brief:'A linha conta caixa clara, caixa escura, bandeja baixa, frasco de vidro e embalagem metalizada. Todas devem ser detectadas.',
+  catalog:['barrier','retro','diffuse','ind12'],
+  bad:{capac:'poeira e umidade do papelão deixam a leitura instável',ultra:'a vibração da esteira e o vidro deixam o eco irregular'},
+  events:[{n:'Caixa clara',expect:true,a:{mat:'carton',color:'light',h:60,shape:'box'}},{n:'Caixa escura',expect:true,a:{mat:'carton',color:'dark',h:60,shape:'box'}},{n:'Bandeja baixa',expect:true,a:{mat:'carton',color:'light',h:20,shape:'tray'}},{n:'Frasco de vidro',expect:true,a:{mat:'glass',color:'clear',h:50,shape:'bottle'}},{n:'Embalagem metalizada',expect:true,a:{mat:'foil',color:'shiny',h:30,shape:'pack'}}]},
+ tank:{id:'tank',kind:'tank',title:'Tanque de calda',
+  brief:'Calda grudenta, vapor e espuma. Avise quando o nível chegar em "alto" (a 70 mm do sensor), sem disparar no médio.',
+  catalog:['ultra','capac','diffuse','ind18'],
+  bad:{capac:'a calda grudenta e a espuma ficam no sensor e ele liga sempre',diffuse:'o vapor embaça a lente',barrier:'o tanque é fechado: não há como instalar',retro:'o tanque é fechado: não há como instalar'},
+  events:[{n:'Tanque vazio',expect:false,a:{mat:'liquid',d:300}},{n:'Nível médio',expect:false,a:{mat:'liquid',d:160}},{n:'Nível alto',expect:true,a:{mat:'liquid',d:70}},{n:'Espuma no meio do tanque',expect:false,a:{mat:'liquid',d:130,foam:true}}]},
+ plc:{id:'plc',kind:'belt',title:'Tampas de aço',plc:'PNP',
+  brief:'O CLP desta fábrica tem entrada do tipo PNP (espera +24 V). Detecte as tampas de aço e ignore as de plástico.',
+  catalog:['ind12n','ind12p','ind18p'],
+  events:[{n:'Tampa de aço',expect:true,a:{mat:'steel',color:'shiny',h:15,shape:'cap'}},{n:'Tampa de plástico',expect:false,a:{mat:'plastic',color:'light',h:15,shape:'cap'}}]},
+ oven:{id:'oven',kind:'analog',title:'Forno de biscoitos',
+  brief:'O forno trabalha entre 25 e 230 °C. Escolha o sensor e configure a escala 4–20 mA no CLP para a leitura bater com a temperatura real.',
+  catalog:['pt100','tcK','ntc'],
+  events:[{n:'Forno frio',T:25},{n:'Assando',T:180},{n:'Pico de temperatura',T:230}]}
+};
+const BOSS=['caps','silo','boxes','tank'].map(k=>Object.assign({},ST[k],{catalog:ALL}));
+const LEVELS=[
+ {id:1,name:'A porta que não avisa',stations:[ST.door],
+  mission:'A porta de acrílico do misturador precisa avisar o CLP quando estiver fechada. Há vapor e respingos. Escolha o sensor e ajuste.',
+  story:'Caso 1: o misturador gira com a porta aberta! Descubra qual sensor é confiável num lugar úmido e ajuste o ponto de acionamento.',
+  hints:['A porta é de acrílico e há vapor. Qual sensor não depende do material nem do ar limpo?','No fim de curso, ajuste o ponto onde a alavanca aciona: tem de acionar com a porta realmente fechada, mas não antes.','A porta avança 10 mm ao fechar e fica a 4 mm quando está entreaberta. Coloque o acionamento entre 5 e 10 mm.']},
+ {id:2,name:'As tampas misturadas',stations:[ST.caps],
+  mission:'Conte as tampas de aço e de alumínio da esteira e ignore as de plástico.',
+  story:'Caso 2: tampas de três materiais passam pela esteira. Só as metálicas podem ser contadas.',
+  hints:['As tampas de plástico não podem disparar. Qual sensor só enxerga metal?','No indutivo, o alcance depende do metal: alumínio e aço não têm o mesmo alcance. Teste e leia o diagnóstico do Relê.','M12 (4 mm): folga entre 1 e 1,6 mm. M18 (8 mm): folga entre 1 e 3,2 mm.']},
+ {id:3,name:'O silo cheio de pó',stations:[ST.silo],
+  mission:'Avise quando o açúcar chegar na marca do silo de plástico, com o sensor do lado de fora.',
+  story:'Caso 3: o silo é de plástico e cheio de pó. O sensor precisa enxergar através da parede.',
+  hints:['O sensor tem de funcionar através da parede do silo e tolerar poeira.','No capacitivo, sensibilidade alta enxerga o pó e a parede; baixa demais não vê o açúcar.','Ajuste a sensibilidade entre 45% e 74%.']},
+ {id:4,name:'Caixas, vidro e brilho',stations:[ST.boxes],
+  mission:'Detecte todas as peças da linha: caixas clara e escura, bandeja baixa, frasco de vidro e embalagem metalizada.',
+  story:'Caso 4: a linha mistura cores, alturas e até vidro transparente. Quem dá conta de tudo?',
+  hints:['Barreira não enxerga vidro e o retrorreflexivo é enganado por brilho. Sobra algum tipo?','No difuso, o alcance cai com cor escura e cai muito com vidro transparente. Aproxime o sensor.','Distância entre 20 e 32 mm (abaixo de 20 mm a lente satura).']},
+ {id:5,name:'O tanque de calda',stations:[ST.tank],
+  mission:'Avise quando a calda chegar ao nível alto (70 mm do sensor), sem disparar no médio nem na espuma.',
+  story:'Caso 5: calda grudenta, vapor e espuma. O sensor precisa medir distância sem encostar.',
+  hints:['Sem contato, resistente a vapor e que meça distância: qual é?','No ultrassônico, o ponto de comutação define a que distância da face ele liga. Ligue no alto, não no médio.','Nível alto está a 70 mm e o médio a 160 mm: coloque entre 70 e 159 mm.']},
+ {id:6,name:'O sensor que não conversa',stations:[ST.plc],
+  mission:'Detecte as tampas de aço e ignore as de plástico, com sensor compatível com a entrada PNP do CLP.',
+  story:'Caso 6: o sensor detecta, mas o CLP não vê nada. Será um problema de compatibilidade?',
+  hints:['Entrada PNP espera +24 V quando o sensor detecta. Qual saída entrega isso?','Escolha um sensor PNP. Depois ajuste a folga: leia a ficha do indutivo.','PNP M12: folga entre 1 e 4 mm. PNP M18: folga entre 1 e 8 mm.']},
+ {id:7,name:'Temperatura do forno',stations:[ST.oven],
+  mission:'Meça de 25 a 230 °C: escolha o sensor e configure a escala de 4 e 20 mA no CLP.',
+  story:'Caso 7: sensor analógico! O sinal varia de 4 a 20 mA e o CLP precisa saber o que isso significa.',
+  hints:['Leia a ficha de cada sensor: a faixa de temperatura precisa cobrir 230 °C.','A escala do CLP tem de ser a mesma faixa do transmissor: valor em 4 mA é o mínimo e em 20 mA é o máximo.','PT100: 0 a 300 °C. Termopar K: 0 a 600 °C. Configure o CLP com a mesma faixa do sensor.']},
+ {id:8,name:'CHEFÃO: a linha completa',stations:BOSS,
+  mission:'Resolva as 4 estações da linha de embalagem: tampas, silo, caixas e tanque. Todos os sensores estão disponíveis.',
+  story:'Chefão! Quatro estações, cada uma com seu ambiente. Use tudo o que aprendeu como um verdadeiro detetive.',
+  hints:['Cada estação tem um resumo do ambiente acima da cena. Leia com calma.','Tampas pedem um sensor que só vê metal. Silo pede um que enxergue através da parede. Caixas e frascos pedem um que lide com cor e vidro. Tanque pede medir distância.','Tampas: indutivo M18 de 1 a 3,2 mm. Silo: capacitivo de 45 a 74%. Caixas: difuso de 20 a 32 mm. Tanque: ultrassônico de 70 a 159 mm.']}
+];
+function evalLevel(L,cfg){
+ const per={};let ok=true;
+ for(const st of L.stations){per[st.id]=evalStation(st,cfg[st.id]);if(!per[st.id].ok)ok=false}
+ return{ok,per};
+}
+/*PURE_END*/
+
+/* ================= UI ================= */
+const $=(s,r=document)=>r.querySelector(s),$$=(s,r=document)=>[...r.querySelectorAll(s)];
+const KEY='fabricaRele_sensores_v1';
+const DEF={stars:{},unlocked:1,cfg:{},seen:{},sound:true,welcomed:false};
+function loadP(){try{return Object.assign({},DEF,JSON.parse(localStorage.getItem(KEY)||'{}'))}catch(e){return Object.assign({},DEF)}}
+let P=loadP();
+function save(){try{localStorage.setItem(KEY,JSON.stringify(P))}catch(e){}}
+let L=null,cfg={},cur=0,hints=0,fails=0,last={},run=null,liveT=25;
+const INK='#2b2250';
+const starsHTML=n=>'★'.repeat(n)+'☆'.repeat(3-n);
+
+/* sons */
+let AC=null;
+function beep(f,d=.1,type='sine',v=.07,delay=0){
+ if(!P.sound)return;
+ try{AC=AC||new(window.AudioContext||window.webkitAudioContext)();const o=AC.createOscillator(),g=AC.createGain();o.type=type;o.frequency.value=f;const t=AC.currentTime+delay;g.gain.setValueAtTime(v,t);g.gain.exponentialRampToValueAtTime(.0001,t+d);o.connect(g);g.connect(AC.destination);o.start(t);o.stop(t+d+.02)}catch(e){}
+}
+const sfx={click(){beep(900,.03,'square',.03)},pick(){beep(660,.08,'triangle')},hit(){beep(880,.08,'triangle',.06)},win(){[523,659,784,1046].forEach((f,i)=>beep(f,.18,'triangle',.08,i*.12))},fail(){beep(220,.25,'sawtooth',.05)}};
+function say(t,mood='happy'){
+ $('#bubble').innerHTML='<span>'+t+'</span>';
+ const d={happy:'M36 54Q45 63 54 54',bad:'M36 60Q45 51 54 60',think:'M38 57H52'}[mood]||'M36 54Q45 63 54 54';
+ $('#mouth').setAttribute('d',d);
+ [$('#e1'),$('#e2')].forEach(e=>e.setAttribute('r',mood==='bad'?3.5:5));
+}
+const station=()=>L.stations[cur];
+const scfg=()=>cfg[station().id]||(cfg[station().id]={sensor:null,p:null,lo:0,hi:100});
+function persist(){P.cfg[L.id]=cfg;save()}
+
+/* ---- catálogo e painel ---- */
+function renderHeader(){
+ $('#ltitle').textContent=`Caso ${L.id} · ${L.name}`;
+ $('#lmission').textContent=L.mission;
+ $('#stars').textContent=starsHTML(P.stars[L.id]||0);
+ $('#lv').innerHTML=LEVELS.map(l=>{const lock=l.id>P.unlocked;return `<button class="chip${l.id===L.id?' cur':''}${lock?' lock':''}" data-lv="${l.id}" title="${lock?'Resolva o caso anterior':l.name}">${lock?'🔒':l.id}<i>${lock?'':starsHTML(P.stars[l.id]||0)}</i></button>`}).join('');
+ $('#snd').textContent=P.sound?'🔊':'🔇';
+}
+function renderTabs(){
+ const multi=L.stations.length>1;
+ $('#tabs').innerHTML=multi?L.stations.map((s,i)=>`<button class="tab${i===cur?' cur':''}${last[s.id]&&last[s.id].ok?' okk':''}" data-i="${i}">${last[s.id]&&last[s.id].ok?'✔ ':''}${i+1}. ${s.title}</button>`).join(''):'';
+ $('#tabs').classList.toggle('hidden',!multi);
+ $('#brief').textContent=station().brief;
+}
+function renderCatalog(){
+ const st=station(),c=scfg();
+ $('#catitems').innerHTML=st.catalog.map(id=>{const s=SENSORS[id];return `<div class="scard${c.sensor===id?' sel':''}" draggable="true" data-id="${id}"><span class="em">${s.emoji}</span><div><b>${s.name}</b><small>Detecta: ${s.det}</small><small>Alcance: ${s.rng}</small></div></div>`}).join('');
+}
+function pdef(type){return PARAM[type]}
+function renderSide(){
+ const st=station(),c=scfg(),e=c.sensor?SENSORS[c.sensor]:null;
+ let h='';
+ if(!e)h+='<div class="box2"><b>🔎 Nenhum sensor escolhido</b><br>Escolha um sensor no catálogo ao lado.</div>';
+ else{
+  h+=`<div class="box2"><b>${e.emoji} ${e.name}</b><br>Detecta: ${e.det}<br>Alcance: ${e.rng}${e.out&&e.type!=='analog'?`<br>Saída: <span class="badge">${e.out}</span>`:''}`;
+  if(e.type==='analog'){
+   h+=`<label>Escala no CLP: valor em 4 mA (°C)</label><input type="number" id="lo" value="${c.lo}" step="10"><label>Escala no CLP: valor em 20 mA (°C)</label><input type="number" id="hi" value="${c.hi}" step="10">
+   <label>Simular temperatura do forno: <span class="val" id="tv">${liveT} °C</span></label><input type="range" id="lt" min="0" max="300" value="${liveT}"><div id="ma" style="margin-top:4px"></div>`;
+  }else{
+   const pd=pdef(e.type);
+   h+=`<label>${pd.label}: <span class="val" id="pv">${c.p} ${pd.unit}</span></label><input type="range" id="pr" min="${pd.min}" max="${pd.max}" step="${pd.step}" value="${c.p}">`;
+  }
+  h+='</div>';
+ }
+ const r=last[st.id];
+ if(r&&r.results.length){
+  h+=`<div class="box2"><b>📋 Última rodada</b><ul class="res">${r.results.map(x=>`<li class="${x.ok?'ok':'bad'}">${x.ok?'✔':'✘'} ${x.ev.n}${st.kind==='analog'?`: ${isNaN(x.got)?'?':x.got.toFixed(0)} °C`:`: ${x.hit?'detectou':'não detectou'} <span class="badge">${x.expect?'devia':'não devia'}</span>`}${x.ok?'':`<small>${x.note}</small>`}</li>`).join('')}</ul>${r.hazard?`<p style="margin-top:4px;font-weight:700">⚠️ ${r.hazard}</p>`:''}</div>`;
+ }
+ $('#side').innerHTML=h;
+ const pr=$('#pr');if(pr)pr.oninput=()=>{c.p=parseFloat(pr.value);$('#pv').textContent=`${c.p} ${pdef(e.type).unit}`;persist();drawIdle()};
+ const lo=$('#lo'),hi=$('#hi'),lt=$('#lt');
+ if(lo){lo.onchange=()=>{c.lo=parseFloat(lo.value)||0;persist();updMa()};hi.onchange=()=>{c.hi=parseFloat(hi.value)||0;persist();updMa()};lt.oninput=()=>{liveT=+lt.value;$('#tv').textContent=liveT+' °C';updMa();drawIdle()};updMa()}
+}
+function updMa(){
+ const c=scfg(),e=c.sensor&&SENSORS[c.sensor];if(!e||e.type!=='analog'||!$('#ma'))return;
+ const fr=Math.max(0,Math.min(1,(liveT-e.lo)/(e.hi-e.lo))),mA=4+16*fr,span=c.hi-c.lo,shown=span>0?c.lo+(mA-4)/16*span:NaN;
+ $('#ma').innerHTML=`Sinal: <b>${mA.toFixed(1)} mA</b> → CLP mostra <b>${isNaN(shown)?'?':shown.toFixed(0)} °C</b>`;
+}
+function pick(id){
+ const c=scfg(),e=SENSORS[id];
+ const prevType=c.sensor&&SENSORS[c.sensor].type;
+ c.sensor=id;
+ if(e.type==='analog'){if(c.lo===undefined)c.lo=0;if(!c.hi)c.hi=100}
+ else if(c.p===null||c.p===undefined||prevType!==e.type)c.p=pdef(e.type).def;
+ sfx.pick();persist();renderCatalog();renderSide();drawIdle();
+ say(`${e.emoji} <b>${e.name}</b> escolhido! Ajuste no painel à direita e aperte ▶ RODAR para ver o que acontece.`,'happy');
+}
+$('#catitems').addEventListener('click',e=>{const c=e.target.closest('.scard');if(c)pick(c.dataset.id)});
+$('#catitems').addEventListener('dragstart',e=>{const c=e.target.closest('.scard');if(c){e.dataTransfer.setData('text/plain',c.dataset.id);e.dataTransfer.effectAllowed='copy'}});
+$('#scenewrap').addEventListener('dragover',e=>e.preventDefault());
+$('#scenewrap').addEventListener('drop',e=>{e.preventDefault();const id=e.dataTransfer.getData('text/plain');if(id&&station().catalog.includes(id))pick(id)});
+$('#tabs').addEventListener('click',e=>{const b=e.target.closest('.tab');if(!b)return;if(run)stopRun();cur=+b.dataset.i;renderTabs();renderCatalog();renderSide();drawIdle()});
+
+/* ---- cenas ---- */
+const BG=`<rect width="600" height="300" fill="#eaf4ff"/><rect y="262" width="600" height="38" fill="#cdbcff"/><path d="M0 262H600" stroke="${INK}" stroke-width="4"/>`;
+function pieceFill(a){return a.mat==='steel'?'#98a2b8':a.mat==='alu'?'#d4dbea':a.mat==='plastic'?'#ff6b8a':a.mat==='glass'?'rgba(120,200,255,.4)':a.mat==='foil'?'#e9eef7':a.color==='dark'?'#6a4727':'#e9c892'}
+function pieceSVG(a,x,BY){
+ const hp=a.h*1.15,f=pieceFill(a);let s='';
+ if(a.shape==='cap')s=`<rect x="-20" y="${-hp}" width="40" height="${hp}" rx="5" fill="${f}" stroke="${INK}" stroke-width="3"/><path d="M-13 ${-hp+4}H13" stroke="#fff" stroke-width="3" opacity=".6"/>`;
+ else if(a.shape==='bottle')s=`<rect x="-16" y="${-hp+16}" width="32" height="${hp-16}" rx="8" fill="${f}" stroke="${INK}" stroke-width="3"/><rect x="-7" y="${-hp}" width="14" height="20" rx="3" fill="${f}" stroke="${INK}" stroke-width="3"/>`;
+ else if(a.shape==='tray')s=`<rect x="-34" y="${-hp}" width="68" height="${hp}" rx="4" fill="${f}" stroke="${INK}" stroke-width="3"/>`;
+ else if(a.shape==='pack')s=`<rect x="-26" y="${-hp}" width="52" height="${hp}" rx="6" fill="${f}" stroke="${INK}" stroke-width="3"/><path d="M-18 ${-hp+5}L-6 ${-hp+16}M-2 ${-hp+5}L10 ${-hp+16}" stroke="#fff" stroke-width="3"/>`;
+ else s=`<rect x="-30" y="${-hp}" width="60" height="${hp}" rx="5" fill="${f}" stroke="${INK}" stroke-width="3"/><path d="M-30 ${-hp+14}H30" stroke="${INK}" stroke-width="2" opacity=".4"/>`;
+ return `<g transform="translate(${x} ${BY})">${s}</g>`;
+}
+function ledSVG(on,label){return `<g transform="translate(468 10)"><rect width="122" height="40" rx="12" fill="#fff" stroke="${INK}" stroke-width="3"/><circle cx="24" cy="20" r="11" fill="${on?'#19c37d':'#9a94b8'}" stroke="${INK}" stroke-width="3"/>${on?'<circle cx="24" cy="20" r="18" fill="#19c37d" opacity=".3"/>':''}<text x="42" y="18" class="tiny">Saída do sensor</text><text x="42" y="32" class="ct" style="font-size:13px">${label}</text></g>`}
+function bannerSVG(ev,mark){return ev?`<g transform="translate(12 10)"><rect width="${Math.max(150,ev.n.length*8+30)}" height="30" rx="10" fill="#fff" stroke="${INK}" stroke-width="3"/><text x="12" y="20" class="ct" style="font-size:13px">${ev.n}${mark||''}</text></g>`:''}
+function sensorBody(x,y,w,h,col,label){return `<rect x="${x-w/2}" y="${y}" width="${w}" height="${h}" rx="8" fill="${col}" stroke="${INK}" stroke-width="3.5"/><circle cx="${x}" cy="${y+h-8}" r="5" fill="#fff" stroke="${INK}" stroke-width="2"/><text x="${x}" y="${y-5}" class="tiny" text-anchor="middle">${label}</text>`}
+function sceneBelt(c){
+ const {st,e,p,ev,hit,t}=c,BY=215,sx=300;
+ let s=BG+`<rect x="20" y="${BY}" width="560" height="22" rx="11" fill="#4b4570" stroke="${INK}" stroke-width="4"/>`;
+ for(let i=0;i<14;i++)s+=`<path d="M${40+i*40+((t||0)*80)%40} ${BY+3}V${BY+19}" stroke="#7b73ad" stroke-width="4"/>`;
+ s+=`<path d="M60 242L50 262M540 242L550 262" stroke="${INK}" stroke-width="8"/>`;
+ const x=ev?-60+t*720:-999,near=ev&&Math.abs(x-sx)<40,led=ev&&near&&hit;
+ let blocked=false;
+ if(e){
+  const ty=e.type;
+  if(ty==='barrier'||ty==='retro'){
+   const by=BY-p*1.15,beamEnd=ev&&near&&hit?x-(ev.a.shape==='bottle'?16:30):540;
+   blocked=ev&&near&&hit;
+   s+=`<rect x="40" y="${by-14}" width="22" height="28" rx="5" fill="#ff9f9f" stroke="${INK}" stroke-width="3"/>`;
+   s+=ty==='barrier'?`<rect x="538" y="${by-14}" width="22" height="28" rx="5" fill="#9fd3ff" stroke="${INK}" stroke-width="3"/>`:`<rect x="548" y="${by-16}" width="14" height="32" rx="3" fill="#e9eef7" stroke="${INK}" stroke-width="3"/><path d="M552 ${by-10}L558 ${by-4}M552 ${by+2}L558 ${by+8}" stroke="#ff4d5e" stroke-width="2"/>`;
+   s+=`<path d="M62 ${by}H${blocked?beamEnd:538}" stroke="${blocked?'#19c37d':'#ff4d5e'}" stroke-width="3" stroke-dasharray="7 5"/>`;
+   s+=`<text x="300" y="${by-12}" class="tiny" text-anchor="middle">${ty==='barrier'?'barreira':'retrorreflexivo'}</text>`;
+  }else if(ty==='ultra'){
+   const fy=40,sp=fy+p*.9*(165/200),lineY=Math.min(sp,BY);
+   s+=sensorBody(sx,fy-26,50,26,'#ffd9a0','ultrassônico');
+   s+=`<path d="M${sx-10} ${fy}L${sx-60} ${Math.min(BY,lineY+30)}H${sx+60}L${sx+10} ${fy}Z" fill="${led?'#19c37d':'#ffb84d'}" opacity=".18"/>`;
+   s+=`<path d="M${sx-75} ${lineY}H${sx+75}" stroke="#ff4d5e" stroke-width="3" stroke-dasharray="6 4"/><text x="${sx+80}" y="${lineY+4}" class="tiny">comuta aqui (${p} mm)</text>`;
+  }else{
+   const gp=ty==='ind'?p*5:ty==='diffuse'?p*.4:p*4,sy=BY-24-Math.min(gp,150)-26;
+   const col=ty==='ind'?'#c9d6ff':ty==='diffuse'?'#ffe9a0':ty==='capac'?'#b8f2d6':'#ffc2c8';
+   s+=sensorBody(sx,sy,48,26,col,SENSORS[c.sensor].name.replace(' · NPN','').replace(' · PNP',''));
+   s+=`<path d="M${sx-8} ${sy+26}L${sx-22} ${BY-24}H${sx+22}L${sx+8} ${sy+26}Z" fill="${led?'#19c37d':'#7fd8ff'}" opacity=".28"/>`;
+   s+=`<path d="M${sx+34} ${sy+26}V${BY-24}" stroke="${INK}" stroke-width="2"/><text x="${sx+38}" y="${(sy+26+BY-24)/2+4}" class="tiny">${p} mm</text>`;
+  }
+ }
+ if(ev)s+=pieceSVG(ev.a,x,BY);
+ const mark=ev&&t>.7?(c.res&&c.res.ok?'  ✔':'  ✘'):'';
+ return s+bannerSVG(ev,mark)+ledSVG(!!led,led?'LIGADA':'desligada');
+}
+function sceneTank(c){
+ const {st,e,p,ev,hit,t}=c,TX=220,TW=160,TY=50,TB=240,markY=110;
+ const lvlY=a=>a.d!==undefined?Math.min(TB,TY+a.d*.62):a.lvl==='mark'?markY-4:TB;
+ const y1=ev?lvlY(ev.a):TB,y0=c.prev?lvlY(c.prev.a):TB,y=ev?y0+(y1-y0)*Math.min(1,(t||0)*3):TB;
+ const mat=ev?ev.a.mat:'liquid',isSugar=mat==='sugar'||mat==='dust'||mat==='empty';
+ let s=BG+`<rect x="${TX}" y="${TY}" width="${TW}" height="${TB-TY}" rx="10" fill="${isSugar?'#fff':'#fff'}" stroke="${INK}" stroke-width="4"/>`;
+ const fill=isSugar?'#f4dcae':'#ff9f43';
+ if(y<TB-4)s+=`<rect x="${TX+3}" y="${y}" width="${TW-6}" height="${Math.max(0,TB-y-3)}" fill="${fill}"/><path d="M${TX+3} ${y}H${TX+TW-3}" stroke="${INK}" stroke-width="3"/>`;
+ if(ev&&ev.a.mat==='dust')for(let i=0;i<26;i++)s+=`<circle cx="${TX+8+(i*37)%(TW-16)}" cy="${TY+10+(i*53)%(TB-TY-20)}" r="2.6" fill="#f0c98a" stroke="#b58a44" stroke-width="1"/>`;
+ if(ev&&ev.a.foam)for(let i=0;i<9;i++)s+=`<circle cx="${TX+16+i*16}" cy="${y-8-(i%3)*5}" r="9" fill="#fff" stroke="${INK}" stroke-width="2"/>`;
+ s+=`<path d="M${TX-8} ${markY}H${TX+TW+8}" stroke="#ff4d5e" stroke-width="3" stroke-dasharray="6 4"/><text x="${TX-14}" y="${markY+4}" class="tiny" text-anchor="end">${st.id==='silo'?'marca':'nível alto'}</text>`;
+ const settled=ev&&(t||0)>.45,led=settled&&hit;
+ if(e){
+  if(e.type==='ultra'){
+   const sy=TY+p*.62;
+   s+=sensorBody(TX+TW/2,TY-32,54,26,'#ffd9a0','ultrassônico');
+   s+=`<path d="M${TX+TW/2-10} ${TY-6}L${TX+20} ${Math.min(y,TB)}H${TX+TW-20}L${TX+TW/2+10} ${TY-6}Z" fill="${led?'#19c37d':'#ffb84d'}" opacity=".2"/>`;
+   s+=`<path d="M${TX+10} ${Math.min(sy,TB)}H${TX+TW-10}" stroke="#2b2250" stroke-width="2.5" stroke-dasharray="6 4"/><text x="${TX+TW+8}" y="${Math.min(sy,TB)+4}" class="tiny">comuta (${p} mm)</text>`;
+  }else{
+   const bx=TX+TW+6;
+   s+=sensorBody(bx+22,markY-13,44,26,e.type==='capac'?'#b8f2d6':e.type==='ind'?'#c9d6ff':'#ffe9a0',SENSORS[c.sensor].name.split(' ')[0]);
+   s+=`<path d="M${bx} ${markY-10}L${TX+TW-30} ${markY-14}V${markY+14}L${bx} ${markY+10}Z" fill="${led?'#19c37d':'#7fd8ff'}" opacity=".3"/>`;
+   if(e.type==='capac')s+=`<text x="${bx+22}" y="${markY+34}" class="tiny" text-anchor="middle">sens. ${p}%</text>`;
+  }
+ }
+ const mark=ev&&t>.7?(c.res&&c.res.ok?'  ✔':'  ✘'):'';
+ return s+bannerSVG(ev,mark)+ledSVG(!!led,led?'LIGADA':'desligada');
+}
+function sceneDoor(c){
+ const {st,e,p,ev,hit,t}=c,DY=70,wallX=120;
+ const trav=ev?(c.prev?c.prev.a.travel:0)+((ev.a.travel)-(c.prev?c.prev.a.travel:0))*Math.min(1,(t||0)*2):0;
+ const doorX=440-trav*14,tipX0=440-p*14,tipX=Math.min(tipX0,Math.max(doorX,wallX+95));
+ let s=BG+`<rect x="${wallX}" y="40" width="30" height="222" fill="#8d86b3" stroke="${INK}" stroke-width="4"/><rect x="520" y="40" width="40" height="222" fill="#8d86b3" stroke="${INK}" stroke-width="4"/>`;
+ s+=`<rect x="${doorX}" y="${DY}" width="26" height="190" rx="6" fill="rgba(140,200,255,.45)" stroke="${INK}" stroke-width="4"/><text x="${doorX+13}" y="${DY-8}" class="tiny" text-anchor="middle">porta</text>`;
+ const led=ev&&(t||0)>.5&&hit;
+ if(e){
+  if(e.type==='limit'){
+   s+=`<rect x="${wallX+30}" y="140" width="60" height="40" rx="6" fill="#ffc2c8" stroke="${INK}" stroke-width="4"/><path d="M${wallX+90} 160H${tipX-4}" stroke="${INK}" stroke-width="6" stroke-linecap="round"/><circle cx="${tipX}" cy="160" r="7" fill="#ffd23f" stroke="${INK}" stroke-width="3"/><text x="${wallX+60}" y="132" class="tiny" text-anchor="middle">fim de curso</text><text x="${wallX+60}" y="204" class="tiny" text-anchor="middle">aciona em ${p} mm</text>`;
+  }else s+=sensorBody(wallX+70,140,56,30,'#ffe9a0',SENSORS[c.sensor].name);
+  if(led)s+=`<circle cx="${tipX}" cy="160" r="16" fill="#19c37d" opacity=".4"/>`;
+ }
+ const mark=ev&&t>.7?(c.res&&c.res.ok?'  ✔':'  ✘'):'';
+ return s+bannerSVG(ev,mark)+ledSVG(!!led,led?'LIGADA':'desligada');
+}
+function sceneAnalog(c){
+ const {st,e,ev,t}=c,cf=c.cfg;
+ const T0=c.prev?c.prev.T:25,T=ev?T0+(ev.T-T0)*Math.min(1,(t||0)*3):c.liveT;
+ let s=BG+`<rect x="40" y="40" width="250" height="215" rx="22" fill="#ff7aa8" stroke="${INK}" stroke-width="4"/><rect x="62" y="70" width="206" height="125" rx="12" fill="#3a3358" stroke="${INK}" stroke-width="4"/>`;
+ const heat=Math.min(1,T/300);
+ s+=`<rect x="64" y="72" width="202" height="121" rx="10" fill="#ff9f1c" opacity="${(heat*.55).toFixed(2)}"/>`;
+ for(let i=0;i<5;i++)s+=`<ellipse cx="${100+i*30}" cy="170" rx="12" ry="${6+heat*10}" fill="#ffe3a3" opacity="${(.25+heat*.6).toFixed(2)}"/>`;
+ s+=`<text x="165" y="60" class="ct" text-anchor="middle" style="fill:#fff;font-size:16px">FORNO · ${T.toFixed(0)} °C</text>`;
+ if(e){
+  s+=`<path d="M265 150H320" stroke="${INK}" stroke-width="5"/><circle cx="268" cy="150" r="7" fill="#ffd23f" stroke="${INK}" stroke-width="3"/>`;
+  const fr=Math.max(0,Math.min(1,(T-e.lo)/(e.hi-e.lo))),mA=4+16*fr,span=cf.hi-cf.lo,shown=span>0?cf.lo+(mA-4)/16*span:NaN;
+  s+=`<rect x="320" y="120" width="86" height="60" rx="10" fill="#c9d6ff" stroke="${INK}" stroke-width="4"/><text x="363" y="145" class="tiny" text-anchor="middle">${e.name.split(' ')[0]}</text><text x="363" y="165" class="ct" text-anchor="middle" style="font-size:13px">${mA.toFixed(1)} mA</text>`;
+  s+=`<path d="M406 150H440" stroke="${INK}" stroke-width="5"/>`;
+  s+=`<rect x="440" y="90" width="140" height="120" rx="12" fill="#fff7d6" stroke="${INK}" stroke-width="4"/><text x="510" y="112" class="tiny" text-anchor="middle">CLP · entrada analógica</text><rect x="454" y="122" width="112" height="34" rx="6" fill="#1f3b2d"/><text x="510" y="146" text-anchor="middle" font-family="monospace" font-weight="900" font-size="18" fill="#7cff8a">${isNaN(shown)?'---':shown.toFixed(0)} °C</text><text x="510" y="178" class="tiny" text-anchor="middle">escala ${cf.lo} a ${cf.hi} °C</text><rect x="454" y="188" width="112" height="10" rx="5" fill="#fff" stroke="${INK}" stroke-width="2"/><rect x="456" y="190" width="${(108*fr).toFixed(0)}" height="6" rx="3" fill="#19c37d"/>`;
+ }
+ return s+bannerSVG(ev,ev&&t>.7?(c.res&&c.res.ok?'  ✔':'  ✘'):'');
+}
+function drawScene(ev,t,prev,res){
+ const st=station(),c0=scfg(),e=c0.sensor?SENSORS[c0.sensor]:null;
+ const ctx={st,e,p:c0.p,ev,t,prev,res,sensor:c0.sensor,cfg:c0,liveT,hit:res?res.hit:false};
+ const f=st.kind==='belt'?sceneBelt:st.kind==='tank'?sceneTank:st.kind==='door'?sceneDoor:sceneAnalog;
+ $('#scene').innerHTML=f(ctx);
+}
+function drawIdle(){
+ if(run)return;
+ const st=station(),c=scfg();
+ let ev=null;
+ if(st.kind==='tank'||st.kind==='door')ev=null;
+ drawScene(ev,0,null,null);
+}
+
+/* ---- RODAR ---- */
+const DUR=2300;
+function play(){
+ if(run)return;
+ const st=station(),c=scfg();
+ if(!c.sensor){say('Primeiro escolha um sensor no catálogo!','think');sfx.fail();return}
+ const res=evalStation(st,c);
+ run={st,res,i:0,t0:performance.now()};
+ $('#run').disabled=true;
+ say(`Rodando o caso... Observe o LED de saída do sensor em cada situação.`,'happy');
+ requestAnimationFrame(loop);
+}
+function loop(now){
+ if(!run)return;
+ const {st,res}=run,t=(now-run.t0)/DUR;
+ if(t>=1){
+  const r=res.results[run.i];
+  if(r)sfx[r.ok?'hit':'fail']();
+  run.i++;run.t0=now;
+  if(run.i>=res.results.length)return endRun();
+ }
+ const i=run.i,r=res.results[i];
+ drawScene(r.ev,Math.min(1,Math.max(0,(now-run.t0)/DUR)),i>0?res.results[i-1].ev:null,r);
+ requestAnimationFrame(loop);
+}
+function endRun(){
+ const st=run.st,res=run.res;
+ last[st.id]=res;run=null;$('#run').disabled=false;
+ renderTabs();renderSide();drawIdle();
+ const bad=res.results.find(x=>!x.ok);
+ if(res.ok)say('Rodada perfeita! 🎉 Aperte <b>✓ VERIFICAR</b> para fechar o caso.','happy');
+ else say(`Hmm... ${resultMsg(st,bad,res)}`,'bad');
+}
+function stopRun(){run=null;$('#run').disabled=false;drawIdle()}
+$('#run').onclick=play;
+$('#restart').onclick=()=>{if(run)stopRun();const c=scfg();c.sensor=null;c.p=null;c.lo=0;c.hi=100;delete last[station().id];persist();renderTabs();renderCatalog();renderSide();drawIdle();say('Tudo reiniciado nesta estação. Escolha um sensor!','happy')};
+
+/* ---- modais ---- */
+let demoTimer=null;
+function modal(html,wide){$('#mbody').innerHTML=html;$('#mbody').classList.toggle('wide',!!wide);$('#modal').classList.remove('hidden')}
+function closeModal(){$('#modal').classList.add('hidden')}
+$('#modal').addEventListener('click',e=>{if(e.target.id==='modal')closeModal()});
+function ask(title,msg,yes,onYes){
+ modal(`<h2>${title}</h2><p>${msg}</p><div class="mbts"><button class="btn" id="a-no">Cancelar</button><button class="btn stop" id="a-yes">${yes}</button></div>`);
+ $('#a-no').onclick=closeModal;$('#a-yes').onclick=()=>{closeModal();onYes()};
+}
+function openHints(){
+ const n=Math.min(hints,3);
+ modal(`<h2>💡 Dicas do caso ${L.id}</h2><p style="font-size:12px;opacity:.7">As dicas já abertas ficam aqui. Usar dicas diminui as estrelas.</p>${L.hints.slice(0,n).map((h,i)=>`<div class="hintcard"><b>Dica ${i+1} de 3</b><p>${h}</p></div>`).join('')}<div class="mbts"><button class="btn" id="m-close">Fechar</button>${n<3?`<button class="btn rst" id="m-more">Mostrar a dica ${n+1} de 3</button>`:''}</div>`);
+ $('#m-close').onclick=closeModal;
+ const more=$('#m-more');if(more)more.onclick=()=>{hints=n+1;openHints()};
+}
+$('#hintbtn').onclick=()=>{if(hints===0)hints=1;sfx.click();openHints()};
+
+/* ---- verificar ---- */
+function complete(){
+ const stars=1+(hints===0?1:0)+(fails<=1?1:0);
+ P.stars[L.id]=Math.max(P.stars[L.id]||0,stars);
+ if(L.id<LEVELS.length)P.unlocked=Math.max(P.unlocked,L.id+1);
+ save();renderHeader();sfx.win();
+ const lastL=L.id===LEVELS.length;
+ say(lastL?'🏆 Você resolveu todos os casos! Detetive nota 10!':'🎉 Caso resolvido! Que detetive incrível!','happy');
+ modal(`<h2>${lastL?'🏆 Casos encerrados!':'🎉 Caso resolvido!'}</h2><div class="bigstars">${starsHTML(stars)}</div><p>Dicas usadas: <b>${hints}</b> · Verificações erradas: <b>${fails}</b></p><p style="font-size:12px;opacity:.7">3 estrelas = nenhuma dica e no máximo 1 verificação errada.</p><div class="mbts"><button class="btn" id="m-close">Continuar aqui</button>${lastL?'<button class="btn run" id="m-first">Jogar de novo</button>':'<button class="btn run" id="m-next">Próximo caso ▶</button>'}</div>`);
+ $('#m-close').onclick=closeModal;
+ if(lastL)$('#m-first').onclick=()=>{closeModal();loadLevel(1)};else $('#m-next').onclick=()=>{closeModal();loadLevel(L.id+1)};
+}
+function verify(){
+ if(run)stopRun();
+ const miss=L.stations.findIndex(s=>!(cfg[s.id]&&cfg[s.id].sensor));
+ if(miss>=0){
+  if(L.stations.length>1){cur=miss;renderTabs();renderCatalog();renderSide();drawIdle()}
+  say(L.stations.length>1?`Falta escolher o sensor da estação ${miss+1}.`:'Escolha um sensor primeiro!','think');sfx.fail();return;
+ }
+ const lv=evalLevel(L,cfg);
+ L.stations.forEach(s=>{last[s.id]=lv.per[s.id]});
+ renderTabs();renderSide();
+ if(lv.ok){complete();return}
+ fails++;sfx.fail();
+ const badSt=L.stations.find(s=>!lv.per[s.id].ok),res=lv.per[badSt.id],bad=res.results.find(x=>!x.ok);
+ const pista=(L.stations.length>1?`<b>Estação ${L.stations.indexOf(badSt)+1} (${badSt.title}):</b> `:'')+resultMsg(badSt,bad,res);
+ say('Quase lá! '+pista,'bad');
+ const okN=L.stations.filter(s=>lv.per[s.id].ok).length;
+ modal(`<h2>🔧 Ainda não resolveu</h2>${L.stations.length>1?`<p>${okN} de ${L.stations.length} estações resolvidas.</p>`:''}<div class="pista">🤖 <b>Pista do Relê:</b> ${pista}</div><div class="mbts"><button class="btn rst" id="m-close">Voltar ao caso</button><button class="btn" id="m-hint">💡 Pedir dica</button></div>`);
+ $('#m-close').onclick=()=>{closeModal();if(L.stations.length>1){cur=L.stations.indexOf(badSt);renderTabs();renderCatalog();renderSide();drawIdle()}};
+ $('#m-hint').onclick=()=>{if(hints===0)hints=1;openHints()};
+}
+$('#chk').onclick=verify;
+
+/* ---- trilha ---- */
+function demoSense(host,d){
+ const e=SENSORS[d.sensor],pd=PARAM[e.type];let pi=0,p=d.p===undefined?pd.def:d.p;
+ host.innerHTML=`<div class="pcs">${d.pieces.map((x,i)=>`<button class="pc${i===0?' sel':''}" data-i="${i}">${x.label}</button>`).join('')}</div><label style="font-size:12px;font-weight:800">${d.plabel||pd.label}: <span class="val" id="dp">${p} ${pd.unit}</span></label><input type="range" id="dr" min="${d.min===undefined?pd.min:d.min}" max="${d.max===undefined?pd.max:d.max}" step="${pd.step}" value="${p}"><div class="out"><span class="led" id="dl"></span><span id="dt"></span></div>`;
+ const upd=()=>{const r=sense(e,p,d.pieces[pi].a,{});$('#dl',host).classList.toggle('on',r.hit);$('#dt',host).innerHTML=`<b>${r.hit?'DETECTA':'não detecta'}</b>: ${r.note}`;$('#dp',host).textContent=`${p} ${pd.unit}`};
+ $$('.pc',host).forEach(b=>b.onclick=()=>{pi=+b.dataset.i;$$('.pc',host).forEach(x=>x.classList.toggle('sel',x===b));upd()});
+ $('#dr',host).oninput=ev=>{p=parseFloat(ev.target.value);upd()};
+ upd();
+}
+function demoAnalog(host){
+ let T=60;
+ host.innerHTML=`<label style="font-size:12px;font-weight:800">Temperatura (exemplo: sensor de 0 a 200 °C): <span class="val" id="dp"></span></label><input type="range" id="dr" min="0" max="200" value="60"><div class="out"><span id="dt"></span></div><p style="font-size:12px;opacity:.8;margin-top:4px">mA = 4 + 16 × (T − mín) ÷ (máx − mín)</p>`;
+ const upd=()=>{const mA=4+16*T/200;$('#dp',host).textContent=T+' °C';$('#dt',host).innerHTML=`Sinal: <b>${mA.toFixed(1)} mA</b>${T===0?' (mínimo da faixa)':T===200?' (máximo da faixa)':''}. Se o fio romper, o sinal cai a <b>0 mA</b>: o CLP percebe a falha!`};
+ $('#dr',host).oninput=e=>{T=+e.target.value;upd()};upd();
+}
+const LESSONS={
+1:[
+ {t:'O que é um sensor?',p:'Sensor é o "sentido" da máquina: ele transforma algo do mundo real (presença, nível, temperatura) em um <b>sinal elétrico</b> que o CLP consegue ler. Pode ser <b>digital</b> (liga/desliga) ou <b>analógico</b> (varia aos poucos).'},
+ {t:'O fim de curso',p:'É uma <b>chave mecânica</b> com alavanca: precisa <b>encostar</b> na peça. É simples e robusto, e funciona com vapor, sujeira e qualquer material. O segredo é o <b>ponto de acionamento</b>: cedo demais dá sinal falso, tarde demais nunca aciona.',demo:{sensor:'limit',pieces:[{label:'Porta avançou 3 mm',a:{travel:3}},{label:'Porta avançou 7 mm',a:{travel:7}}],p:5,plabel:'Alavanca aciona após'}}],
+2:[
+ {t:'Sensor indutivo: só metal',p:'O indutivo cria um campo magnético e percebe quando um <b>metal</b> entra nele. Não enxerga plástico, papel, líquido. Não toca na peça e aguenta sujeira.',demo:{sensor:'ind12',pieces:[{label:'Peça de aço',a:{mat:'steel'}},{label:'Peça de plástico',a:{mat:'plastic'}}]}},
+ {t:'Distância sensora',p:'Cada indutivo tem um <b>alcance nominal</b> (medido no aço). Metais diferentes têm <b>alcance diferente</b> (fator de redução). Deixe também uma <b>folga mínima</b> para a peça não bater no sensor.'}],
+3:[
+ {t:'Sensor capacitivo',p:'O capacitivo percebe a <b>mudança de capacitância</b> quando algo se aproxima, e por isso detecta quase tudo: líquidos, pó, plástico e metal. Consegue "ver" <b>através de paredes finas</b> de plástico ou vidro.',demo:{sensor:'capac',pieces:[{label:'Açúcar',a:{mat:'sugar'}},{label:'Água',a:{mat:'liquid'}},{label:'Plástico',a:{mat:'plastic'}}]}},
+ {t:'O potenciômetro de sensibilidade',p:'Ele tem um <b>ajuste de sensibilidade</b>. Alta demais, enxerga sujeira e a própria parede. Baixa demais, não vê o produto. Ajustar é encontrar o ponto no meio.'}],
+4:[
+ {t:'Sensores ópticos',p:'Usam luz. <b>Barreira</b>: emissor de um lado e receptor do outro; detecta quando o feixe é cortado. <b>Retrorreflexivo</b>: emissor e receptor juntos, com um refletor do outro lado. <b>Difuso</b>: a luz bate na peça e volta.'},
+ {t:'Cor e transparência importam',p:'No difuso, peça <b>escura</b> reflete pouco e reduz o alcance; <b>vidro transparente</b> reflete muito pouco. A barreira não percebe vidro transparente. O retrorreflexivo pode ser enganado por <b>superfície brilhante</b>.',demo:{sensor:'diffuse',pieces:[{label:'Peça clara',a:{color:'light'}},{label:'Peça escura',a:{color:'dark'}}]}}],
+5:[
+ {t:'Sensor ultrassônico',p:'Envia um som que o ouvido não escuta e mede o <b>tempo do eco</b> para calcular a distância. Funciona com líquidos, vidro e cores diferentes. Tem uma <b>zona cega</b> perto da face, e materiais macios ou espuma <b>absorvem o som</b>.',demo:{sensor:'ultra',pieces:[{label:'Superfície a 100 mm',a:{d:100}},{label:'Superfície a 220 mm',a:{d:220}},{label:'Espuma a 100 mm',a:{d:100,foam:true}}]}},
+ {t:'Ponto de comutação',p:'Você define a que distância o sensor <b>liga</b>. A saída fica ligada quando a superfície está mais perto que esse ponto, e fora da zona cega.'}],
+6:[
+ {t:'Saída PNP e NPN',p:'Sensor de 3 fios tem saída transistorizada. <b>PNP</b> entrega <b>+24 V</b> no fio de sinal quando detecta. <b>NPN</b> liga o fio de sinal ao <b>0 V</b> quando detecta. Parecem iguais na prática, mas o sinal elétrico é o oposto.'},
+ {t:'Compatibilidade com o CLP',p:'A entrada do CLP precisa ser compatível. Neste CLP, a entrada espera <b>+24 V</b> para ler 1, ou seja, é do tipo PNP. Um sensor NPN <b>detecta, mas o CLP nunca vê o sinal</b>. Sempre confira a ficha antes de comprar!'}],
+7:[
+ {t:'Sinal analógico 4–20 mA',p:'No analógico, o sinal varia continuamente. Em <b>4 mA</b> está o <b>mínimo</b> da faixa e em <b>20 mA</b> o <b>máximo</b>. Por que não 0 mA? Porque 0 mA indica <b>fio rompido</b>.',demo:'analog'},
+ {t:'Escala no CLP',p:'O CLP recebe só a corrente. Você diz a ele <b>qual temperatura vale 4 mA</b> e <b>qual vale 20 mA</b>. Se a escala estiver diferente da faixa do sensor, a leitura sai errada. Se a temperatura passar da faixa, o sensor <b>satura</b> em 20 mA.'},
+ {t:'Sensores de temperatura',p:'<b>PT100</b>: preciso e estável. <b>Termopar</b>: aguenta temperaturas altas e responde rápido. <b>NTC</b>: barato, mas só para faixas baixas. Leia a faixa na ficha!'}],
+8:[
+ {t:'Juntando tudo',p:'No chefão são <b>quatro estações</b>, cada uma com um ambiente diferente e todos os sensores disponíveis. Leia o resumo de cada estação com calma: o material, a sujeira, o vapor e a cor definem o sensor certo.'},
+ {t:'Dividir para conquistar',p:'Resolva uma estação por vez com ▶ <b>RODAR</b>, depois use ✓ <b>VERIFICAR</b>. O Relê aponta o primeiro erro e diz qual estação precisa de atenção.'}]
+};
+let lesStep=0;
+function openLesson(id,step){
+ lesStep=step||0;
+ const steps=LESSONS[id],s=steps[lesStep],last=lesStep===steps.length-1,lv=LEVELS[id-1];
+ const dots=steps.map((_,i)=>`<span class="${i===lesStep?'on':''}"></span>`).join('');
+ modal(`<h2>📖 Trilha · Caso ${id}</h2><div class="dots">${dots}</div><h3>${s.t}</h3><p>${s.p}</p>${s.demo?'<div class="demo" id="demo"></div>':''}${last?`<p><b>🎯 Missão:</b> ${lv.mission}</p>`:''}<div class="mbts">${lesStep>0?'<button class="btn" id="l-prev">◀ Voltar</button>':''}<button class="btn run" id="l-next">${last?'Começar o caso 🚀':'Próximo ▶'}</button></div><p><a href="#" id="l-skip">pular trilha</a></p>`,true);
+ if(s.demo){const h=$('#demo');if(s.demo==='analog')demoAnalog(h);else demoSense(h,s.demo)}
+ const prev=$('#l-prev');if(prev)prev.onclick=()=>openLesson(id,lesStep-1);
+ $('#l-next').onclick=()=>{if(last)endLesson(id);else openLesson(id,lesStep+1)};
+ $('#l-skip').onclick=e=>{e.preventDefault();endLesson(id)};
+}
+function endLesson(id){P.seen[id]=1;save();closeModal()}
+$('#lessonbtn').onclick=()=>{sfx.click();openLesson(L.id)};
+function maybeLesson(){if(P.welcomed&&!P.seen[L.id]&&LESSONS[L.id])openLesson(L.id)}
+
+/* ---- fases ---- */
+function loadLevel(id){
+ if(id>P.unlocked)return;
+ closeModal();run=null;$('#run').disabled=false;
+ L=LEVELS[id-1];hints=0;fails=0;cur=0;last={};liveT=25;
+ const saved=P.cfg[id];
+ cfg={};
+ if(saved&&typeof saved==='object'){
+  L.stations.forEach(s=>{const c=saved[s.id];if(c&&(c.sensor===null||s.catalog.includes(c.sensor)))cfg[s.id]={sensor:c.sensor,p:c.p,lo:c.lo===undefined?0:c.lo,hi:c.hi||100}});
+ }
+ renderHeader();renderTabs();renderCatalog();renderSide();drawIdle();
+ say(`<b>Caso ${L.id}:</b> ${L.story}`,'happy');
+ maybeLesson();
+}
+$('#lv').addEventListener('click',e=>{const b=e.target.closest('.chip');if(b&&!b.classList.contains('lock'))loadLevel(+b.dataset.lv);else if(b){say('Esse caso ainda está trancado. Resolva o anterior!','think');sfx.fail()}});
+$('#snd').onclick=()=>{P.sound=!P.sound;save();renderHeader();if(P.sound)sfx.click()};
+$('#rstp').onclick=()=>{ask('↺ Zerar tudo','Apagar <b>todo</b> o progresso: estrelas, casos desbloqueados e ajustes? Não dá para desfazer.','Sim, zerar tudo',()=>{
+ try{localStorage.removeItem(KEY)}catch(e){}
+ P=Object.assign({},DEF,{stars:{},cfg:{},seen:{},unlocked:1,welcomed:true});save();
+ loadLevel(1);say('Tudo zerado! Vamos recomeçar a investigação. 🔍','happy');
+})};
+
+/* ---- início ---- */
+loadLevel(1);
+if(!P.welcomed){
+ modal(`<h2>🔍 Detetive de Sensores</h2><div style="font-size:60px">🤖</div><p>Oi! Eu sou o <b>Relê</b>, agora detetive! As máquinas da fábrica de doces não estão enxergando direito.</p><p>Em cada caso você <b>escolhe o sensor certo</b>, <b>ajusta</b> e vê se ele detecta o que deve (e ignora o que não deve). Vou te ajudar a cada passo!</p><div class="mbts"><button class="btn run" id="m-go">Vamos investigar! 🚀</button></div>`);
+ $('#m-go').onclick=()=>{P.welcomed=true;save();closeModal();sfx.win();maybeLesson()};
+}
+</script>
+</body>
+</html>

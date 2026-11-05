@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Mestre da IHM</title>
+<style>
+:root{--ink:#2b2250;--bg1:#fff3c9;--bg2:#d9f2ff;--purple:#6c4cf1;--pink:#ff5fa2;--yellow:#ffd23f;--teal:#2ec4b6;--orange:#ff9f1c;--green:#19c37d;--grey:#c3bddb;--red:#ff4d5e;--card:#fff}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{font-family:"Trebuchet MS","Segoe UI",system-ui,sans-serif;color:var(--ink);background:linear-gradient(160deg,var(--bg1),var(--bg2));-webkit-user-select:none;user-select:none}
+h1,h2,p{margin:0}
+h2{font-size:15px}
+.card{background:var(--card);border:3px solid var(--ink);border-radius:18px;box-shadow:0 4px 0 var(--ink)}
+.hidden{display:none!important}
+#app{display:grid;height:100vh;height:100dvh;padding:10px;gap:10px;grid-template-columns:370px minmax(0,1fr) 270px;grid-template-rows:auto minmax(0,1fr) auto;grid-template-areas:"top top top" "cat stage side" "foot foot foot"}
+.btn{font:inherit;font-weight:800;border:3px solid var(--ink);border-radius:14px;padding:8px 14px;background:#fff;color:var(--ink);cursor:pointer;box-shadow:0 3px 0 var(--ink);transition:transform .06s;text-decoration:none;display:inline-block}
+.btn:active{transform:translateY(3px);box-shadow:0 0 0 var(--ink)}
+.btn[disabled]{opacity:.4;cursor:not-allowed}
+.btn.sm{padding:4px 10px;font-size:13px;border-radius:12px}
+.btn.run{background:var(--green);color:#fff}.btn.stop{background:var(--red);color:#fff}.btn.rst{background:var(--yellow)}.btn.chk{background:var(--purple);color:#fff}
+#top{grid-area:top;padding:8px 12px;display:flex;flex-direction:column;gap:6px}
+.row1,.row2{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.logo{font-weight:900;font-size:18px;color:var(--purple);white-space:nowrap}
+#lv{display:flex;gap:6px;flex:1;flex-wrap:wrap}
+.chip{width:42px;height:42px;border-radius:12px;border:3px solid var(--ink);background:#fff;font:inherit;font-weight:900;font-size:15px;line-height:1;cursor:pointer;padding:0;color:var(--ink)}
+.chip i{display:block;font-style:normal;font-size:8px;color:var(--orange);letter-spacing:-1px;margin-top:1px}
+.chip.cur{background:var(--yellow)}.chip.lock{opacity:.45;cursor:not-allowed}
+.row2{justify-content:space-between}
+.ttl{flex:1;min-width:220px}
+.ttl h1{font-size:19px}
+.ttl p{font-size:14px;margin-top:2px}
+.side{display:flex;align-items:center;gap:10px}
+#stars{font-size:26px;color:var(--orange);letter-spacing:2px}
+/* catalog */
+#cat{grid-area:cat;padding:10px;overflow:auto}
+#cat h2{margin-bottom:8px}
+.scard{display:flex;gap:8px;align-items:flex-start;padding:7px;border:3px solid var(--ink);border-radius:12px;background:#fff7d6;cursor:grab;margin-bottom:8px;font-size:12px;line-height:1.25}
+.scard .em{font-size:26px;line-height:1;flex:none}
+.scard b{display:block;font-size:13px}
+.scard small{display:block;font-weight:600;font-size:10.5px;opacity:.8;margin-top:2px}
+.scard.sel{background:var(--yellow);outline:4px solid var(--green)}
+.tip{font-size:11px;opacity:.75;margin-top:6px;line-height:1.3}
+/* stage */
+#stage{grid-area:stage;display:flex;flex-direction:column;min-height:0;min-width:0;padding:8px;gap:6px}
+#tabs{display:flex;gap:6px;flex-wrap:wrap}
+.tab{font:inherit;font-weight:800;font-size:13px;border:3px solid var(--ink);border-radius:12px;padding:4px 10px;background:#fff;cursor:pointer;color:var(--ink)}
+.tab.cur{background:var(--yellow)}.tab.okk{background:#b8f2d6}
+#brief{font-size:13px;font-weight:700;padding:2px 4px}
+#scenewrap{flex:1;min-height:0;border:3px dashed var(--grey);border-radius:14px;background:#eaf4ff;overflow:hidden}
+#scene{display:block;width:100%;height:100%}
+.ct{font-weight:900;font-size:14px;fill:#2b2250;font-family:inherit}
+.tiny{font-weight:800;font-size:11px;fill:#2b2250;font-family:inherit}
+/* side */
+#side{grid-area:side;padding:10px;overflow:auto;display:flex;flex-direction:column;gap:8px;min-height:0}
+.box2{background:#f3efff;border:3px solid var(--ink);border-radius:12px;padding:8px 10px;font-size:13px;line-height:1.35}
+.box2 b{font-size:14px}
+.box2 label{display:block;font-weight:800;margin:6px 0 2px;font-size:12px}
+.box2 input[type=range]{width:100%}
+.box2 input[type=number]{width:80px;font:inherit;font-weight:700;border:2px solid var(--ink);border-radius:8px;padding:2px 4px}
+.val{font-weight:900;color:var(--purple)}
+.res{list-style:none;padding:0;margin:4px 0 0}
+.res li{padding:5px 8px;border-radius:9px;margin-bottom:4px;font-size:12px;font-weight:700}
+.res li.ok{background:#d6f7e7}.res li.bad{background:#ffdde1}
+.res li small{display:block;font-weight:600;margin-top:1px}
+.badge{display:inline-block;border:2px solid var(--ink);border-radius:999px;padding:0 8px;font-size:11px;font-weight:800;background:#fff;margin-right:4px}
+/* footer */
+#foot{grid-area:foot;display:flex;align-items:center;gap:12px;padding:8px 12px}
+#relewrap{width:64px;flex:none}
+#rele{width:64px;height:70px;display:block;animation:bob 2.4s ease-in-out infinite}
+#bubble{flex:1;position:relative;background:#f3efff;border:3px solid var(--ink);border-radius:16px;padding:8px 12px;font-size:14px;line-height:1.3;min-height:48px;display:flex;align-items:center}
+#bubble::before{content:"";position:absolute;left:-12px;top:50%;margin-top:-8px;border:8px solid transparent;border-right-color:var(--ink);border-left:0}
+.btns{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+@keyframes bob{50%{transform:translateY(-4px)}}
+@keyframes blink{0%,92%,100%{transform:scaleY(1)}96%{transform:scaleY(.1)}}
+.eye{transform-origin:center;transform-box:fill-box;animation:blink 4s infinite}
+/* modal */
+.overlay{position:fixed;inset:0;background:rgba(43,34,80,.55);display:grid;place-items:center;z-index:50;padding:12px}
+.mcard{max-width:540px;width:100%;padding:18px;max-height:92vh;overflow:auto;text-align:center}
+.mcard.wide{max-width:720px}
+.mcard h2{font-size:22px;margin-bottom:8px}
+.mcard h3{margin:8px 0 4px;font-size:17px;color:var(--purple)}
+.mcard p{margin:6px 0;font-size:14px;line-height:1.4}
+.mcard a{color:var(--purple);font-size:12px;font-weight:700}
+.bigstars{font-size:44px;color:var(--orange);letter-spacing:4px}
+.pista{text-align:left;background:#fff7d6;border:3px solid var(--ink);border-radius:12px;padding:8px 12px;margin:8px 0;font-size:14px}
+.mbts{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:10px}
+.hintcard{text-align:left;background:#fff7d6;border:3px solid var(--ink);border-radius:12px;padding:8px 12px;margin:8px 0}
+.dots{display:flex;gap:6px;justify-content:center;margin:6px 0}
+.dots span{width:12px;height:12px;border-radius:50%;border:2px solid var(--ink);background:#fff}
+.dots span.on{background:var(--yellow)}
+.demo{border:3px dashed var(--grey);border-radius:14px;padding:10px;margin:8px 0;background:#fbfaff;text-align:left}
+.demo .pcs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px}
+.demo .pc{font:inherit;font-weight:800;font-size:12px;border:3px solid var(--ink);border-radius:10px;padding:4px 8px;background:#fff;cursor:pointer;color:var(--ink)}
+.demo .pc.sel{background:var(--yellow)}
+.demo input[type=range]{width:100%}
+.demo .out{margin-top:6px;font-size:13px;font-weight:700;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.led{width:22px;height:22px;border-radius:50%;border:3px solid var(--ink);background:#9a94b8;display:inline-block;flex:none}
+.led.on{background:var(--green)}
+@media(max-width:900px){
+ #app{height:auto;min-height:100dvh;grid-template-columns:minmax(0,1fr);grid-template-rows:auto;grid-template-areas:"top" "stage" "cat" "side" "foot"}
+ #app>*{min-width:0}
+ #cat{overflow:visible}#cat h2,.tip{display:none}
+ #catitems{display:flex;gap:8px;overflow:auto}
+ .scard{flex:none;width:200px;margin:0}
+ #scenewrap{height:300px;flex:none}
+ #foot{position:sticky;bottom:6px;z-index:20;flex-wrap:wrap;padding:6px 8px;gap:8px}
+ #relewrap,#rele{width:44px;height:48px}
+ #bubble{min-width:150px;font-size:12px;padding:6px 8px;min-height:40px}
+ .btns{width:100%;justify-content:center}
+ .btn{padding:6px 10px;font-size:13px}
+ .logo{font-size:15px}.ttl h1{font-size:16px}
+ #lv{flex:1 1 100%;order:5;justify-content:center}
+ .chip{width:36px;height:40px;font-size:14px}
+ .ttl{min-width:0;flex:1 1 100%}
+}
+.fld{display:block;margin-bottom:10px;font-size:12.5px;font-weight:800}
+.fld span{display:block;margin-bottom:3px}
+.fld select{width:100%;font:inherit;font-weight:700;font-size:12.5px;border:3px solid var(--ink);border-radius:10px;padding:5px;background:#fff;color:var(--ink)}
+.fld input[type=range]{width:100%}
+.res li.tst{background:#fff;border:2px dashed var(--grey);font-weight:600}
+.res b{font-size:inherit}
+#scene{overflow:visible}
+#howto{display:flex;gap:8px;flex-wrap:wrap;font-size:13px;font-weight:800}
+#howto .st{flex:1 1 150px;background:#fff7d6;border:3px solid var(--ink);border-radius:12px;padding:5px 9px;line-height:1.25}
+#howto .st b{display:inline-block;background:var(--purple);color:#fff;border-radius:50%;width:22px;height:22px;text-align:center;line-height:22px;margin-right:5px}
+.fld select:focus,.fld input:focus{outline:3px solid var(--yellow)}
+.pbar{height:10px;background:#ece8f7;border:2px solid var(--ink);border-radius:8px;overflow:hidden;margin:2px 0 8px}
+.pbar i{display:block;height:100%;background:var(--green);transition:width .3s}
+.steptitle{font-size:17px;font-weight:900;color:var(--purple);margin:4px 0 6px}
+#cat .box2{margin-bottom:8px}.box2.dados{background:#fff7d6}
+.dt{width:100%;border-collapse:collapse;margin-top:4px;font-size:12px}.dt th,.dt td{border:2px solid var(--ink);padding:2px 5px;text-align:left}.dt th{background:#e4dcff}
+.opts{display:flex;flex-direction:column;gap:6px}
+.opt{font:inherit;font-weight:700;font-size:13px;text-align:left;border:3px solid var(--ink);border-radius:12px;padding:8px 10px;background:#fff;color:var(--ink);cursor:pointer}
+.opt:hover{background:#f3efff}.opt.sel{background:var(--yellow);outline:3px solid var(--green)}
+.numrow{display:flex;align-items:center;gap:6px}
+.numrow input{flex:1;min-width:0;font:inherit;font-weight:900;font-size:20px;text-align:center;border:3px solid var(--ink);border-radius:12px;padding:6px;color:var(--ink)}
+.nb{font:inherit;font-weight:900;font-size:22px;width:44px;height:44px;border:3px solid var(--ink);border-radius:12px;background:#fff;cursor:pointer;color:var(--ink);box-shadow:0 3px 0 var(--ink)}
+.un{font-weight:800;min-width:34px}
+.ctrl{margin:8px 0}
+.fb{border:3px solid var(--ink);border-radius:12px;padding:8px 10px;font-size:13px;line-height:1.35;margin:6px 0;font-weight:600}
+.fb.ok{background:#d6f7e7}.fb.bad{background:#ffdde1}
+.slist{list-style:none;padding:0;margin:4px 0 0}.slist li{padding:5px 8px;border-radius:9px;margin-bottom:3px;font-size:12px;font-weight:700;cursor:pointer;background:#fff;border:2px solid var(--grey)}
+.slist li.ok{background:#d6f7e7}.slist li.cur{border-color:var(--ink);background:#fff7d6}
+.sum{list-style:none;padding:0;margin:4px 0 0;font-size:12px}.sum li{display:flex;justify-content:space-between;gap:8px;border-bottom:1px dashed var(--grey);padding:3px 0}.sum li b{font-size:12px;text-align:right}
+.fig{display:flex;align-items:center;justify-content:center;gap:6px;flex-wrap:wrap;margin:8px 0;font-size:12px;font-weight:800}
+.fig .n{background:#fff;border:3px solid var(--ink);border-radius:12px;padding:6px 8px;min-width:78px}.fig .n span{display:block;font-size:26px}
+.fig .a{font-size:18px;color:var(--purple)}
+</style>
+</head>
+<body>
+<div id="app">
+ <header id="top" class="card">
+  <div class="row1">
+   <div class="logo">🖥️ Mestre da IHM</div><a class="btn sm" href="../index.html" title="Voltar ao portal">🏠 Portal</a>
+   <nav id="lv"></nav>
+   <div><button class="btn sm" id="snd" title="Sons">🔊</button> <button class="btn sm" id="rstp" title="Zerar progresso">↺ Zerar</button></div>
+  </div>
+  <div class="row2">
+   <div class="ttl"><h1 id="ltitle"></h1><p id="lmission"></p></div>
+   <div class="side"><div id="stars"></div><button class="btn sm" id="howbtn">❓ Como jogar</button><button class="btn sm" id="lessonbtn">📖 Trilha</button><button class="btn sm rst" id="hintbtn">💡 Dica</button></div>
+  </div>
+ </header>
+ <aside id="cat" class="card"></aside>
+ <main id="stage" class="card">
+    <div id="howto"></div>
+  <div id="scenewrap"><svg id="scene" viewBox="0 0 600 380" preserveAspectRatio="xMidYMid meet"></svg></div>
+ </main>
+ <aside id="side" class="card"></aside>
+ <footer id="foot" class="card">
+  <div id="relewrap">
+   <svg id="rele" viewBox="0 0 90 100">
+    <line x1="45" y1="8" x2="45" y2="22" stroke="#2b2250" stroke-width="4"/><circle cx="45" cy="7" r="6" fill="#ff5fa2" stroke="#2b2250" stroke-width="3"/>
+    <rect x="22" y="80" width="46" height="16" rx="7" fill="#ff9f1c" stroke="#2b2250" stroke-width="4"/>
+    <rect x="3" y="38" width="8" height="22" rx="4" fill="#ffd23f" stroke="#2b2250" stroke-width="3"/><rect x="79" y="38" width="8" height="22" rx="4" fill="#ffd23f" stroke="#2b2250" stroke-width="3"/>
+    <rect x="10" y="20" width="70" height="58" rx="17" fill="#7fd8ff" stroke="#2b2250" stroke-width="4"/>
+    <rect x="18" y="29" width="54" height="36" rx="11" fill="#2b2250"/>
+    <circle class="eye" id="e1" cx="35" cy="44" r="5" fill="#7cff8a"/><circle class="eye" id="e2" cx="55" cy="44" r="5" fill="#7cff8a"/>
+    <path id="mouth" d="M36 54Q45 63 54 54" stroke="#7cff8a" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+    <circle cx="25" cy="58" r="3" fill="#ff5fa2" opacity=".8"/><circle cx="65" cy="58" r="3" fill="#ff5fa2" opacity=".8"/>
+   </svg>
+  </div>
+  <div id="bubble"></div>
+  <div class="btns">
+   <button class="btn run" id="run">▶ RODAR</button>
+   <button class="btn rst" id="restart">↻ REINICIAR</button>
+   <button class="btn chk" id="chk">✓ VERIFICAR</button>
+  </div>
+ </footer>
+</div>
+<div id="modal" class="overlay hidden"><div class="mcard card" id="mbody"></div></div>
+
+<script>
+/*PURE_START*/
+const fmt=(v,d)=>Number(v).toFixed(d).replace('.',',');
+const ACC=['Operador','Manutenção','Engenharia'];
+const accOpts=ACC.map((t,i)=>[i,t]);
+const TAGOPT=[['I00','I0.0 · Sensor de porta (entrada física)'],['M00','M0.0 · Memória LIGA'],['M01','M0.1 · Memória DESLIGA'],['Q00','Q0.0 · Saída do motor'],['M05','M0.5 · Memória sem uso']];
+const MODOPT=[['mom','Momentâneo (só enquanto segura)'],['alt','Alternado (liga/desliga a cada toque)'],['set','Seta (liga e fica ligado)']];
+function tagMsg(role,tag){
+ const good={start:'M00',stop:'M01',lamp:'Q00'}[role];
+ if(tag===good)return null;
+ const m={
+  I00:'I0.0 é uma <b>entrada física</b>: a IHM não consegue escrever nela, e ela só mostra o sensor da porta.',
+  M05:'M0.5 não é usada pelo programa do CLP: nada acontece.',
+  M00:role==='stop'?'M0.0 é a memória LIGA: o botão DESLIGAR passou a ligar o motor!':'M0.0 só dá um pulso quando o operador aperta LIGAR: a lâmpada não mostra o estado do motor.',
+  M01:role==='start'?'M0.1 é a memória DESLIGA: o botão LIGAR passou a desligar!':'M0.1 é o pulso de DESLIGAR: a lâmpada não mostra o estado do motor.',
+  Q00:role==='lamp'?null:'Q0.0 é a saída do motor. Escrever direto nela <b>passa por cima do programa</b> (ignora intertravamentos e o desligar). A IHM deve escrever em memórias.'};
+ return m[tag];
+}
+function t1(role,label){return {n:label,f:c=>{const tag=c[role],msg=tagMsg(role,tag);
+ if(role==='lamp')return {ok:!msg,note:msg||'A lâmpada acompanha o motor.',show:['Lâmpada lê: '+tag],st:{motor:true,lamp:!msg}};
+ const on=role==='start';return {ok:!msg,note:msg||(on?'Motor ligou.':'Motor desligou.'),show:['Botão escreve em '+tag],st:{motor:!msg?on:!on}}}}}
+function lvl2(){return [
+ {n:'Apertar e soltar LIGAR',f:c=>{const on=c.ligaMode!=='mom';return {ok:on,note:on?'O motor continua ligado depois de soltar.':'Com botão <b>momentâneo</b>, o sinal volta a zero quando o operador solta e o motor para.',show:['LIGAR solto'],st:{motor:on}}}},
+ {n:'Apertar LIGAR com o motor já ligado',f:c=>{const on=c.ligaMode==='set';return {ok:on,note:on?'O motor segue ligado.':'O <b>alternado</b> inverte o estado a cada toque: um toque a mais e a máquina para sozinha.',show:['LIGAR apertado 2x'],st:{motor:on}}}},
+ {n:'Segurar o botão JOG (ajuste manual)',f:c=>({ok:true,note:'Enquanto segura, o motor gira.',show:['JOG pressionado'],st:{motor:true}})},
+ {n:'Soltar o botão JOG',f:c=>{const off=c.jogMode==='mom';return {ok:off,note:off?'Soltou, parou. É o comportamento seguro do ajuste manual.':'O motor ficou ligado depois de soltar o JOG: perigoso para quem está ajustando a máquina!',show:['JOG solto'],st:{motor:!off}}}}]}
+function scaleT(raw,exp,c){const rm=Math.max(1,c.rawMax),v=c.engMin+raw/rm*(c.engMax-c.engMin);return {v,ok:Math.abs(v-exp)<=0.5}}
+function lvl3(){const T=(raw,exp,n)=>({n,f:c=>{const r=scaleT(raw,exp,c),dec=c.dec;return {ok:r.ok,note:r.ok?'Leitura correta.':`Mostrou <b>${fmt(r.v,dec)} ${c.unit}</b> mas o certo é ${fmt(exp,1)}. Confira o valor bruto máximo do módulo e a faixa do sensor.`,show:['Valor bruto: '+raw,'Tela: '+fmt(r.v,dec)+' '+c.unit],st:{frac:Math.max(0,Math.min(1,r.v/150)),txt:fmt(r.v,dec)+' '+c.unit}}}});
+ return [T(0,0,'Sensor no mínimo (valor bruto 0)'),T(13824,75,'Sensor na metade (valor bruto 13824)'),T(27648,150,'Sensor no máximo (valor bruto 27648)'),
+ {n:'Leitura fina: 73,5 °C (valor bruto 13548)',f:c=>{const r=scaleT(13548,73.5,c),okd=c.dec>=1;return {ok:r.ok&&okd,note:!okd?'Com <b>0 casas decimais</b> o operador não enxerga os décimos (73,5 vira '+Math.round(r.v)+'). Aqui o processo exige 0,1 °C.':r.ok?'Leitura correta.':'Escala errada: mostrou '+fmt(r.v,c.dec)+'.',show:['Tela: '+fmt(r.v,c.dec)+' '+c.unit],st:{frac:r.v/150,txt:fmt(r.v,c.dec)+' '+c.unit}}}},
+ {n:'Unidade na tela',f:c=>{const ok=c.unit==='°C';return {ok,note:ok?'Unidade correta.':'O sensor mede temperatura em <b>°C</b>. A unidade na tela precisa combinar com o que se mede.',show:['Unidade: '+c.unit],st:{frac:.5,txt:'75 '+c.unit}}}}]}
+function lvl4(){const acc=(x,c)=>x>=c.limMin&&x<=c.limMax;
+ const A=(x,exp,n)=>({n,f:c=>{const a=acc(x,c);return {ok:a===exp,note:a===exp?(exp?'Valor aceito.':'Valor recusado.'):(exp?`O valor ${x} rpm é bom para o produto, mas a IHM o recusou.`:`A IHM aceitou ${x} rpm, que estraga o produto ou força o motor.`),show:['Operador digita '+x,a?'Aceito':'Recusado'],st:{rpm:a?x:0}}}});
+ return [A(300,true,'Operador digita 300 rpm (mínimo do produto)'),A(900,true,'Operador digita 900 rpm (máximo do produto)'),A(250,false,'Operador digita 250 rpm (pouco: o produto empelota)'),A(950,false,'Operador digita 950 rpm (muito: derrama)'),
+ {n:'Valor inicial ao ligar a máquina',f:c=>{const ok=acc(c.defv,c)&&c.defv>=300&&c.defv<=900;return {ok,note:ok?'Valor inicial seguro.':'O valor inicial precisa estar dentro da faixa boa (300 a 900 rpm).',show:['Inicial: '+c.defv+' rpm'],st:{rpm:c.defv}}}}]}
+function lvl5(){const al=(lv,c)=>lv<=c.lo?'lo':lv>=c.hh?'hh':lv>=c.hi?'hi':null;
+ const N=(lv,exp,n,why)=>({n,f:c=>{const a=al(lv,c),ok=a===exp;return {ok,note:ok?(exp?'Alarme correto.':'Sem alarme, como deve ser.'):(a?`Disparou o alarme ${({lo:'BAIXO',hi:'ALTO',hh:'CRÍTICO'})[a]}: ${why[0]}`:`Não disparou nada: ${why[1]}`),show:['Nível '+lv+'%',a?'ALARME '+a.toUpperCase():'Normal'],st:{level:lv,alarm:a}}}});
+ return [N(35,null,'Nível 35% (operação normal)',['alarme falso, o operador vai ignorar de tanto repetir.','']),N(75,null,'Nível 75% (operação normal)',['alarme falso, nível ainda é normal.','']),
+ N(20,'lo','Nível 20% (bomba quase seca)',['','a bomba pode rodar seca.']),N(85,'hi','Nível 85% (perto de encher)',['avisou crítico cedo demais.','ninguém foi avisado antes de encher.']),N(97,'hh','Nível 97% (vai transbordar)',['','o alarme crítico veio tarde ou nunca.']),
+ {n:'Nível 97%: a bomba de entrada deve parar',f:c=>{const ok=c.hhAct==='stop'&&al(97,c)==='hh';return {ok,note:ok?'A bomba parou sozinha.':'O alarme crítico só avisa. Em risco de transbordar, a ação deve <b>parar a bomba</b>.',show:['Nível 97%'],st:{level:97,alarm:'hh',pump:!ok}}}},
+ {n:'Alarme alto some quando o nível volta a 70%',f:c=>{const ok=c.latch==='ack';return {ok,note:ok?'O alarme fica registrado até o operador reconhecer (ACK).':'O alarme sumiu sozinho: se ninguém estava olhando, ninguém soube. Alarme importante deve ficar <b>retentivo</b> até o reconhecimento.',show:['Nível voltou a 70%'],st:{level:70,alarm:ok?'hi':null}}}}]}
+function lvl6(){const R=[['Chocolate','A',45,50,20,25],['Caramelo','B',120,130,8,10],['Geleia','C',80,85,15,18]];
+ return R.map(([nm,k,t0,t1_,m0,m1])=>({n:'Receita '+nm+': '+t0+'–'+t1_+' °C por '+m0+'–'+m1+' min',f:c=>{const T=c['t'+k],M=c['m'+k],mult=c.base==='min'?60:1,s=M*mult,okT=T>=t0&&T<=t1_,okM=s>=m0*60&&s<=m1*60;
+  return {ok:okT&&okM,note:okT&&okM?'Receita certa.':!okT?`Temperatura ${T} °C fora da faixa ${t0}–${t1_} °C.`:c.base==='s'&&M>=m0&&M<=m1?`O CLP vai contar ${M} <b>segundos</b>, não minutos! Confira a base de tempo.`:`Tempo de ${fmt(s/60,1)} min fora da faixa ${m0}–${m1} min.`,show:[nm,T+' °C',M+' '+(c.base==='min'?'min':'s')],st:{temp:T,time:M+(c.base==='min'?' min':' s')}}}}))}
+const NEED=[['start','Botão LIGAR/DESLIGAR',0],['ack','Reconhecer alarme',0],['sp','Alterar velocidade',0],['rec','Trocar receita',1],['alim','Mudar limites de alarme',1],['scale','Mudar escala do sensor',2],['cal','Calibrar sensor',2]];
+function lvl7(){return NEED.map(([k,nm,need])=>({n:nm+' (exige '+ACC[need]+')',f:c=>{const l=+c['a_'+k],ok=l===need;return {ok,note:ok?'Acesso certo.':l<need?`Nível <b>${ACC[l]}</b> é pouco: qualquer operador mexeria nisso e poderia causar acidente ou perda de lote.`:`Nível <b>${ACC[l]}</b> é demais: quem faz essa tarefa no dia a dia (${ACC[need]}) ficou bloqueado.`,show:[nm,'Pede login: '+ACC[l]],st:{lock:l>0}}}})).concat([{n:'Saída automática do login (tempo sem tocar)',f:c=>{const ok=c.tout>=30&&c.tout<=300;return {ok,note:ok?'Tempo razoável.':c.tout<30?'Muito curto: o técnico é deslogado no meio do trabalho.':'Muito longo: o login fica aberto para qualquer um que passar.',show:['Logout em '+c.tout+' s'],st:{lock:false}}}}])}
+function lvl8(){
+ return [{n:'Botão INICIAR escreve no endereço certo',f:c=>{const msg=tagMsg('start',c.startTag);return {ok:!msg,note:msg||'Dosadora ligou.',show:['INICIAR → '+c.startTag],st:{motor:!msg}}}},
+ {n:'Soltar INICIAR: a dosadora continua',f:c=>{const ok=c.startMode==='set';return {ok,note:ok?'Continua dosando.':c.startMode==='mom'?'Momentâneo: para ao soltar.':'Alternado: um toque a mais e para.',show:['INICIAR solto'],st:{motor:ok}}}},
+ {n:'Pressão no máximo: 10 bar (valor bruto 27648)',f:c=>{const v=c.engMax*27648/Math.max(1,c.rawMax),ok=Math.abs(v-10)<=.1;return {ok,note:ok?'Leitura correta.':`Mostrou ${fmt(v,1)} bar. Confira valor bruto máximo (módulo) e máximo do sensor (10 bar).`,show:['Tela: '+fmt(v,1)+' bar'],st:{level:v*10,txt:fmt(v,1)+' bar'}}}},
+ {n:'Pressão pela metade: 5 bar (valor bruto 13824)',f:c=>{const v=c.engMax*13824/Math.max(1,c.rawMax),ok=Math.abs(v-5)<=.1;return {ok,note:ok?'Leitura correta.':`Mostrou ${fmt(v,1)} bar em vez de 5,0.`,show:['Tela: '+fmt(v,1)+' bar'],st:{level:v*10,txt:fmt(v,1)+' bar'}}}},
+ {n:'Vazão digitada: 20 e 80 L/h aceitas',f:c=>{const ok=20>=c.limMin&&80<=c.limMax;return {ok,note:ok?'Faixa de trabalho aceita.':'A IHM está recusando uma vazão boa (20 a 80 L/h).',show:['Aceita 20 a 80'],st:{motor:true}}}},
+ {n:'Vazão digitada: 10 e 90 L/h recusadas',f:c=>{const ok=10<c.limMin&&90>c.limMax;return {ok,note:ok?'Valores perigosos recusados.':'A IHM aceitaria 10 ou 90 L/h, fora do que a bomba suporta.',show:['Recusa 10 e 90'],st:{motor:true}}}},
+ {n:'Pressão 8 bar deve gerar alarme ALTO; 6 bar não',f:c=>{const ok=c.hiP<=8&&c.hiP>6;return {ok,note:ok?'Alarme no ponto certo.':c.hiP>8?'Não alarmou em 8 bar: tarde demais.':'Alarmou em 6 bar: alarme falso.',show:['Alarme alto em '+c.hiP+' bar'],st:{level:80,alarm:ok?'hi':null}}}},
+ {n:'Reconhecer alarme: quem pode?',f:c=>{const ok=+c.ackLvl===0&&c.latch==='ack';return {ok,note:ok?'O operador reconhece e o alarme fica retido até lá.':+c.ackLvl!==0?'O operador do turno precisa conseguir reconhecer o alarme (nível Operador).':'O alarme precisa ficar retido até o reconhecimento.',show:['ACK: '+ACC[+c.ackLvl]],st:{alarm:'hi',level:80}}}}]}
+const sel=(id,label,opts,def)=>({id,label,type:'sel',opts,def});
+const num=(id,label,min,max,step,unit,def)=>({id,label,type:'num',min,max,step,unit,def});
+const LEVELS=[
+{id:1,name:'Botões e endereços',kind:'motor',mission:'Ligue cada objeto da tela ao endereço certo do CLP.',story:'A esteira nova tem uma tela de IHM em branco. Cada botão e lâmpada precisa apontar para um <b>endereço</b> do CLP.',
+ hints:['O programa do CLP trava o motor assim: M0.0 liga, M0.1 desliga, e o resultado aparece na saída Q0.0.','A IHM deve <b>escrever</b> nas memórias (M) e <b>ler</b> a saída para mostrar o estado.','LIGAR → M0.0, DESLIGAR → M0.1, Lâmpada → Q0.0.'],
+ fields:[sel('start','Botão LIGAR escreve em',TAGOPT,'I00'),sel('stop','Botão DESLIGAR escreve em',TAGOPT,'I00'),sel('lamp','Lâmpada MOTOR ligado lê',TAGOPT,'I00')],
+ tests:[t1('start','Apertar LIGAR'),t1('stop','Apertar DESLIGAR'),t1('lamp','Olhar a lâmpada com o motor ligado')]},
+{id:2,name:'Tipos de botão',kind:'motor',mission:'Escolha o comportamento certo de cada botão.',story:'O operador reclama: o motor para quando ele solta o botão! E o botão de ajuste manual (JOG) está perigoso.',
+ hints:['Pense em como cada botão é usado: o operador aperta uma vez ou segura?','LIGAR deve continuar ligado sozinho, e apertar de novo não pode desligar.','JOG só deve funcionar enquanto alguém segura.'],
+ fields:[sel('ligaMode','Botão LIGAR é',MODOPT,'mom'),sel('jogMode','Botão JOG (ajuste manual) é',MODOPT,'set')],tests:lvl2()},
+{id:3,name:'Escala do sensor',kind:'gauge',mission:'Converta o valor bruto do módulo analógico em graus na tela.',story:'O módulo analógico entrega números de <b>0 a 27648</b> para um sensor de <b>0 a 150 °C</b>. A tela mostra valores absurdos!',
+ hints:['Mínimo bruto 0 vale a temperatura mínima do sensor; máximo bruto vale a máxima.','O módulo entrega no máximo 27648. A faixa do sensor é de 0 a 150.','Bruto máx 27648, Mín 0, Máx 150, uma casa decimal e unidade °C.'],
+ fields:[num('rawMax','Valor bruto máximo (módulo)',1,40000,1,'',100),num('engMin','Temperatura mínima do sensor',-50,100,1,'°C',20),num('engMax','Temperatura máxima do sensor',0,400,1,'°C',100),sel('dec','Casas decimais na tela',[[0,'0 (ex.: 75)'],[1,'1 (ex.: 75,0)'],[2,'2 (ex.: 75,00)']],0),sel('unit','Unidade na tela',[['°F','°F'],['bar','bar'],['%','%'],['°C','°C']],'bar')],tests:lvl3()},
+{id:4,name:'Limites de entrada',kind:'mixer',mission:'Impeça o operador de digitar valores perigosos.',story:'O misturador funciona bem de <b>300 a 900 rpm</b>. Abaixo empelota; acima derrama. A tela aceita qualquer número!',
+ hints:['Limite mínimo e máximo aceitam os extremos exatos da faixa boa.','Precisa recusar 250 e 950, então fique um pouco dentro desses valores.','Mínimo entre 260 e 300, máximo entre 900 e 940, valor inicial entre 300 e 900.'],
+ fields:[num('limMin','Limite mínimo',0,1750,10,'rpm',0),num('limMax','Limite máximo',0,1750,10,'rpm',1750),num('defv','Valor inicial ao ligar',0,1750,10,'rpm',1750)],tests:lvl4()},
+{id:5,name:'Alarmes do tanque',kind:'tank',mission:'Configure os pontos de alarme sem encher a tela de alarmes falsos.',story:'O tanque de calda opera normalmente entre <b>30% e 80%</b>. O operador precisa ser avisado antes de secar ou transbordar.',
+ hints:['Alarme demais não ajuda: se tocar em operação normal, o pessoal passa a ignorar.','Ordem: baixo, depois alto, depois crítico, todos fora da faixa normal de 30 a 80%.','Baixo 20 a 34, alto 76 a 85, crítico 86 a 97, crítico para a bomba e alarme retentivo.'],
+ fields:[num('lo','Alarme BAIXO em',0,100,1,'%',0),num('hi','Alarme ALTO em',0,100,1,'%',100),num('hh','Alarme CRÍTICO em',0,100,1,'%',100),sel('hhAct','Ação do crítico',[['none','Só avisar'],['stop','Parar a bomba de entrada']],'none'),sel('latch','Quando o nível volta ao normal',[['auto','Alarme some sozinho'],['ack','Fica até o operador reconhecer']],'auto')],tests:lvl5()},
+{id:6,name:'Receitas',kind:'recipe',mission:'Cadastre as receitas dos três produtos.',story:'Cada doce tem a sua temperatura e o seu tempo. Uma <b>receita</b> guarda tudo para o operador escolher com um toque.',
+ hints:['Veja a faixa de cada receita no nome do teste.','A tela guarda o tempo na unidade que você escolher, e o CLP conta em segundos.','Base de tempo em minutos; Chocolate 45–50 °C, 20–25 min; Caramelo 120–130, 8–10; Geleia 80–85, 15–18.'],
+ fields:[sel('base','Base de tempo da receita',[['s','Segundos'],['min','Minutos']],'s'),num('tA','Chocolate: temperatura',0,200,1,'°C',20),num('mA','Chocolate: tempo',0,40,1,'',1),num('tB','Caramelo: temperatura',0,200,1,'°C',20),num('mB','Caramelo: tempo',0,40,1,'',1),num('tC','Geleia: temperatura',0,200,1,'°C',20),num('mC','Geleia: tempo',0,40,1,'',1)],tests:lvl6()},
+{id:7,name:'Níveis de acesso',kind:'access',mission:'Proteja cada função com o nível de login certo.',story:'Nem todo mundo deve mexer em tudo. A tela tem <b>login por nível</b>: Operador, Manutenção e Engenharia.',
+ hints:['Rotina do dia a dia fica livre para o operador. Mudar a configuração da máquina é para quem entende.','Tarefas: ligar, reconhecer alarme e velocidade (Operador); receita e limites de alarme (Manutenção); escala e calibração (Engenharia).','Cuidado com o tempo: 30 a 300 segundos de logout automático.'],
+ fields:NEED.map(([k,nm,nd])=>sel('a_'+k,nm,accOpts,nd===0?2:0)).concat([num('tout','Logout automático',10,900,10,'s',900)]),tests:lvl7()},
+{id:8,name:'CHEFÃO: a dosadora',kind:'tank',mission:'Parametrize a dosadora completa de ponta a ponta.',story:'A dosadora de calda nova chegou sem configurar. Endereços, botões, escala, limites, alarmes e acesso: <b>tudo</b>.',
+ hints:['Junte o que aprendeu: M0.0 liga, botão que seta, escala bruta 27648, limites ligeiramente dentro da faixa.','Sensor de pressão: 0–10 bar, módulo até 27648. Vazão boa: 20 a 80 L/h; 10 e 90 devem ser recusadas.','Alarme alto entre 7 e 8 bar, ACK pelo Operador, alarme retentivo.'],
+ fields:[sel('startTag','Botão INICIAR escreve em',TAGOPT,'I00'),sel('startMode','Botão INICIAR é',MODOPT,'mom'),num('rawMax','Valor bruto máximo (módulo)',1,40000,1,'',100),num('engMax','Pressão máxima do sensor',0,40,1,'bar',100),num('limMin','Vazão mínima aceita',0,100,1,'L/h',0),num('limMax','Vazão máxima aceita',0,100,1,'L/h',100),num('hiP','Alarme ALTO em',0,10,0.5,'bar',10),sel('ackLvl','Quem reconhece o alarme',accOpts,2),sel('latch','Alarme alto',[['auto','Some sozinho'],['ack','Fica até reconhecer']],'auto')],tests:lvl8()}];
+function withDefaults(L,cfg){const c={};L.fields.forEach(f=>{const v=cfg&&cfg[f.id];c[f.id]=v===undefined||v===null?f.def:(f.type==='num'?+v:v)});return c}
+function evalLevel(L,cfg){const c=withDefaults(L,cfg),results=L.tests.map(t=>Object.assign({n:t.n},t.f(c)));return {ok:results.every(r=>r.ok),results}}
+function firstMsg(r){const b=r.results.find(x=>!x.ok);return b?`<b>${b.n}:</b> ${b.note}`:''}
+/*PURE_END*/
+
+/* ===== conteúdo didático por passo: [o que é, dados da máquina, por que está certo] ===== */
+const SOL={1:{start:'M00',stop:'M01',lamp:'Q00'},2:{ligaMode:'set',jogMode:'mom'},3:{rawMax:27648,engMin:0,engMax:150,dec:1,unit:'°C'},4:{limMin:280,limMax:920,defv:600},5:{lo:25,hi:80,hh:90,hhAct:'stop',latch:'ack'},6:{base:'min',tA:47,mA:22,tB:125,mB:9,tC:82,mC:16},7:{a_start:0,a_ack:0,a_sp:0,a_rec:1,a_alim:1,a_scale:2,a_cal:2,tout:120},8:{startTag:'M00',startMode:'set',rawMax:27648,engMax:10,limMin:15,limMax:85,hiP:7.5,ackLvl:0,latch:'ack'}};
+const TAGTAB='<table class="dt"><tr><th>Endereço</th><th>Para que serve no programa do CLP</th></tr><tr><td>M0.0</td><td>Memória que <b>liga</b> o motor</td></tr><tr><td>M0.1</td><td>Memória que <b>desliga</b> o motor</td></tr><tr><td>Q0.0</td><td>Saída física que aciona o motor</td></tr><tr><td>I0.0</td><td>Entrada do sensor de porta</td></tr></table>';
+const MODTXT='<b>Momentâneo</b>: vale 1 só enquanto o dedo segura. <b>Alternado</b>: cada toque inverte (liga, desliga, liga...). <b>Seta</b>: vai a 1 e fica até outro botão zerar.';
+const FS={
+1:{start:['Quando o operador toca em <b>LIGAR</b> na tela, a IHM escreve o valor 1 numa <b>tag</b> (endereço) do CLP. Quem decide ligar o motor é o programa do CLP; a IHM só avisa.',TAGTAB,'M0.0 é a memória que o programa usa para ligar. A IHM escreve nela e o CLP faz o resto, com todos os intertravamentos.'],
+ stop:['O botão <b>DESLIGAR</b> faz o contrário: escreve na memória que o programa usa para desligar o motor.',TAGTAB,'M0.1 é a memória DESLIGA do programa. Botões de comando escrevem em memórias, nunca direto na saída.'],
+ lamp:['A lâmpada não manda nada: ela só <b>lê</b> um endereço para mostrar um estado. Para refletir o que o motor está fazendo <i>de verdade</i>, leia o endereço que realmente aciona o motor.',TAGTAB,'Q0.0 é a saída que aciona o motor. Se está em 1, o motor está ligado, então a lâmpada mostra a verdade.']},
+2:{ligaMode:['O <b>tipo do botão</b> define o que acontece quando o dedo solta. '+MODTXT,'O operador vai apertar LIGAR <b>uma vez</b> e quer que o motor continue ligado, mesmo se ele apertar de novo sem querer. Existe outro botão (DESLIGAR) para parar.','Com <b>Seta</b> o motor liga e fica ligado; apertar de novo não desliga; o DESLIGAR faz o reset.'],
+ jogMode:['O botão <b>JOG</b> é o ajuste manual: o técnico mexe o motor aos poucos para posicionar a máquina. '+MODTXT,'Segurança: o motor só pode girar <b>enquanto o técnico segura</b> o botão. Soltou, tem que parar.','Momentâneo: soltou, o sinal volta a 0 e o motor para. É o comportamento seguro para ajuste manual.']},
+3:{rawMax:['O módulo analógico não entrega graus: entrega um <b>número inteiro bruto</b>. Quando o sensor está no máximo, o módulo entrega o seu valor máximo. A IHM precisa saber qual é esse número para calcular a proporção.','Neste módulo o número bruto vai de <b>0 a 27648</b>.','Com 27648 como topo da escala, o valor bruto 13824 vira exatamente a metade da faixa.'],
+ engMin:['Agora diga à IHM <b>quanto vale o mínimo</b> do sensor, ou seja, a temperatura que corresponde ao bruto 0.','O sensor de temperatura mede de <b>0 a 150 °C</b>.','Bruto 0 = 0 °C. O mínimo da escala é o valor do sensor no começo da faixa.'],
+ engMax:['E <b>quanto vale o máximo</b>: a temperatura que corresponde ao bruto máximo (27648).','O sensor de temperatura mede de <b>0 a 150 °C</b>.','Bruto 27648 = 150 °C. A IHM calcula: mín + bruto ÷ bruto máx × (máx − mín).'],
+ dec:['<b>Casas decimais</b> são quantos dígitos depois da vírgula a tela mostra. Poucos escondem detalhe; muitos confundem.','O processo exige enxergar <b>décimos de grau</b> (por exemplo, 73,5 °C).','Com 1 casa decimal o operador vê 73,5 e não 74.'],
+ unit:['A <b>unidade</b> na tela precisa combinar com o que o sensor mede. Unidade errada engana o operador.','O sensor mede <b>temperatura</b>.','°C é a unidade de temperatura que o sensor entrega.']},
+4:{limMin:['Quando o operador digita um valor, a IHM pode checar um <b>limite mínimo e máximo</b> e recusar o que for perigoso. É a primeira barreira contra erro de digitação (um zero a mais!).','Velocidade boa do misturador: <b>300 a 900 rpm</b>. Abaixo de 300 o produto empelota. O teste vai tentar 250 (precisa ser recusado) e 300 (precisa ser aceito).','Mínimo entre 260 e 300: aceita o 300 do produto e recusa o 250 perigoso.'],
+ limMax:['Agora o <b>limite máximo</b>.','Acima de 900 rpm o produto derrama. O teste vai tentar 900 (aceitar) e 950 (recusar).','Máximo entre 900 e 940: aceita o 900 e recusa o 950.'],
+ defv:['O <b>valor inicial</b> é o que aparece no campo ao ligar a máquina. Se for perigoso, a máquina já parte errada.','Precisa ficar dentro da faixa boa: 300 a 900 rpm.','Um valor no meio da faixa é um bom ponto de partida.']},
+5:{lo:['O <b>alarme BAIXO</b> avisa que o nível está perigosamente baixo (bomba pode rodar seca). Ele precisa ficar <b>abaixo da faixa normal</b>, senão toca à toa.','Operação normal do tanque: <b>30% a 80%</b>. A bomba quase seca com 20%, então 20% precisa disparar o baixo e 35% não.','Alarme baixo em 20 a 34: dispara em 20% e fica quieto em 35%.'],
+ hi:['O <b>alarme ALTO</b> avisa antes de encher. Precisa ficar <b>acima da faixa normal</b>.','Normal vai até 80%. O teste olha 75% (sem alarme) e 85% (com alarme alto).','Alarme alto entre 76 e 85: quieto em 75% e acionado em 85%.'],
+ hh:['O <b>alarme CRÍTICO</b> é o último degrau, para risco de transbordar. Fica <b>depois do alto</b>.','Em 85% só o alto deve tocar; em 97% o crítico deve disparar.','Crítico entre 86 e 97: não dispara em 85% e dispara em 97%.'],
+ hhAct:['Além de avisar, o CLP pode <b>agir</b>. Em risco grave, esperar o operador reagir é arriscado.','A 97% o tanque vai transbordar.','Parar a bomba de entrada evita o transbordo mesmo se ninguém estiver olhando a tela.'],
+ latch:['O alarme pode <b>sumir sozinho</b> quando o nível volta ao normal, ou ficar <b>retido até o operador reconhecer (ACK)</b>.','O nível passou de 85% e voltou a 70% enquanto ninguém olhava a tela.','Retentivo: o alarme continua na tela até alguém reconhecer, então ninguém perde a ocorrência.']},
+6:{base:['Uma receita guarda o <b>tempo</b> em uma unidade escolhida por você. O CLP conta em <b>segundos</b>, então a IHM precisa saber se os números da receita são segundos ou minutos.','As receitas a seguir são em <b>minutos</b> (20 a 25 min, etc.).','Em minutos, "20" vira 20 × 60 = 1200 segundos no CLP. Em segundos viraria só 20 segundos e estragaria o lote.'],
+ tA:['A <b>receita</b> junta a temperatura e o tempo de cada produto, para o operador escolher com um toque.','<b>Chocolate</b>: temperatura de 45 a 50 °C. Digite um valor dentro da faixa.','Dentro da faixa do chocolate.'],
+ mA:['Agora o <b>tempo</b> do chocolate, na unidade que você escolheu no primeiro passo.','<b>Chocolate</b>: de 20 a 25 minutos.','Tempo dentro da faixa do chocolate.'],
+ tB:['Agora o <b>caramelo</b>, que pede temperatura bem mais alta.','<b>Caramelo</b>: temperatura de 120 a 130 °C.','Dentro da faixa do caramelo.'],
+ mB:['Tempo do caramelo: curto, para não queimar.','<b>Caramelo</b>: de 8 a 10 minutos.','Tempo dentro da faixa do caramelo.'],
+ tC:['Por fim a <b>geleia</b>.','<b>Geleia</b>: temperatura de 80 a 85 °C.','Dentro da faixa da geleia.'],
+ mC:['Tempo da geleia.','<b>Geleia</b>: de 15 a 18 minutos.','Tempo dentro da faixa da geleia.']},
+7:{a_start:['Muitas funções da IHM pedem <b>login</b>. Há 3 níveis: <b>Operador</b> (rotina do dia a dia), <b>Manutenção</b> (ajustes da máquina) e <b>Engenharia</b> (configuração profunda). Quem tem nível maior também acessa o que pede nível menor.','Ligar e desligar a máquina é <b>rotina do operador</b>.','Rotina do dia a dia fica livre para o operador, sem atrapalhar o turno.'],
+ a_ack:['Reconhecer (ACK) o alarme é dizer "eu vi". Quem está na máquina precisa conseguir fazer isso na hora.','Quem reconhece o alarme é o <b>operador do turno</b>.','O operador está ali olhando a tela, então ele deve poder reconhecer.'],
+ a_sp:['Mudar a velocidade durante a produção é <b>rotina</b>, dentro dos limites já travados.','O operador ajusta a velocidade ao longo do turno.','Os limites de entrada já protegem de valores perigosos, então o operador pode ajustar.'],
+ a_rec:['<b>Trocar de receita</b> muda temperatura e tempo de tudo. Um erro estraga o lote.','Quem troca a receita é a <b>Manutenção</b>.','Só quem entende o processo deve trocar receita.'],
+ a_alim:['Os <b>limites de alarme</b> definem quando a máquina avisa. Se alguém aumentar sem querer, perigo passa despercebido.','Quem ajusta limites de alarme é a <b>Manutenção</b>.','Mudar limite de alarme exige conhecer a máquina.'],
+ a_scale:['A <b>escala do sensor</b> traduz número bruto em graus. Se errar, <b>todas as leituras</b> ficam falsas.','Só a <b>Engenharia</b> configura a escala.','A escala só muda na instalação do sensor, por quem projetou.'],
+ a_cal:['A <b>calibração</b> corrige o sensor com um padrão de referência. Fazer errado compromete a qualidade.','Só a <b>Engenharia</b> calibra.','Calibração é tarefa especializada.'],
+ tout:['O <b>logout automático</b> encerra o login quando ninguém toca na tela por um tempo. Curto demais atrapalha o técnico; longo demais deixa a tela aberta para qualquer um.','Um bom valor fica entre <b>30 e 300 segundos</b>.','Tempo suficiente para trabalhar, curto o bastante para não deixar a tela aberta.']},
+8:{startTag:['Último desafio: a <b>dosadora</b>. Comece pelo botão INICIAR.',TAGTAB,'M0.0 liga pelo programa do CLP.'],
+ startMode:['Tipo do botão INICIAR. '+MODTXT,'A dosadora deve continuar dosando depois que o operador solta o botão.','Seta: liga e fica ligado.'],
+ rawMax:['Valor bruto máximo do módulo analógico de pressão.','O módulo vai de 0 a <b>27648</b>.','27648 é o topo da escala do módulo.'],
+ engMax:['Pressão máxima que o sensor mede, para escalar a tela.','O sensor mede de 0 a <b>10 bar</b>.','Bruto 27648 = 10 bar.'],
+ limMin:['Vazão mínima que a IHM aceita digitar.','A bomba aceita de <b>20 a 80 L/h</b>. A IHM deve recusar 10 e aceitar 20.','Mínimo entre 11 e 20.'],
+ limMax:['Vazão máxima aceita.','Aceitar 80 e recusar 90.','Máximo entre 80 e 89.'],
+ hiP:['Ponto do alarme de pressão alta.','Pressão de trabalho até 6 bar. Em 8 bar precisa avisar; em 6 não.','Alarme entre 6,5 e 8 bar.'],
+ ackLvl:['Quem pode reconhecer o alarme.','O operador do turno precisa conseguir.','Operador.'],
+ latch:['O alarme de pressão deve ficar retido ou sumir?','Ninguém pode perder a ocorrência.','Retentivo até o ACK.']}
+};
+function stepCheck(L,id,v){const f=L.fields.find(x=>x.id===id),val=f.type==='num'?+v:v,c=Object.assign({},SOL[L.id],{[id]:val}),r=evalLevel(L,c);return {ok:r.ok,msg:r.ok?null:firstMsg(r)}}
+
+/* ================= UI ================= */
+const $=(s,r=document)=>r.querySelector(s),$$=(s,r=document)=>[...r.querySelectorAll(s)];
+const KEY='fabricaRele_ihm_v1';
+const DEF={stars:{},unlocked:1,cfg:{},seen:{},done:{},sound:true,welcomed:false};
+function loadP(){try{return Object.assign({},DEF,JSON.parse(localStorage.getItem(KEY)||'{}'))}catch(e){return Object.assign({},DEF)}}
+let P=loadP();
+function save(){try{localStorage.setItem(KEY,JSON.stringify(P))}catch(e){}}
+let L=null,cfg={},hints=0,fails=0,last=null,run=null;
+const INK='#2b2250';
+const starsHTML=n=>'★'.repeat(n)+'☆'.repeat(3-n);
+let AC=null;
+function beep(f,d=.1,type='sine',v=.07,delay=0){if(!P.sound)return;try{AC=AC||new(window.AudioContext||window.webkitAudioContext)();const o=AC.createOscillator(),g=AC.createGain();o.type=type;o.frequency.value=f;const t=AC.currentTime+delay;g.gain.setValueAtTime(v,t);g.gain.exponentialRampToValueAtTime(.0001,t+d);o.connect(g);g.connect(AC.destination);o.start(t);o.stop(t+d+.02)}catch(e){}}
+const sfx={click(){beep(900,.03,'square',.03)},ok(){beep(784,.08,'triangle',.06)},win(){[523,659,784,1046].forEach((f,i)=>beep(f,.18,'triangle',.08,i*.12))},fail(){beep(220,.25,'sawtooth',.05)}};
+function say(t,mood='happy'){$('#bubble').innerHTML='<span>'+t+'</span>';const d={happy:'M36 54Q45 63 54 54',bad:'M36 60Q45 51 54 60',think:'M38 57H52'}[mood]||'M36 54Q45 63 54 54';$('#mouth').setAttribute('d',d);[$('#e1'),$('#e2')].forEach(e=>e.setAttribute('r',mood==='bad'?3.5:5))}
+function persist(){P.cfg[L.id]=cfg;save()}
+
+/* ---- cabeçalho e formulário ---- */
+function renderHeader(){
+ $('#lv').innerHTML=LEVELS.map(l=>{const lock=l.id>P.unlocked;return `<button class="chip${l.id===L.id?' cur':''}${lock?' lock':''}" data-lv="${l.id}" title="${lock?'Resolva a fase anterior':l.name}">${lock?'🔒':l.id}<i>${lock?'':starsHTML(P.stars[l.id]||0)}</i></button>`}).join('');
+ $('#ltitle').textContent=`Fase ${L.id} · ${L.name}`;$('#lmission').textContent=L.mission;
+ const best=P.stars[L.id]||0;$('#stars').textContent=starsHTML(best);$('#snd').textContent=P.sound?'🔊':'🔇';
+}
+let stepI=0,done={},pend=null,fb='';
+const allDone=()=>L.fields.every(f=>done[f.id]);
+function renderHow(){$('#howto').innerHTML=`<div class="st"><b>1</b>Leia o <u>passo</u> e a explicação</div><div class="st"><b>2</b>Escolha ou digite e aperte <u>✓ Conferir</u></div><div class="st"><b>3</b>Com todos os passos ✔, aperte <u>▶ RODAR</u> e <u>✓ VERIFICAR</u></div>`}
+function openHow(){modal(`<h2>❓ Como jogar</h2><p>Uma <b>IHM</b> é a telinha onde o operador vê e comanda a máquina. Ela precisa ser <b>configurada</b>: dizer a cada botão e número o que fazer. Isso é <b>parametrizar</b>.</p><div class="pista"><b>1.</b> Cada fase tem alguns <b>passos</b>. Em cada um você lê <b>"O que é"</b> e os <b>"Dados da máquina"</b>.<br><b>2.</b> Escolha uma opção (ou digite um número) e aperte <b>✓ Conferir este passo</b>. Eu explico na hora se está certo ou por que não.<br><b>3.</b> A telinha da IHM no centro vai sendo preenchida com as suas respostas.<br><b>4.</b> Com todos os passos ✔, aperte <b>▶ RODAR</b> para ver a máquina funcionando e <b>✓ VERIFICAR</b> para ganhar as estrelas.</div><p style="font-size:12px;opacity:.8">Dúvida sobre o assunto? Abra a <b>📖 Trilha</b>. Travou? Use <b>💡 Dica</b>.</p><div class="mbts"><button class="btn run" id="m-close">Entendi!</button></div>`);$('#m-close').onclick=closeModal}
+function goStep(i){stepI=i;const f=L.fields[i];pend=f&&done[f.id]?cfg[f.id]:null;fb='';renderForm();renderSide(last)}
+function renderForm(){
+ renderHow();const n=L.fields.length;
+ if(stepI>=n){
+  $('#cat').innerHTML=`<h2>🏁 Passos concluídos</h2><div class="fb ok">🎉 Todos os passos estão certos!</div><div class="box2"><b>Suas respostas</b><ul class="sum">${L.fields.map(f=>{const v=cfg[f.id],o=f.type==='sel'?(f.opts.find(x=>String(x[0])===String(v))||[v,v])[1]:v+' '+f.unit;return `<li><span>${f.label}</span><b>${o}</b></li>`}).join('')}</ul></div><div class="box2"><b>Agora</b><br>1. Aperte <b>▶ RODAR</b> e veja a máquina e a IHM funcionando com a sua configuração.<br>2. Aperte <b>✓ VERIFICAR</b> para concluir a fase.</div>`;return}
+ const f=L.fields[stepI],t=FS[L.id][f.id],ok=!!done[f.id];
+ let ctrl;
+ if(f.type==='sel')ctrl=`<div class="opts">${f.opts.map(([o,tx])=>`<button class="opt${pend!==null&&String(pend)===String(o)?' sel':''}" data-o="${o}">${tx}</button>`).join('')}</div>`;
+ else ctrl=`<div class="numrow"><button class="nb" data-d="-1" title="menos">−</button><input id="numin" type="number" inputmode="decimal" min="${f.min}" max="${f.max}" step="${f.step}" placeholder="digite" value="${pend===null?'':pend}"><span class="un">${f.unit}</span><button class="nb" data-d="1" title="mais">+</button></div><div class="tip">Campo aceita de ${f.min} a ${f.max} ${f.unit}</div>`;
+ $('#cat').innerHTML=`<h2>🧭 Passo ${stepI+1} de ${n}</h2><div class="pbar"><i style="width:${Object.keys(done).length/n*100}%"></i></div><div class="steptitle">${f.label}</div><div class="box2"><b>📘 O que é</b><br>${t[0]}</div><div class="box2 dados"><b>📊 Dados da máquina</b><br>${t[1]}</div><div class="ctrl">${ctrl}</div><div class="mbts" style="justify-content:flex-start"><button class="btn chk" id="chkstep">✓ Conferir este passo</button>${ok?`<button class="btn run" id="nextstep">${stepI<n-1?'Próximo passo ▶':'Terminar ▶'}</button>`:''}</div><div id="fb">${fb}</div>`;const fe=$('#fb .fb');if(fe&&fb)setTimeout(()=>{try{fe.scrollIntoView({block:'nearest',behavior:'smooth'})}catch(e){}},30);
+}
+function setPend(v){const f=L.fields[stepI];pend=v;cfg[f.id]=f.type==='num'?(isFinite(v)?v:cfg[f.id]):v;if(done[f.id]){delete done[f.id];P.done[L.id]=done}persist();if(!run){last=null;drawIdle()}}
+function checkStep(){
+ const f=L.fields[stepI],t=FS[L.id][f.id];
+ if(pend===null||pend===''||(f.type==='num'&&!isFinite(pend))){fb='<div class="fb bad">Escolha ou digite uma resposta antes de conferir.</div>';sfx.fail();renderForm();return}
+ const r=stepCheck(L,f.id,pend);
+ if(r.ok){cfg[f.id]=f.type==='num'?+pend:pend;done[f.id]=true;P.done[L.id]=done;persist();sfx.ok();fb=`<div class="fb ok">✔ Certo! ${t[2]}</div>`;say('Muito bem! '+t[2],'happy');drawIdle()}
+ else{fails++;sfx.fail();fb=`<div class="fb bad">✘ Ainda não. ${r.msg}</div>`;say('Quase! '+r.msg,'bad')}
+ renderForm();renderSide(last);
+}
+$('#cat').addEventListener('click',e=>{
+ const o=e.target.closest('.opt');if(o){setPend(o.dataset.o);fb='';renderForm();renderSide(last);sfx.click();return}
+ const nb=e.target.closest('.nb');if(nb){const f=L.fields[stepI];let v=pend===null||pend===''?(f.def):+pend;v=Math.min(f.max,Math.max(f.min,v+(+nb.dataset.d)*f.step));v=+v.toFixed(2);setPend(v);fb='';renderForm();renderSide(last);sfx.click();return}
+ if(e.target.id==='chkstep')return checkStep();
+ if(e.target.id==='nextstep'){sfx.click();return goStep(stepI+1)}
+});
+$('#cat').addEventListener('input',e=>{if(e.target.id==='numin'){const v=e.target.value;setPend(v===''?null:parseFloat(v))}});
+$('#cat').addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target.id==='numin')checkStep()});
+function renderSide(r){
+ const steps=`<div class="box2"><b>🧭 Passos</b><ul class="slist">${L.fields.map((f,i)=>`<li class="${done[f.id]?'ok':''}${i===stepI?' cur':''}" data-s="${i}">${done[f.id]?'✔':i===stepI?'👉':'○'} ${f.label}</li>`).join('')}</ul></div>`;
+ const tests=r?`<div class="box2"><b>📋 Resultado dos testes</b><ul class="res">${r.results.map(x=>`<li class="${x.ok?'ok':'bad'}">${x.ok?'✔':'✘'} ${x.n}${x.ok?'':`<small>${x.note}</small>`}</li>`).join('')}</ul></div>`:`<div class="box2"><b>📋 O que será testado no final</b><ul class="res">${L.tests.map(t=>`<li class="tst">${t.n}</li>`).join('')}</ul></div>`;
+ $('#side').innerHTML=`<div class="box2"><b>🎯 Missão</b><br>${L.mission}</div>`+steps+tests;
+}
+$('#side').addEventListener('click',e=>{const li=e.target.closest('[data-s]');if(li&&!run){sfx.click();goStep(+li.dataset.s)}});
+/* ---- cena ---- */
+const BG=`<rect x="-800" y="-400" width="2200" height="1200" fill="#eaf4ff"/><rect x="-800" y="318" width="2200" height="600" fill="#cdbcff"/><path d="M-800 318H1400" stroke="${INK}" stroke-width="4"/>`;
+const mach=(k,s)=>`<g transform="translate(0 56)">${machine(k,s)}</g>`;
+const sw=`stroke="${INK}" stroke-width="3.5"`;
+function machine(kind,st){
+ st=st||{};
+ if(kind==='motor'){const on=st.motor;return `<rect x="40" y="170" width="200" height="92" rx="14" fill="#98a2b8" ${sw}/><rect x="240" y="200" width="40" height="32" fill="#c3bddb" ${sw}/><g transform="translate(140 170)"><circle r="46" fill="#fff" ${sw}/><g>${on?'<animateTransform attributeName="transform" type="rotate" from="0" to="360" dur="0.6s" repeatCount="indefinite"/>':''}<path d="M0 0L0-38M0 0L33 19M0 0L-33 19" stroke="${INK}" stroke-width="9" stroke-linecap="round"/></g></g><text x="140" y="95" class="ct" text-anchor="middle">Motor da esteira: ${on?'LIGADO':'parado'}</text>${on?`<rect x="20" y="248" width="260" height="14" fill="#7fd8ff" ${sw}/>`:''}`}
+ if(kind==='gauge'){const fr=Math.max(0,Math.min(1,st.frac||0)),a=Math.PI*(1-fr),x=150+Math.cos(a)*80,y=210-Math.sin(a)*80;return `<path d="M60 210A90 90 0 0 1 240 210Z" fill="#fff" ${sw}/><path d="M60 210A90 90 0 0 1 240 210" fill="none" stroke="#19c37d" stroke-width="10" opacity=".5"/><line x1="150" y1="210" x2="${x}" y2="${y}" stroke="#ff4d5e" stroke-width="6" stroke-linecap="round"/><circle cx="150" cy="210" r="10" fill="${INK}"/><text x="150" y="245" class="ct" text-anchor="middle">${st.txt||'—'}</text><text x="70" y="228" class="tiny">0</text><text x="212" y="228" class="tiny">150 °C</text>`}
+ if(kind==='mixer'){const rpm=st.rpm||0;return `<rect x="70" y="110" width="160" height="150" rx="14" fill="#fff4cf" ${sw}/><rect x="72" y="150" width="156" height="108" fill="#ffd9a0" opacity=".8"/><line x1="150" y1="60" x2="150" y2="215" stroke="${INK}" stroke-width="6"/><g transform="translate(150 215)"><g>${rpm?`<animateTransform attributeName="transform" type="rotate" from="0" to="360" dur="${Math.max(.15,60/Math.max(rpm,60)*0.6).toFixed(2)}s" repeatCount="indefinite"/>`:''}<rect x="-55" y="-5" width="110" height="10" rx="5" fill="#ff5fa2" ${sw}/></g></g><text x="150" y="285" class="ct" text-anchor="middle">${rpm?rpm+' rpm':'parado'}</text>${rpm>900?'<text x="150" y="95" class="ct" text-anchor="middle" fill="#ff4d5e">derramando!</text>':''}${rpm&&rpm<300?'<text x="150" y="95" class="ct" text-anchor="middle" fill="#ff4d5e">empelotando</text>':''}`}
+ if(kind==='tank'){const lv=Math.max(0,Math.min(100,st.level===undefined?50:st.level)),h=lv*1.3,col=st.alarm==='hh'?'#ff4d5e':st.alarm?'#ff9f1c':'#7fd8ff';return `<rect x="80" y="110" width="140" height="140" rx="10" fill="#fff" ${sw}/><rect x="83" y="${247-h}" width="134" height="${h}" fill="${col}" opacity=".85"/><text x="150" y="100" class="ct" text-anchor="middle">${st.txt||'Nível '+Math.round(lv)+'%'}</text><rect x="228" y="150" width="50" height="22" rx="6" fill="${st.motor===false||st.pump===false?'#9a94b8':(st.pump||st.motor)?'#19c37d':'#9a94b8'}" ${sw}/><text x="253" y="188" class="tiny" text-anchor="middle">bomba</text>`}
+ if(kind==='recipe'){return `<path d="M70 130H230L215 250H85Z" fill="#c3bddb" ${sw}/><ellipse cx="150" cy="130" rx="80" ry="14" fill="#ffd9a0" ${sw}/><text x="150" y="215" class="ct" text-anchor="middle" fill="#2b2250">${st.temp===undefined?'':st.temp+' °C'}</text><text x="150" y="100" class="ct" text-anchor="middle">${st.time===undefined?'':'⏱ '+st.time}</text>`}
+ if(kind==='access'){const lk=st.lock;return `<rect x="100" y="150" width="100" height="90" rx="12" fill="${lk?'#ff9f1c':'#19c37d'}" ${sw}/><path d="M120 150V120A30 30 0 0 1 180 120V${lk?150:128}" fill="none" stroke="${INK}" stroke-width="10"/><circle cx="150" cy="195" r="9" fill="${INK}"/><text x="150" y="257" class="ct" text-anchor="middle">${lk?'pede senha':'livre'}</text>`}
+ return '';
+}
+const cut=(t,n=27)=>{t=String(t);return t.length>n?t.slice(0,n-1)+'…':t};
+function hmi(L,res,idle,mark){
+ const lines=res?res.show:(idle||[]);
+ const al=res&&res.st&&res.st.alarm;
+ return `<g transform="translate(320 56)"><rect width="268" height="232" rx="16" fill="#2b2250"/><rect x="10" y="10" width="248" height="212" rx="10" fill="${al?(al==='hh'?'#ffe0e3':'#fff0d1'):'#e8fbff'}"/><rect x="10" y="10" width="248" height="26" rx="10" fill="#6c4cf1"/><text x="22" y="28" class="tiny" style="fill:#fff">IHM · ${L.name}</text>${lines.slice(0,5).map((t,i)=>`<text x="24" y="${64+i*26}" class="ct" style="font-size:13.5px">${cut(t).replace(/&/g,'&amp;').replace(/</g,'&lt;')}</text>`).join('')}${res&&res.st&&res.st.lamp!==undefined?`<circle cx="226" cy="64" r="12" fill="${res.st.lamp?'#19c37d':'#9a94b8'}" ${sw}/>`:''}${mark?`<rect x="24" y="176" width="220" height="32" rx="10" fill="${mark.includes('✔')?'#19c37d':'#ff4d5e'}" ${sw}/><text x="134" y="198" class="ct" text-anchor="middle" style="fill:#fff;font-size:15px">${mark.includes('✔')?'✔ CERTO':'✘ ERRADO'}</text>`:''}${al?`<rect x="24" y="${mark?136:190}" width="220" height="24" rx="8" fill="${al==='hh'?'#ff4d5e':'#ff9f1c'}" ${sw}/><text x="134" y="${mark?153:207}" class="tiny" text-anchor="middle" style="fill:#fff">⚠ ALARME ${al==='hh'?'CRÍTICO':al==='hi'?'ALTO':'BAIXO'}</text>`:''}</g>`;
+}
+function banner(t,mark){return `<g transform="translate(12 10)"><rect width="${Math.min(576,t.length*7.4+50)}" height="30" rx="10" fill="#fff" ${sw}/><text x="12" y="20" class="ct" style="font-size:12.5px">${t.replace(/&/g,'&amp;')}${mark||''}</text></g>`}
+function idleLines(){const l=['Montando a IHM...'];L.fields.slice(0,4).forEach(f=>{if(!done[f.id]){l.push(f.label.split(' ').slice(0,2).join(' ')+': —');return}const v=cfg[f.id],o=f.type==='sel'?(f.opts.find(x=>String(x[0])===String(v))||[v,v])[1]:v+' '+f.unit;l.push(f.label.split(' ').slice(0,2).join(' ')+': '+String(o).split(' · ')[0].split(' (')[0])});return l}
+function drawIdle(){$('#scene').innerHTML=BG+mach(L.kind,L.kind==='tank'?{level:50}:{})+hmi(L,null,idleLines())}
+function drawStep(res,mark){$('#scene').innerHTML=BG+mach(L.kind,res.st)+hmi(L,res,null,mark)+banner(res.n,mark)}
+
+/* ---- rodar ---- */
+const DUR=1900;
+function play(){
+ const lv=evalLevel(L,cfg);run={lv,i:0,t0:performance.now(),stop:false};$('#run').disabled=true;
+ say('Rodando os testes na máquina. Observe a tela da IHM e o que a máquina faz!','think');
+ requestAnimationFrame(loop);
+}
+function loop(now){
+ if(!run)return;
+ const el=now-run.t0,r=run.lv.results[run.i];
+ drawStep(r,el>DUR*.55?(r.ok?' ✔':' ✘'):'');
+ if(el>DUR*.55&&!r._s){r._s=1;r.ok?sfx.ok():sfx.fail()}
+ if(el>=DUR){run.i++;run.t0=now;if(run.i>=run.lv.results.length)return endRun()}
+ requestAnimationFrame(loop);
+}
+function endRun(){
+ const lv=run.lv;run=null;$('#run').disabled=false;last=lv;renderSide(lv);
+ const n=lv.results.filter(x=>x.ok).length;
+ say(lv.ok?'Tudo passou nos testes! Aperte ✓ VERIFICAR para fechar a fase.':`Passaram ${n} de ${lv.results.length} testes. Veja a lista ao lado e ajuste os parâmetros.`,lv.ok?'happy':'think');
+ lv.results.forEach(r=>delete r._s);
+}
+function stopRun(){run=null;$('#run').disabled=false;drawIdle()}
+$('#run').onclick=()=>{sfx.click();if(!run)play()};
+$('#restart').onclick=()=>{sfx.click();if(run)stopRun();else drawIdle();last=null;renderSide()};
+
+/* ---- modais ---- */
+function modal(html,wide){$('#mbody').innerHTML=html;$('#mbody').classList.toggle('wide',!!wide);$('#modal').classList.remove('hidden')}
+function closeModal(){$('#modal').classList.add('hidden')}
+$('#modal').addEventListener('click',e=>{if(e.target.id==='modal')closeModal()});
+function ask(title,msg,yes,onYes){modal(`<h2>${title}</h2><p>${msg}</p><div class="mbts"><button class="btn" id="a-no">Cancelar</button><button class="btn stop" id="a-yes">${yes}</button></div>`);$('#a-no').onclick=closeModal;$('#a-yes').onclick=()=>{closeModal();onYes()}}
+function openHints(){
+ const n=Math.min(hints,3);
+ modal(`<h2>💡 Dicas da fase ${L.id}</h2><p style="font-size:12px;opacity:.7">As dicas já abertas ficam aqui. Usar dicas diminui as estrelas.</p>${L.hints.slice(0,n).map((h,i)=>`<div class="hintcard"><b>Dica ${i+1} de 3</b><p>${h}</p></div>`).join('')}<div class="mbts"><button class="btn" id="m-close">Fechar</button>${n<3?`<button class="btn rst" id="m-more">Mostrar a dica ${n+1} de 3</button>`:''}</div>`);
+ $('#m-close').onclick=closeModal;const more=$('#m-more');if(more)more.onclick=()=>{hints=n+1;openHints()};
+}
+$('#hintbtn').onclick=()=>{if(hints===0)hints=1;sfx.click();openHints()};
+
+/* ---- verificar ---- */
+function complete(){
+ const stars=1+(hints===0?1:0)+(fails<=2?1:0);
+ P.stars[L.id]=Math.max(P.stars[L.id]||0,stars);if(L.id<LEVELS.length)P.unlocked=Math.max(P.unlocked,L.id+1);
+ save();renderHeader();sfx.win();const lastL=L.id===LEVELS.length;
+ say(lastL?'🏆 Você configurou a fábrica inteira! Mestre da IHM!':'🎉 Fase concluída! A IHM está perfeita!','happy');
+ modal(`<h2>${lastL?'🏆 Mestre da IHM!':'🎉 Fase concluída!'}</h2><div class="bigstars">${starsHTML(stars)}</div><p>Dicas usadas: <b>${hints}</b> · Erros: <b>${fails}</b></p><p style="font-size:12px;opacity:.7">3 estrelas = nenhuma dica e no máximo 2 erros.</p><div class="mbts"><button class="btn" id="m-close">Continuar aqui</button>${lastL?'<button class="btn run" id="m-first">Jogar de novo</button>':'<button class="btn run" id="m-next">Próxima fase ▶</button>'}</div>`);
+ $('#m-close').onclick=closeModal;if(lastL)$('#m-first').onclick=()=>{closeModal();loadLevel(1)};else $('#m-next').onclick=()=>{closeModal();loadLevel(L.id+1)};
+}
+function verify(){
+ if(run)stopRun();
+ if(!allDone()){say('Faça todos os passos primeiro: veja a lista de passos ao lado.','think');sfx.fail();return}
+ const lv=evalLevel(L,cfg);last=lv;renderSide(lv);
+ if(lv.ok){complete();return}
+ fails++;sfx.fail();const pista=firstMsg(lv);say('Quase lá! '+pista,'bad');
+ const n=lv.results.filter(x=>x.ok).length;
+ modal(`<h2>🔧 Ainda não está certo</h2><p>${n} de ${lv.results.length} testes passaram.</p><div class="pista">🤖 <b>Pista do Relê:</b> ${pista}</div><div class="mbts"><button class="btn rst" id="m-close">Voltar aos parâmetros</button><button class="btn" id="m-hint">💡 Pedir dica</button></div>`);
+ $('#m-close').onclick=closeModal;$('#m-hint').onclick=()=>{if(hints===0)hints=1;openHints()};
+}
+$('#chk').onclick=verify;
+
+/* ---- trilha ---- */
+function demoScale(host){
+ let raw=10000;
+ host.innerHTML=`<label style="font-size:12px;font-weight:800">Exemplo: módulo de 0 a 1000 para um sensor de 20 a 80 kg. Valor bruto: <span class="val" id="dp"></span></label><input type="range" id="dr" min="0" max="1000" value="10000" step="10"><div class="out"><span id="dt"></span></div><p style="font-size:12px;opacity:.8;margin-top:4px">valor = mín + bruto ÷ bruto máx × (máx − mín)</p>`;
+ const r=$('#dr',host);r.value=400;raw=400;
+ const upd=()=>{$('#dp',host).textContent=raw;$('#dt',host).innerHTML=`Tela mostra: <b>${(20+raw/1000*60).toFixed(1).replace('.',',')} kg</b>`};
+ r.oninput=e=>{raw=+e.target.value;upd()};upd();
+}
+const LESSONS={
+1:[{t:'O que é uma IHM?',p:'IHM (Interface Homem-Máquina) é a <b>telinha</b> onde o operador vê o que a máquina faz e dá comandos. Ela <b>não pensa</b>: quem pensa é o CLP. A IHM só lê e escreve valores nele.'},
+ {t:'Tags e endereços',p:'Cada botão, lâmpada ou número na tela está ligado a uma <b>tag</b>, um endereço de memória do CLP. Entradas (I) são físicas, saídas (Q) acionam a máquina e memórias (M) servem para conversar. Ligar o objeto no endereço errado é o erro mais comum de IHM.'}],
+2:[{t:'Botão momentâneo',p:'Vale 1 só <b>enquanto você segura</b> e volta a 0 ao soltar. Ideal para ajuste manual (jog) e para quem precisa de segurança: soltou, parou.'},
+ {t:'Alternado e seta',p:'<b>Alternado</b> inverte o estado a cada toque. <b>Seta</b> coloca em 1 e fica, e outro botão (reset) volta a 0. Escolher o tipo errado causa máquinas que param sozinhas ou nunca param.'}],
+3:[{t:'Valor bruto e valor real',p:'O módulo analógico entrega um <b>número bruto</b> (por exemplo, de 0 a um máximo fixo). A IHM precisa converter esse número para a unidade real do processo.',demo:'scale',fig:'<div class="fig"><div class="n"><span>0</span>bruto<br>= 0 °C</div><div class="a">➜</div><div class="n"><span>13824</span>bruto<br>= 75 °C</div><div class="a">➜</div><div class="n"><span>27648</span>bruto<br>= 150 °C</div></div>'},
+ {t:'Casas decimais e unidade',p:'Mostrar casas decimais demais confunde; de menos esconde o que o processo exige. E a <b>unidade</b> na tela precisa combinar com o que se mede.'}],
+4:[{t:'Limites de entrada',p:'Quando o operador digita um valor, a IHM pode checar <b>mínimo e máximo</b> e recusar o que for perigoso. É a primeira barreira contra erro de digitação (um zero a mais!).'},
+ {t:'Valor inicial',p:'Ao ligar a máquina, o campo mostra um valor inicial. Ele precisa estar <b>dentro da faixa segura</b> para a máquina não partir já errada.'}],
+5:[{t:'Níveis de alarme',p:'Alarmes têm degraus: <b>aviso</b> (atenção), <b>alto</b> e <b>crítico</b>. Cada um precisa ficar fora da faixa normal de operação, senão toca à toa. Alarme falso demais faz o operador <b>ignorar todos</b>.',fig:'<div class="fig"><div class="n" style="background:#ffe0e3"><span>🔴</span>crítico<br>perto de 100%</div><div class="n" style="background:#fff0d1"><span>🟠</span>alto<br>acima do normal</div><div class="n" style="background:#d6f7e7"><span>🟢</span>normal<br>30% a 80%</div><div class="n" style="background:#fff0d1"><span>🟠</span>baixo<br>abaixo do normal</div></div>'},
+ {t:'Reconhecimento (ACK)',p:'Um alarme importante deve ficar <b>retentivo</b>: continua aparecendo até alguém reconhecer (ACK), mesmo que a condição já tenha passado. Assim ninguém perde a ocorrência. Em risco grave, o CLP deve também <b>agir</b>, não só avisar.'}],
+6:[{t:'O que é uma receita?',p:'Receita é um <b>conjunto de parâmetros</b> salvo com um nome (temperatura, tempo, velocidade). O operador troca de produto com um toque, sem digitar tudo de novo.'},
+ {t:'Cuidado com a unidade de tempo',p:'A IHM pode guardar o tempo em segundos ou minutos, e o CLP precisa saber qual. 20 <b>minutos</b> lidos como 20 <b>segundos</b> estragam o lote inteiro!'}],
+7:[{t:'Níveis de usuário',p:'A IHM pode pedir <b>login</b> para algumas funções. Em geral: <b>Operador</b> faz a rotina; <b>Manutenção</b> ajusta limites e receitas; <b>Engenharia</b> mexe em escala e calibração.',fig:'<div class="fig"><div class="n"><span>🧑‍🏭</span>Operador<br>rotina</div><div class="a">⊂</div><div class="n"><span>🔧</span>Manutenção<br>ajustes</div><div class="a">⊂</div><div class="n"><span>👷</span>Engenharia<br>configuração</div></div>'},
+ {t:'Nem de mais, nem de menos',p:'Proteção de menos: qualquer um mexe no que não deve. Proteção demais: o operador não consegue trabalhar. E o <b>logout automático</b> fecha o acesso quando ninguém toca na tela por um tempo.'}],
+8:[{t:'Juntando tudo',p:'Na dosadora, cada decisão das fases anteriores aparece junta: endereço, tipo de botão, escala, limites, alarme e acesso.'},
+ {t:'Confira os testes',p:'Use ▶ <b>RODAR</b> para ver cada situação e leia a lista ao lado. O Relê aponta o primeiro erro em ✓ <b>VERIFICAR</b>.'}]};
+let lesStep=0;
+function openLesson(id,step){
+ lesStep=step||0;const steps=LESSONS[id],s=steps[lesStep],lastS=lesStep===steps.length-1,lv=LEVELS[id-1];
+ const dots=steps.map((_,i)=>`<span class="${i===lesStep?'on':''}"></span>`).join('');
+ modal(`<h2>📖 Trilha · Fase ${id}</h2><div class="dots">${dots}</div><h3>${s.t}</h3><p>${s.p}</p>${s.fig||''}${s.demo?'<div class="demo" id="demo"></div>':''}${lastS?`<p><b>🎯 Missão:</b> ${lv.mission}</p>`:''}<div class="mbts">${lesStep>0?'<button class="btn" id="l-prev">◀ Voltar</button>':''}<button class="btn run" id="l-next">${lastS?'Começar a fase 🚀':'Próximo ▶'}</button></div><p><a href="#" id="l-skip">pular trilha</a></p>`,true);
+ if(s.demo)demoScale($('#demo'));
+ const prev=$('#l-prev');if(prev)prev.onclick=()=>openLesson(id,lesStep-1);
+ $('#l-next').onclick=()=>{if(lastS)endLesson(id);else openLesson(id,lesStep+1)};
+ $('#l-skip').onclick=e=>{e.preventDefault();endLesson(id)};
+}
+function endLesson(id){P.seen[id]=1;save();closeModal()}
+$('#howbtn').onclick=()=>{sfx.click();openHow()};
+$('#lessonbtn').onclick=()=>{sfx.click();openLesson(L.id)};
+function maybeLesson(){if(P.welcomed&&!P.seen[L.id]&&LESSONS[L.id])openLesson(L.id)}
+
+/* ---- fases ---- */
+function loadLevel(id){
+ if(id>P.unlocked)return;
+ closeModal();run=null;$('#run').disabled=false;
+ L=LEVELS[id-1];hints=0;fails=0;last=null;
+ const saved=P.cfg[id]||{};cfg={};
+ L.fields.forEach(f=>{const v=saved[f.id];const okv=v!==undefined&&v!==null&&(f.type==='num'?isFinite(+v):f.opts.some(o=>String(o[0])===String(v)));cfg[f.id]=okv?(f.type==='num'?+v:String(v)):f.def});
+ P.done=P.done||{};const sd=P.done[id]||{};done={};L.fields.forEach(f=>{if(sd[f.id])done[f.id]=true});stepI=L.fields.findIndex(f=>!done[f.id]);if(stepI<0)stepI=L.fields.length;pend=L.fields[stepI]&&done[L.fields[stepI].id]?cfg[L.fields[stepI].id]:null;fb='';
+ renderHeader();renderForm();renderSide();drawIdle();
+ say(`<b>Fase ${L.id}:</b> ${L.story}`,'happy');maybeLesson();
+}
+$('#lv').addEventListener('click',e=>{const b=e.target.closest('.chip');if(b&&!b.classList.contains('lock'))loadLevel(+b.dataset.lv);else if(b){say('Essa fase ainda está trancada. Resolva a anterior!','think');sfx.fail()}});
+$('#snd').onclick=()=>{P.sound=!P.sound;save();renderHeader();if(P.sound)sfx.click()};
+$('#rstp').onclick=()=>{ask('↺ Zerar tudo','Apagar <b>todo</b> o progresso: estrelas, fases desbloqueadas e ajustes? Não dá para desfazer.','Sim, zerar tudo',()=>{
+ try{localStorage.removeItem(KEY)}catch(e){}
+ P=Object.assign({},DEF,{stars:{},cfg:{},seen:{},done:{},unlocked:1,welcomed:true});save();loadLevel(1);say('Tudo zerado! Vamos recomeçar. 🖥️','happy')})};
+loadLevel(1);
+if(!P.welcomed){
+ modal(`<h2>🖥️ Mestre da IHM</h2><div style="font-size:60px">🤖</div><p>Oi! Eu sou o <b>Relê</b>. A fábrica ganhou telas de IHM novas, mas ninguém configurou nada!</p><p>Em cada fase eu te guio <b>passo a passo</b>: explico o assunto, mostro os dados da máquina e você responde. Depois testamos a máquina com a sua configuração.</p><div class="mbts"><button class="btn run" id="m-go">Vamos configurar! 🚀</button></div>`);
+ $('#m-go').onclick=()=>{P.welcomed=true;save();sfx.win();openHow();$('#m-close').onclick=()=>{closeModal();maybeLesson()}};
+}
+</script>
+</body>
+</html>

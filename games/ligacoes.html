@@ -1,0 +1,802 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Fábrica do Relê: Ligações do CLP</title>
+<style>
+:root{--ink:#2b2250;--bg1:#e4f6ff;--bg2:#ffe3f1;--purple:#6c4cf1;--pink:#ff5fa2;--yellow:#ffd23f;--teal:#2ec4b6;--orange:#ff9f1c;--green:#19c37d;--grey:#c3bddb;--red:#ff4d5e;--card:#fff}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{font-family:"Trebuchet MS","Segoe UI",system-ui,sans-serif;color:var(--ink);background:linear-gradient(160deg,var(--bg1),var(--bg2));-webkit-user-select:none;user-select:none}
+h1,h2,p{margin:0}
+h2{font-size:15px}
+.card{background:var(--card);border:3px solid var(--ink);border-radius:18px;box-shadow:0 4px 0 var(--ink)}
+.hidden{display:none!important}
+#app{display:grid;height:100vh;height:100dvh;padding:10px;gap:10px;grid-template-columns:minmax(0,1fr) 300px;grid-template-rows:auto minmax(0,1fr) auto;grid-template-areas:"top top" "board side" "foot foot"}
+.btn{font:inherit;font-weight:800;border:3px solid var(--ink);border-radius:14px;padding:8px 14px;background:#fff;color:var(--ink);cursor:pointer;box-shadow:0 3px 0 var(--ink);transition:transform .06s}
+.btn:active{transform:translateY(3px);box-shadow:0 0 0 var(--ink)}
+.btn[disabled]{opacity:.4;cursor:not-allowed}
+.btn.sm{padding:4px 10px;font-size:13px;border-radius:12px}
+.btn.run{background:var(--green);color:#fff}.btn.stop{background:var(--red);color:#fff}.btn.rst{background:var(--yellow)}.btn.chk{background:var(--purple);color:#fff}
+#top{grid-area:top;padding:8px 12px;display:flex;flex-direction:column;gap:6px}
+.row1,.row2{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.logo{font-weight:900;font-size:18px;color:var(--purple);white-space:nowrap}
+#lv{display:flex;gap:6px;flex:1;flex-wrap:wrap}
+.chip{width:42px;height:42px;border-radius:12px;border:3px solid var(--ink);background:#fff;font:inherit;font-weight:900;font-size:15px;line-height:1;cursor:pointer;padding:0;color:var(--ink)}
+.chip i{display:block;font-style:normal;font-size:8px;color:var(--orange);letter-spacing:-1px;margin-top:1px}
+.chip.cur{background:var(--yellow)}.chip.lock{opacity:.45;cursor:not-allowed}
+.row2{justify-content:space-between}
+.ttl{flex:1;min-width:220px}
+.ttl h1{font-size:19px}
+.ttl p{font-size:14px;margin-top:2px}
+.side{display:flex;align-items:center;gap:10px}
+#stars{font-size:26px;color:var(--orange);letter-spacing:2px}
+/* board */
+#boardwrap{grid-area:board;display:flex;flex-direction:column;min-height:0;min-width:0;padding:8px}
+#board{position:relative;flex:1;min-height:0;overflow:auto;border:3px dashed var(--grey);border-radius:14px;background:#f7fbff}
+#svg{display:block;width:100%;height:100%;min-width:760px;min-height:420px}
+.ct{font-weight:900;font-size:15px;fill:#2b2250;text-anchor:middle;font-family:inherit}
+.lbl{font-weight:800;font-size:13px;fill:#2b2250;text-anchor:middle;font-family:inherit}
+.tiny{font-weight:800;font-size:11px;fill:#2b2250;text-anchor:middle;font-family:inherit}
+.term{cursor:crosshair;touch-action:none}
+.term .dot{fill:#fff;stroke:#2b2250;stroke-width:3.5}
+.term .core{fill:#2b2250}
+.term:hover .dot{fill:#c8fff0}
+.term.has .dot{fill:#ffd23f}
+.term.armed .dot{fill:#ff5fa2}
+.term.good .dot{fill:#19c37d}.term.bad .dot{fill:#ff4d5e}
+.whit{cursor:pointer;pointer-events:stroke}
+.wire:hover .wvis{opacity:.55}
+.clpled{transition:fill .1s}
+#banner{position:absolute;left:50%;top:14px;transform:translateX(-50%);background:var(--red);color:#fff;border:3px solid var(--ink);border-radius:14px;padding:8px 14px;font-weight:900;font-size:14px;max-width:90%;text-align:center;z-index:5;box-shadow:0 4px 0 var(--ink);animation:shake .3s 3}
+@keyframes shake{25%{transform:translateX(-52%)}75%{transform:translateX(-48%)}}
+#tline{margin-top:6px;font-size:13px;font-weight:700;min-height:18px;padding:0 4px}
+/* side */
+#side{grid-area:side;padding:10px;overflow:auto;display:flex;flex-direction:column;gap:8px;min-height:0}
+.power{font:inherit;font-weight:900;font-size:16px;border:3px solid var(--ink);border-radius:16px;padding:12px;cursor:pointer;background:#ffc2c8;box-shadow:0 4px 0 var(--ink)}
+.power.on{background:var(--green);color:#fff}
+.power:active{transform:translateY(3px);box-shadow:0 1px 0 var(--ink)}
+#ctls{display:flex;flex-wrap:wrap;gap:8px}
+.mbtn{flex:1 1 90px;font:inherit;border:3px solid var(--ink);border-radius:14px;padding:8px 6px;font-weight:900;cursor:pointer;color:var(--ink);box-shadow:0 4px 0 var(--ink);background:#fff;touch-action:none}
+.mbtn small{display:block;font-weight:600;font-size:10px;opacity:.7}
+.mbtn.green{background:#b8f2d6}.mbtn.red{background:#ffc2c8}.mbtn.yellow{background:#fff0a6}.mbtn.blue{background:#c3dcff}
+.mbtn.on{transform:translateY(3px);box-shadow:0 1px 0 var(--ink);filter:brightness(.88);outline:4px solid var(--green)}
+.box2{background:#f3efff;border:3px solid var(--ink);border-radius:12px;padding:8px 10px;font-size:13px;line-height:1.35}
+.box2 ul{margin:4px 0 0;padding-left:18px}
+.box2 pre{margin:6px 0 0;font:700 12px/1.5 ui-monospace,Menlo,Consolas,monospace;white-space:pre-wrap;color:#17406b}
+#quizbox{text-align:center}
+#quizbox .qq{font-size:15px;font-weight:800;margin:6px 0}
+.dots{display:flex;gap:6px;justify-content:center;margin:6px 0}
+.dots span{width:12px;height:12px;border-radius:50%;border:2px solid var(--ink);background:#fff}
+.dots span.on{background:var(--yellow)}.dots span.done{background:var(--green)}
+/* footer */
+#foot{grid-area:foot;display:flex;align-items:center;gap:12px;padding:8px 12px}
+#relewrap{width:64px;flex:none}
+#rele{width:64px;height:70px;display:block;animation:bob 2.4s ease-in-out infinite}
+#bubble{flex:1;position:relative;background:#f3efff;border:3px solid var(--ink);border-radius:16px;padding:8px 12px;font-size:14px;line-height:1.3;min-height:48px;display:flex;align-items:center}
+#bubble::before{content:"";position:absolute;left:-12px;top:50%;margin-top:-8px;border:8px solid transparent;border-right-color:var(--ink);border-left:0}
+.btns{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+@keyframes bob{50%{transform:translateY(-4px)}}
+@keyframes blink{0%,92%,100%{transform:scaleY(1)}96%{transform:scaleY(.1)}}
+.eye{transform-origin:center;transform-box:fill-box;animation:blink 4s infinite}
+/* modal */
+.overlay{position:fixed;inset:0;background:rgba(43,34,80,.55);display:grid;place-items:center;z-index:50;padding:12px}
+.mcard{max-width:540px;width:100%;padding:18px;max-height:92vh;overflow:auto;text-align:center}
+.mcard.wide{max-width:720px}
+.mcard h2{font-size:22px;margin-bottom:8px}
+.mcard h3{margin:8px 0 4px;font-size:17px;color:var(--purple)}
+.mcard p{margin:6px 0;font-size:14px;line-height:1.4}
+.mcard a{color:var(--purple);font-size:12px;font-weight:700}
+.bigstars{font-size:44px;color:var(--orange);letter-spacing:4px}
+.tests{list-style:none;padding:0;margin:10px 0;text-align:left}
+.tests li{padding:6px 10px;border-radius:10px;margin-bottom:5px;font-size:13px;font-weight:700}
+.tests li.ok{background:#d6f7e7}.tests li.bad{background:#ffdde1}
+.tests li small{display:block;font-weight:600;margin-top:2px}
+.pista{text-align:left;background:#fff7d6;border:3px solid var(--ink);border-radius:12px;padding:8px 12px;margin:8px 0;font-size:14px}
+.mbts{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:10px}
+.hintcard{text-align:left;background:#fff7d6;border:3px solid var(--ink);border-radius:12px;padding:8px 12px;margin:8px 0}
+.demo{border:3px dashed var(--grey);border-radius:14px;padding:8px;margin:8px 0;background:#fbfaff}
+.demo svg{width:100%;height:auto;max-height:190px}
+.demo .row{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:6px;align-items:center}
+.demo label{font-size:13px;font-weight:700;display:flex;align-items:center;gap:4px}
+.lcap{font-size:12px;opacity:.8}
+@media(max-width:900px){
+ #app{height:auto;min-height:100dvh;grid-template-columns:1fr;grid-template-rows:auto;grid-template-areas:"top" "board" "side" "foot"}
+ #board{height:56vh;min-height:360px}
+ #foot{position:sticky;bottom:6px;z-index:20;flex-wrap:wrap;padding:6px 8px;gap:8px}
+ #relewrap,#rele{width:44px;height:48px}
+ #bubble{min-width:150px;font-size:12px;padding:6px 8px;min-height:40px}
+ .btns{width:100%;justify-content:center}
+ .btn{padding:6px 10px;font-size:13px}
+ .logo{font-size:15px}.ttl h1{font-size:16px}
+ #lv{flex:1 1 100%;order:5;justify-content:center}
+ .chip{width:36px;height:40px;font-size:14px}
+ .ttl{min-width:0;flex:1 1 100%}
+}
+</style>
+</head>
+<body>
+<div id="app">
+ <header id="top" class="card">
+  <div class="row1">
+   <div class="logo">🔌 Fábrica do Relê · Ligações do CLP</div><a class="btn sm" href="../index.html" style="text-decoration:none" title="Voltar ao portal">🏠 Portal</a>
+   <nav id="lv"></nav>
+   <div><button class="btn sm" id="snd" title="Sons">🔊</button> <button class="btn sm" id="rstp" title="Zerar progresso">↺ Zerar</button></div>
+  </div>
+  <div class="row2">
+   <div class="ttl"><h1 id="ltitle"></h1><p id="lmission"></p></div>
+   <div class="side"><div id="stars"></div><button class="btn sm" id="lessonbtn">📖 Trilha</button><button class="btn sm rst" id="hintbtn">💡 Dica</button></div>
+  </div>
+ </header>
+ <main id="boardwrap" class="card">
+  <div id="board"><svg id="svg" viewBox="0 0 1000 720" preserveAspectRatio="xMidYMid meet"></svg><div id="banner" class="hidden"></div></div>
+  <div id="tline"></div>
+ </main>
+ <aside id="side" class="card">
+  <div id="quizbox" class="hidden"><h2>🎯 Quiz dos bornes</h2><div class="dots" id="qdots"></div><p class="qq" id="qtext"></p><p class="lcap">Clique direto no borne (pino) do CLP desenhado ao lado.</p></div>
+  <div id="opbox">
+   <h2>🎛 Painel de operação</h2>
+   <button class="power" id="power">⚡ QUADRO DESLIGADO</button>
+   <div id="ctls"></div>
+  </div>
+  <div id="knowbox" class="box2"></div>
+ </aside>
+ <footer id="foot" class="card">
+  <div id="relewrap">
+   <svg id="rele" viewBox="0 0 90 100">
+    <line x1="45" y1="8" x2="45" y2="22" stroke="#2b2250" stroke-width="4"/><circle cx="45" cy="7" r="6" fill="#ff5fa2" stroke="#2b2250" stroke-width="3"/>
+    <rect x="22" y="80" width="46" height="16" rx="7" fill="#ff9f1c" stroke="#2b2250" stroke-width="4"/>
+    <rect x="3" y="38" width="8" height="22" rx="4" fill="#ffd23f" stroke="#2b2250" stroke-width="3"/><rect x="79" y="38" width="8" height="22" rx="4" fill="#ffd23f" stroke="#2b2250" stroke-width="3"/>
+    <rect x="10" y="20" width="70" height="58" rx="17" fill="#7fd8ff" stroke="#2b2250" stroke-width="4"/>
+    <rect x="18" y="29" width="54" height="36" rx="11" fill="#2b2250"/>
+    <circle class="eye" id="e1" cx="35" cy="44" r="5" fill="#7cff8a"/><circle class="eye" id="e2" cx="55" cy="44" r="5" fill="#7cff8a"/>
+    <path id="mouth" d="M36 54Q45 63 54 54" stroke="#7cff8a" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+    <circle cx="25" cy="58" r="3" fill="#ff5fa2" opacity=".8"/><circle cx="65" cy="58" r="3" fill="#ff5fa2" opacity=".8"/>
+   </svg>
+  </div>
+  <div id="bubble"></div>
+  <div class="btns">
+   <button class="btn" id="undo">↩ Desfazer</button>
+   <button class="btn rst" id="clearw">🗑 Limpar fios</button>
+   <button class="btn chk" id="chk">✓ VERIFICAR</button>
+  </div>
+ </footer>
+</div>
+<div id="modal" class="overlay hidden"><div class="mcard card" id="mbody"></div></div>
+
+<script>
+/*PURE_START*/
+const P_='src.P1',Z_='src.N1';
+function UF(){const p=new Map();const find=x=>{if(!p.has(x))p.set(x,x);let r=x;while(p.get(r)!==r)r=p.get(r);while(p.get(x)!==r){const n=p.get(x);p.set(x,r);x=n}return r};return{find,union(a,b){const ra=find(a),rb=find(b);if(ra!==rb)p.set(ra,rb)}}}
+const INS=['I0.0','I0.1','I0.2','I0.3'],QS=['Q0.0','Q0.1','Q0.2','Q0.3'];
+const FM={short:'💥 Curto-circuito! O +24V encostou no 0V sem passar por nenhuma carga (lâmpada, bobina...). O disjuntor desarmou.',reverse:'🔥 Polaridade invertida! O +24V foi ligado onde devia ir o 0V (ou o contrário). A eletrônica do CLP queimaria.',overload:'🔥 O motor foi ligado direto na saída do CLP! A corrente do motor queima o relé de saída. Use um contator.'};
+const thru=(N,A,B,d)=>(N(A)===N(d+'.a')&&N(d+'.b')===N(B))||(N(A)===N(d+'.b')&&N(d+'.a')===N(B));
+const touch=(N,A,d)=>N(A)===N(d+'.a')||N(A)===N(d+'.b');
+const selo=(i,o)=>(i['I0.0']||o['Q0.0'])&&i['I0.1'];
+const SRC={id:'src',type:'src',x:0,y:0},CLP={id:'clp',type:'clp',x:0,y:0};
+const PW=[['clp.L+','src.P1'],['clp.M','src.N1']];
+const POT=[['k1.c1','motor.m1','pot'],['k1.c2','motor.m2','pot']];
+const describe=t=>{const n=t.split('.').slice(1).join('.');return n==='L+'?'a alimentação positiva (+24V) do CLP':n==='M'?'a alimentação negativa (0V) do CLP':n==='1M'?'o COMUM das entradas':n==='1L'?'o COMUM das saídas':n[0]==='I'?'uma ENTRADA digital (I = Input)':'uma SAÍDA digital (Q = Output)'};
+const LEVELS=[
+{id:1,type:'quiz',name:'Conheça o CLP',comps:[CLP],pre:[],controls:[],program:[],legend:[],
+ mission:'Responda às perguntas do Relê clicando nos bornes (pinos) certos do CLP.',
+ story:'Bem-vindo(a) à sala de painéis! Antes de puxar fios, vamos conhecer os bornes (os pinos de parafuso) do CLP.',
+ questions:[
+  {q:'Clique em um borne de <b>ENTRADA</b> digital: é onde ligamos botões e sensores.',ok:t=>/^clp\.I0\./.test(t)},
+  {q:'Agora clique em um borne de <b>SAÍDA</b> digital: é onde ligamos lâmpadas e contatores.',ok:t=>/^clp\.Q0\./.test(t)},
+  {q:'Qual borne recebe o <b>+24V</b> para alimentar o próprio CLP?',ok:t=>t==='clp.L+'},
+  {q:'E qual borne recebe o <b>0V</b> da alimentação do CLP?',ok:t=>t==='clp.M'},
+  {q:'Qual borne é o <b>COMUM das entradas</b> (o retorno delas)?',ok:t=>t==='clp.1M'},
+  {q:'Qual borne é o <b>COMUM das saídas</b>, por onde chega a tensão que as saídas entregam?',ok:t=>t==='clp.1L'}],
+ hints:['Os nomes dizem muito: I vem de Input (entrada) e Q vem de Output (saída).','L+ e M são a alimentação do CLP. M é o "menos" (0V), L+ é o "mais" (+24V).','Os comuns são os bornes que terminam em M (entradas) e L (saídas) e começam com o número do grupo: 1M e 1L.']},
+{id:2,name:'Dando energia ao CLP',comps:[SRC,CLP],pre:[],controls:[],program:[],legend:[],
+ mission:'Dê energia ao CLP: ligue a fonte de 24 V aos bornes de alimentação dele e depois ligue o quadro. O LED RUN deve acender.',
+ story:'O CLP está desligado. Ele precisa de +24V e 0V nos bornes de alimentação. Cuidado com a polaridade!',
+ hints:['O CLP precisa de dois fios vindos da fonte: um positivo e um negativo.','O +24V da fonte vai no borne L+ e o 0V da fonte vai no borne M.','Clique em um borne da barra vermelha (+24V) e depois em L+. Depois, um borne da barra azul (0V) e M. Aí é só ligar o quadro.'],
+ tests:[{name:'Quadro ligado: o LED RUN acende',steps:[{on:true},{ex:{plc:true},msg:'O CLP não ligou. Ele precisa de +24V no borne de alimentação positiva e 0V no borne de alimentação negativa.'}]}],
+ checks:[{ok:N=>N('clp.L+')===N(P_),msg:'O borne de alimentação positiva do CLP ainda não está ligado ao +24V da fonte.'},{ok:N=>N('clp.M')===N(Z_),msg:'O borne de alimentação negativa do CLP ainda não está ligado ao 0V da fonte.'}]},
+{id:3,name:'Primeira entrada: botão Liga',
+ comps:[SRC,CLP,{id:'liga',type:'btnNA',x:430,y:70,label:'Liga',color:'#19c37d'},{id:'lamp',type:'lamp',x:450,y:500,label:'Lâmpada',color:'#ffd23f'}],
+ pre:[...PW,['clp.1L','src.P2'],['clp.Q0.0','lamp.a'],['lamp.b','src.N2']],
+ controls:[{id:'liga',label:'Liga',sub:'botão NA · segure',type:'push',color:'green'}],
+ program:['Q0.0 = I0.0'],legend:['I0.0 → botão Liga','Q0.0 → lâmpada (já ligada)'],
+ logic:(i)=>({'Q0.0':i['I0.0']}),
+ mission:'Faça a lâmpada acender enquanto o botão Liga estiver apertado. A saída e a alimentação já estão prontas: ligue o lado das entradas.',
+ story:'A lâmpada da entrada precisa de um botão! A saída já está pronta. Você liga o botão Liga na entrada I0.0.',
+ hints:['O botão é um "interruptor": ele só leva tensão até a entrada quando é apertado.','São três ligações: a fonte até o botão, o botão até I0.0, e o comum das entradas até o retorno da fonte.','+24V → um terminal do botão. O outro terminal do botão → I0.0. E o borne 1M → 0V.'],
+ tests:[
+  {name:'Sem apertar, a lâmpada fica apagada',steps:[{on:true},{ex:{lamp:false},msg:'A lâmpada acendeu sozinha, sem apertar nada!'}]},
+  {name:'Apertou Liga: a lâmpada acende',steps:[{on:true},{ctl:{liga:true}},{ex:{'in:I0.0':true,lamp:true},msg:'Apertei Liga e a lâmpada não acendeu.'}]},
+  {name:'Soltou Liga: a lâmpada apaga',steps:[{on:true},{ctl:{liga:true}},{ctl:{liga:false}},{ex:{lamp:false},msg:'Soltei o botão e a lâmpada continuou acesa.'}]}],
+ checks:[{ok:N=>touch(N,P_,'liga'),msg:'O botão ainda não recebe +24V da fonte. Sem tensão, ele não tem o que levar para a entrada.'},{ok:N=>thru(N,P_,'clp.I0.0','liga'),msg:'O outro terminal do botão precisa ir até a entrada I0.0 (o programa lê o Liga ali).'},{ok:N=>N('clp.1M')===N(Z_),msg:'Falta o comum das entradas (1M) ir ao 0V. Sem o retorno, não fecha o caminho da corrente.'}]},
+{id:4,name:'NA e NF: Liga e Para',
+ comps:[SRC,CLP,{id:'liga',type:'btnNA',x:370,y:70,label:'Liga',color:'#19c37d'},{id:'para',type:'btnNF',x:520,y:70,label:'Para',color:'#ff4d5e'},{id:'lamp',type:'lamp',x:450,y:500,label:'Lâmpada',color:'#ffd23f'}],
+ pre:[...PW,['clp.1M','src.N2'],['clp.1L','src.P2'],['clp.Q0.0','lamp.a'],['lamp.b','src.N3']],
+ controls:[{id:'liga',label:'Liga',sub:'botão NA · aperte',type:'push',color:'green'},{id:'para',label:'Para',sub:'botão NF · aperte',type:'push',color:'red'}],
+ program:['Q0.0 = (I0.0 OU Q0.0) E I0.1','(selo: Liga mantém, Para desliga)'],legend:['I0.0 → botão Liga (NA)','I0.1 → botão Para (NF)','Q0.0 → lâmpada (já ligada)'],
+ logic:(i,o)=>({'Q0.0':selo(i,o)}),
+ mission:'Ligue Liga (I0.0) e Para (I0.1) para a lâmpada ficar acesa depois do Liga e apagar com o Para. O comum das entradas já está ligado.',
+ story:'Agora são dois botões. O Para é do tipo NF (normalmente fechado). Repare como o programa trata esse botão!',
+ hints:['Os dois botões recebem a mesma tensão e cada um vai para a sua entrada.','O Para é NF: em repouso ele deixa a tensão passar, então I0.1 lê 1 quando ninguém aperta. O programa precisa desse 1 para manter a lâmpada.','+24V → Liga → I0.0. +24V → Para → I0.1.'],
+ tests:[
+  {name:'Sem apertar, tudo apagado',steps:[{on:true},{ex:{lamp:false},msg:'A lâmpada acendeu sozinha!'}]},
+  {name:'Liga acende a lâmpada',steps:[{on:true},{ctl:{liga:true}},{ex:{lamp:true},msg:'Apertei Liga e a lâmpada não acendeu.'}]},
+  {name:'Solta Liga: continua acesa (selo)',steps:[{on:true},{ctl:{liga:true}},{ctl:{liga:false}},{ex:{lamp:true},msg:'Soltei o Liga e a lâmpada apagou. Confira se o Para está deixando I0.1 em 1 quando ninguém aperta.'}]},
+  {name:'Para apaga a lâmpada',steps:[{on:true},{ctl:{liga:true}},{ctl:{liga:false}},{ctl:{para:true}},{ex:{lamp:false},msg:'Apertei Para e a lâmpada continuou acesa.'},{ctl:{para:false}},{ex:{lamp:false},msg:'Soltei o Para e a lâmpada ligou sozinha.'}]}],
+ checks:[{ok:N=>thru(N,P_,'clp.I0.0','liga'),msg:'O botão Liga precisa levar o +24V até a entrada I0.0.'},{ok:N=>thru(N,P_,'clp.I0.1','para'),msg:'O botão Para precisa levar o +24V até a entrada I0.1. Sem isso o programa acha que o Para está apertado o tempo todo.'}]},
+{id:5,name:'Sensor de 3 fios (PNP)',
+ comps:[SRC,CLP,{id:'sensor',type:'sensor',x:420,y:70,label:'Sensor',color:'#9fd3ff'},{id:'lamp',type:'lamp',x:450,y:500,label:'Lâmpada',color:'#ffd23f'}],
+ pre:[...PW,['clp.1M','src.N2'],['clp.1L','src.P2'],['clp.Q0.0','lamp.a'],['lamp.b','src.N3']],
+ controls:[{id:'sensor',label:'Peça no sensor',sub:'segure para simular',type:'push',color:'yellow'}],
+ program:['Q0.0 = I0.2'],legend:['I0.2 → sinal do sensor','Q0.0 → lâmpada (já ligada)'],
+ logic:(i)=>({'Q0.0':i['I0.2']}),
+ mission:'Ligue o sensor de 3 fios: a lâmpada deve acender quando uma peça passar. O programa lê o sensor em I0.2.',
+ story:'Sensores são diferentes de botões: têm eletrônica dentro e precisam de energia. Veja as cores dos fios!',
+ hints:['O sensor tem três fios e cada cor tem uma função: dois para alimentar e um para avisar o CLP.','Marrom = positivo, azul = negativo, preto = sinal (a saída do sensor).','Marrom → +24V. Azul → 0V. Preto → I0.2.'],
+ tests:[
+  {name:'Sem peça: lâmpada apagada',steps:[{on:true},{ex:{lamp:false},msg:'A lâmpada acendeu sem peça nenhuma.'}]},
+  {name:'Peça passa: lâmpada acende',steps:[{on:true},{ctl:{sensor:true}},{ex:{'in:I0.2':true,lamp:true},msg:'Passou uma peça e a lâmpada não acendeu.'}]},
+  {name:'Peça sai: lâmpada apaga',steps:[{on:true},{ctl:{sensor:true}},{ctl:{sensor:false}},{ex:{lamp:false},msg:'A peça saiu e a lâmpada continuou acesa.'}]}],
+ checks:[{ok:N=>N('sensor.br')===N(P_),msg:'O fio marrom do sensor (positivo) ainda não está no +24V. Sem energia, o sensor não funciona.'},{ok:N=>N('sensor.bu')===N(Z_),msg:'O fio azul do sensor (negativo) ainda não está no 0V.'},{ok:N=>N('sensor.bk')===N('clp.I0.2'),msg:'O fio preto (sinal) do sensor precisa ir até a entrada I0.2.'}]},
+{id:6,name:'Primeira saída: lâmpada',
+ comps:[SRC,CLP,{id:'liga',type:'btnNA',x:430,y:70,label:'Liga',color:'#19c37d'},{id:'lamp',type:'lamp',x:450,y:500,label:'Lâmpada',color:'#ffd23f'}],
+ pre:[...PW,['clp.1M','src.N2'],['liga.a','src.P2'],['liga.b','clp.I0.0']],
+ controls:[{id:'liga',label:'Liga',sub:'botão NA · segure',type:'push',color:'green'}],
+ program:['Q0.0 = I0.0'],legend:['I0.0 → botão Liga (já ligado)','Q0.0 → lâmpada'],
+ logic:(i)=>({'Q0.0':i['I0.0']}),
+ mission:'Ligue a saída Q0.0 à lâmpada, para ela acender quando o botão Liga (já ligado) for apertado. Cuidado: a saída do CLP é relé!',
+ story:'Hora das saídas! A saída a relé do CLP não fornece energia: ela só abre e fecha uma chave. Quem fornece a energia é você.',
+ hints:['A saída é só uma chave interna entre o borne comum das saídas e o borne Q0.0. A lâmpada precisa de um caminho de ida e volta.','Três ligações: energia para o comum das saídas, a saída até a lâmpada e a lâmpada até o retorno.','+24V → 1L. Q0.0 → um terminal da lâmpada. Outro terminal da lâmpada → 0V.'],
+ tests:[
+  {name:'Sem apertar, lâmpada apagada',steps:[{on:true},{ex:{lamp:false},msg:'A lâmpada acendeu sozinha!'}]},
+  {name:'Apertou Liga: a lâmpada acende',steps:[{on:true},{ctl:{liga:true}},{ex:{'out:Q0.0':true,lamp:true},msg:'Apertei Liga, a saída Q0.0 ligou no programa, mas a lâmpada não acendeu.'}]},
+  {name:'Soltou Liga: a lâmpada apaga',steps:[{on:true},{ctl:{liga:true}},{ctl:{liga:false}},{ex:{lamp:false},msg:'Soltei o botão e a lâmpada continuou acesa.'}]}],
+ checks:[{ok:N=>N('clp.1L')===N(P_),msg:'O comum das saídas (1L) não tem +24V. Sem ele, a saída não tem energia para entregar à lâmpada.'},{ok:N=>touch(N,'clp.Q0.0','lamp'),msg:'A saída Q0.0 precisa chegar até um terminal da lâmpada.'},{ok:N=>thru(N,'clp.Q0.0',Z_,'lamp'),msg:'O outro terminal da lâmpada precisa voltar ao 0V para fechar o circuito.'}]},
+{id:7,name:'Motor com contator',
+ comps:[SRC,CLP,{id:'liga',type:'btnNA',x:370,y:70,label:'Liga',color:'#19c37d'},{id:'para',type:'btnNF',x:520,y:70,label:'Para',color:'#ff4d5e'},{id:'k1',type:'contactor',x:400,y:480,label:'K1'},{id:'motor',type:'motor',x:400,y:600,label:'Motor',from:'k1'}],
+ pre:[...PW,['clp.1M','src.N2'],['liga.a','src.P2'],['liga.b','clp.I0.0'],['para.a','src.P3'],['para.b','clp.I0.1'],...POT],
+ controls:[{id:'liga',label:'Liga',sub:'botão NA · aperte',type:'push',color:'green'},{id:'para',label:'Para',sub:'botão NF · aperte',type:'push',color:'red'}],
+ program:['Q0.0 = (I0.0 OU Q0.0) E I0.1'],legend:['I0.0 → Liga','I0.1 → Para','Q0.0 → comanda o contator K1'],
+ logic:(i,o)=>({'Q0.0':selo(i,o)}),
+ mission:'Ligue a saída Q0.0 ao contator K1, que liga o motor (a parte de potência já está ligada). Os botões já estão prontos.',
+ story:'Motor grande não se liga direto no CLP! A saída comanda um contator, que é uma chave forte acionada por uma bobina de 24V.',
+ hints:['Quem recebe o comando do CLP é a bobina do contator, que tem dois terminais: A1 e A2.','A bobina funciona como a lâmpada: ida pela saída, volta pelo 0V. E a saída ainda precisa do comum energizado.','+24V → 1L. Q0.0 → A1 do contator. A2 → 0V.'],
+ tests:[
+  {name:'Parado ao ligar o quadro',steps:[{on:true},{ex:{motor:false},msg:'O motor girou sozinho!'}]},
+  {name:'Liga: o motor gira',steps:[{on:true},{ctl:{liga:true}},{ex:{k1:true,motor:true},msg:'Apertei Liga e o motor não girou. O contator precisa receber o comando de Q0.0.'}]},
+  {name:'Solta Liga: continua girando',steps:[{on:true},{ctl:{liga:true}},{ctl:{liga:false}},{ex:{motor:true},msg:'Soltei o Liga e o motor parou.'}]},
+  {name:'Para: o motor para',steps:[{on:true},{ctl:{liga:true}},{ctl:{liga:false}},{ctl:{para:true}},{ex:{motor:false},msg:'Apertei Para e o motor continuou girando.'}]}],
+ checks:[{ok:N=>N('clp.1L')===N(P_),msg:'O comum das saídas (1L) precisa receber +24V.'},{ok:N=>N('clp.Q0.0')===N('k1.A1'),msg:'A saída Q0.0 precisa ir até a bobina do contator (terminal A1).'},{ok:N=>N('k1.A2')===N(Z_),msg:'O outro terminal da bobina (A2) precisa ir ao 0V.'}]},
+{id:8,name:'CHEFÃO: a esteira completa',
+ comps:[SRC,CLP,{id:'liga',type:'btnNA',x:290,y:70,label:'Liga',color:'#19c37d'},{id:'para',type:'btnNF',x:400,y:70,label:'Para',color:'#ff4d5e'},{id:'emerg',type:'emerg',x:510,y:70,label:'Emergência',color:'#ff4d5e'},{id:'sensor',type:'sensor',x:640,y:70,label:'Sensor',color:'#9fd3ff'},
+  {id:'k1',type:'contactor',x:240,y:480,label:'K1'},{id:'motor',type:'motor',x:240,y:600,label:'Esteira',from:'k1'},{id:'lampg',type:'lamp',x:520,y:500,label:'Sinaleira verde',color:'#19c37d'},{id:'buz',type:'buzzer',x:660,y:500,label:'Buzina'}],
+ pre:[...PW,...POT],
+ controls:[{id:'liga',label:'Liga',sub:'NA · aperte',type:'push',color:'green'},{id:'para',label:'Para',sub:'NF · aperte',type:'push',color:'red'},{id:'emerg',label:'Emergência',sub:'NF · liga/desliga',type:'toggle',color:'red'},{id:'sensor',label:'Caixa no sensor',sub:'segure para simular',type:'push',color:'yellow'}],
+ program:['Q0.0 = (I0.0 OU Q0.0) E I0.1 E I0.2','Q0.1 = Q0.0','Q0.2 = NÃO I0.2'],
+ legend:['I0.0 → Liga (NA)','I0.1 → Para (NF)','I0.2 → Emergência (NF)','I0.3 → Sensor de caixa (PNP)','Q0.0 → contator K1 da esteira','Q0.1 → sinaleira verde','Q0.2 → buzina'],
+ logic:(i,o)=>({'Q0.0':(i['I0.0']||o['Q0.0'])&&i['I0.1']&&i['I0.2'],'Q0.1':(((i['I0.0']||o['Q0.0'])&&i['I0.1']&&i['I0.2'])),'Q0.2':!i['I0.2']}),
+ mission:'Ligue tudo: entradas (Liga, Para, Emergência e Sensor), o comum das entradas, as saídas (contator, sinaleira e buzina) e o comum das saídas. Só a alimentação do CLP já está pronta.',
+ story:'Chefão! Monte o painel completo da esteira, como faria um eletricista. Use tudo que aprendeu: NA, NF, sensor de 3 fios, comuns e saídas a relé.',
+ hints:['Faça por partes: primeiro as entradas, depois as saídas. Use o botão Verificar com calma para ver o que falta.','Entradas: cada botão leva +24V à sua entrada; o sensor tem 3 fios; e 1M vai ao 0V. Saídas: 1L no +24V e cada carga entre a sua saída e o 0V.','Liga I0.0, Para I0.1, Emergência I0.2, Sensor (preto) I0.3. 1M → 0V. 1L → +24V. Q0.0 → A1 do K1, Q0.1 → sinaleira, Q0.2 → buzina; os outros terminais das cargas → 0V.'],
+ tests:[
+  {name:'Ao ligar o quadro, tudo parado e calmo',steps:[{on:true},{ex:{plc:true,motor:false,lampg:false,buz:false},msg:'Ao ligar o quadro algo já está ligado (esteira, sinaleira ou buzina). Confira as entradas de Para e Emergência: elas são NF e devem entregar +24V em repouso.'}]},
+  {name:'Liga: a esteira anda e a sinaleira acende',steps:[{on:true},{ctl:{liga:true}},{ex:{motor:true,lampg:true},msg:'Apertei Liga e a esteira/sinaleira não ligou.'}]},
+  {name:'Solta Liga: a esteira continua (selo)',steps:[{on:true},{ctl:{liga:true}},{ctl:{liga:false}},{ex:{motor:true},msg:'Soltei o Liga e a esteira parou.'}]},
+  {name:'Para: a esteira para',steps:[{on:true},{ctl:{liga:true}},{ctl:{liga:false}},{ctl:{para:true}},{ex:{motor:false,lampg:false},msg:'Apertei Para e a esteira continuou.'}]},
+  {name:'Emergência: para tudo e toca a buzina',steps:[{on:true},{ctl:{liga:true}},{ctl:{liga:false}},{ctl:{emerg:true}},{ex:{motor:false,buz:true},msg:'Na emergência a esteira deve parar e a buzina deve tocar.'},{ctl:{emerg:false}},{ex:{buz:false,motor:false},msg:'Ao soltar a emergência, a buzina deve calar e a esteira NÃO deve voltar sozinha.'}]},
+  {name:'Sensor enxerga a caixa (I0.3)',steps:[{on:true},{ctl:{sensor:true}},{ex:{'in:I0.3':true},msg:'O sensor não está chegando na entrada I0.3. Confira os 3 fios.'},{ctl:{sensor:false}},{ex:{'in:I0.3':false},msg:'A entrada I0.3 ficou presa em 1 sem caixa.'}]}],
+ checks:[
+  {ok:N=>thru(N,P_,'clp.I0.0','liga'),msg:'O botão Liga precisa levar +24V até a entrada I0.0.'},
+  {ok:N=>thru(N,P_,'clp.I0.1','para'),msg:'O botão Para precisa levar +24V até a entrada I0.1.'},
+  {ok:N=>thru(N,P_,'clp.I0.2','emerg'),msg:'A Emergência precisa levar +24V até a entrada I0.2.'},
+  {ok:N=>N('sensor.br')===N(P_)&&N('sensor.bu')===N(Z_),msg:'O sensor precisa de alimentação: fio marrom no +24V e fio azul no 0V.'},
+  {ok:N=>N('sensor.bk')===N('clp.I0.3'),msg:'O fio preto do sensor precisa ir à entrada I0.3.'},
+  {ok:N=>N('clp.1M')===N(Z_),msg:'Falta o comum das entradas (1M) ir ao 0V.'},
+  {ok:N=>N('clp.1L')===N(P_),msg:'O comum das saídas (1L) precisa receber +24V.'},
+  {ok:N=>N('clp.Q0.0')===N('k1.A1')&&N('k1.A2')===N(Z_),msg:'O contator K1 precisa da bobina entre Q0.0 (A1) e o 0V (A2).'},
+  {ok:N=>thru(N,'clp.Q0.1',Z_,'lampg'),msg:'A sinaleira verde precisa ficar entre a saída Q0.1 e o 0V.'},
+  {ok:N=>thru(N,'clp.Q0.2',Z_,'buz'),msg:'A buzina precisa ficar entre a saída Q0.2 e o 0V.'}]}
+];
+function evaluate(L,wires,ctl,energized,mem){
+ mem.outs=mem.outs||{};mem.sens=mem.sens||{};
+ const comps=L.comps;
+ const build=relay=>{const uf=UF();
+  for(let i=1;i<6;i++){uf.union('src.P1','src.P'+(i+1));uf.union('src.N1','src.N'+(i+1))}
+  wires.forEach(w=>uf.union(w.a,w.b));
+  comps.forEach(c=>{
+   if(c.type==='btnNA'&&ctl[c.id])uf.union(c.id+'.a',c.id+'.b');
+   if((c.type==='btnNF'||c.type==='emerg')&&!ctl[c.id])uf.union(c.id+'.a',c.id+'.b');
+   if(c.type==='sensor'&&mem.sens[c.id]&&ctl[c.id])uf.union(c.id+'.br',c.id+'.bk');
+  });
+  if(relay)QS.forEach(q=>{if(mem.outs[q])uf.union('clp.1L','clp.'+q)});
+  return uf};
+ let powered=false,inputs={};
+ for(let it=0;it<6;it++){
+  const u=build(false),nP=u.find(P_),nZ=u.find(Z_);
+  powered=!!energized&&nP!==nZ&&u.find('clp.L+')===nP&&u.find('clp.M')===nZ;
+  inputs={};INS.forEach(i=>inputs[i]=powered&&u.find('clp.'+i)===nP&&u.find('clp.1M')===nZ);
+  let ch=false;
+  comps.filter(c=>c.type==='sensor').forEach(c=>{const v=!!energized&&u.find(c.id+'.br')===nP&&u.find(c.id+'.bu')===nZ;if(v!==!!mem.sens[c.id]){mem.sens[c.id]=v;ch=true}});
+  const o=powered&&L.logic?L.logic(inputs,mem.outs):{};
+  QS.forEach(q=>{const v=!!o[q];if(v!==!!mem.outs[q]){mem.outs[q]=v;ch=true}});
+  if(!ch)break;
+ }
+ const u=build(true),nP=u.find(P_),nZ=u.find(Z_);
+ const short=!!energized&&nP===nZ;
+ const reverse=!!energized&&(u.find('clp.L+')===nZ||u.find('clp.M')===nP);
+ let overload=false;
+ comps.filter(c=>c.type==='motor').forEach(m=>QS.forEach(q=>{if(mem.outs[q]&&(u.find(m.id+'.m1')===u.find('clp.'+q)||u.find(m.id+'.m2')===u.find('clp.'+q)))overload=true}));
+ const fault=short?'short':reverse?'reverse':overload?'overload':null;
+ const dev={};
+ const on=(a,b)=>!!energized&&!short&&((u.find(a)===nP&&u.find(b)===nZ)||(u.find(a)===nZ&&u.find(b)===nP));
+ comps.forEach(c=>{
+  if(c.type==='lamp'||c.type==='buzzer')dev[c.id]=on(c.id+'.a',c.id+'.b');
+  if(c.type==='contactor')dev[c.id]=on(c.id+'.A1',c.id+'.A2');
+ });
+ comps.filter(c=>c.type==='motor').forEach(m=>dev[m.id]=!!dev[m.from]);
+ return {powered,inputs,outs:Object.assign({},mem.outs),dev,fault,short};
+}
+function staticN(wires){const uf=UF();for(let i=1;i<6;i++){uf.union('src.P1','src.P'+(i+1));uf.union('src.N1','src.N'+(i+1))}wires.forEach(w=>uf.union(w.a,w.b));return t=>uf.find(t)}
+function diagnose(L,wires){const N=staticN(wires);for(const c of L.checks||[])if(!c.ok(N))return c.msg;return null}
+const val=(r,k)=>k==='plc'?r.powered:k.startsWith('in:')?!!r.inputs[k.slice(3)]:k.startsWith('out:')?!!r.outs[k.slice(4)]:!!r.dev[k];
+function runTests(L,wires){
+ const out=[];
+ for(const t of L.tests){
+  const mem={},ctl={};let en=false,fail=null,last=null;
+  const scan=n=>{for(let i=0;i<n&&!fail;i++){last=evaluate(L,wires,ctl,en,mem);if(last.fault)fail=FM[last.fault]}};
+  for(const s of t.steps){
+   if('on' in s){en=s.on;scan(2)}
+   else if(s.ctl){Object.assign(ctl,s.ctl);scan(2)}
+   else if(s.ex){scan(1);if(!fail)for(const k in s.ex){if(val(last,k)!==s.ex[k]){fail=s.msg;break}}}
+   if(fail)break;
+  }
+  out.push({name:t.name,ok:!fail,msg:fail});
+ }
+ return out;
+}
+/*PURE_END*/
+
+/* ================= UI ================= */
+const $=(s,r=document)=>r.querySelector(s),$$=(s,r=document)=>[...r.querySelectorAll(s)];
+const KEY='fabricaRele_fiacao_v1';
+const DEF={stars:{},unlocked:1,progs:{},seen:{},sound:true,welcomed:false};
+function loadP(){try{return Object.assign({},DEF,JSON.parse(localStorage.getItem(KEY)||'{}'))}catch(e){return Object.assign({},DEF)}}
+let P=loadP();
+function save(){try{localStorage.setItem(KEY,JSON.stringify(P))}catch(e){}}
+let L=null,wires=[],hist=[],ctl={},mem={},energized=false,armed=null,drag=null,hints=0,fails=0,qi=0,TP={},res=null;
+const svg=$('#svg');
+const INK='#2b2250';
+
+/* sons */
+let AC=null;
+function beep(f,d=.1,type='sine',v=.07,delay=0){
+ if(!P.sound)return;
+ try{AC=AC||new(window.AudioContext||window.webkitAudioContext)();const o=AC.createOscillator(),g=AC.createGain();o.type=type;o.frequency.value=f;const t=AC.currentTime+delay;g.gain.setValueAtTime(v,t);g.gain.exponentialRampToValueAtTime(.0001,t+d);o.connect(g);g.connect(AC.destination);o.start(t);o.stop(t+d+.02)}catch(e){}
+}
+const sfx={click(){beep(900,.03,'square',.03)},wire(){beep(620,.07,'triangle')},rm(){beep(260,.1,'triangle')},on(){beep(330,.1);beep(520,.12,'sine',.07,.1)},off(){beep(300,.12,'sine',.05)},win(){[523,659,784,1046].forEach((f,i)=>beep(f,.18,'triangle',.08,i*.12))},fail(){beep(220,.25,'sawtooth',.05)},trip(){beep(140,.4,'sawtooth',.08)}};
+
+/* Relê */
+function say(t,mood='happy'){
+ $('#bubble').innerHTML='<span>'+t+'</span>';
+ const d={happy:'M36 54Q45 63 54 54',bad:'M36 60Q45 51 54 60',think:'M38 57H52'}[mood]||'M36 54Q45 63 54 54';
+ $('#mouth').setAttribute('d',d);
+ [$('#e1'),$('#e2')].forEach(e=>e.setAttribute('r',mood==='bad'?3.5:5));
+}
+
+/* ---- geometria ---- */
+const TOPX={'L+':285,'M':335,'1M':410,'I0.0':480,'I0.1':540,'I0.2':600,'I0.3':660};
+const BOTX={'1L':410,'Q0.0':480,'Q0.1':540,'Q0.2':600,'Q0.3':660};
+const TYPES={
+ src:{terms:()=>{const a=[];for(let i=0;i<6;i++)a.push({n:'P'+(i+1),x:108,y:215+i*30,dir:'r',ring:'#e53950'});for(let i=0;i<6;i++)a.push({n:'N'+(i+1),x:108,y:430+i*30,dir:'r',ring:'#2f6bff'});return a}},
+ clp:{terms:()=>[...Object.entries(TOPX).map(([n,x])=>({n,x,y:246,dir:'u'})),...Object.entries(BOTX).map(([n,x])=>({n,x,y:436,dir:'d'}))]},
+ btnNA:{terms:()=>[{n:'a',x:22,y:98,dir:'d'},{n:'b',x:58,y:98,dir:'d'}]},
+ btnNF:{terms:()=>[{n:'a',x:22,y:98,dir:'d'},{n:'b',x:58,y:98,dir:'d'}]},
+ emerg:{terms:()=>[{n:'a',x:22,y:98,dir:'d'},{n:'b',x:58,y:98,dir:'d'}]},
+ sensor:{terms:()=>[{n:'br',x:20,y:98,dir:'d',ring:'#8b5a2b'},{n:'bu',x:50,y:98,dir:'d',ring:'#2f6bff'},{n:'bk',x:80,y:98,dir:'d',ring:'#222'}]},
+ lamp:{terms:()=>[{n:'a',x:22,y:2,dir:'u'},{n:'b',x:58,y:2,dir:'u'}]},
+ buzzer:{terms:()=>[{n:'a',x:22,y:2,dir:'u'},{n:'b',x:58,y:2,dir:'u'}]},
+ contactor:{terms:()=>[{n:'A1',x:35,y:2,dir:'u'},{n:'A2',x:95,y:2,dir:'u'},{n:'c1',x:35,y:98,dir:'d'},{n:'c2',x:95,y:98,dir:'d'}]},
+ motor:{terms:()=>[{n:'m1',x:35,y:2,dir:'u'},{n:'m2',x:95,y:2,dir:'u'}]}
+};
+const DRAW={
+ src:()=>`<rect x="8" y="170" width="104" height="430" rx="16" fill="#fff0f5" stroke="${INK}" stroke-width="4"/><text x="58" y="194" class="ct">FONTE 24 V</text><rect x="104" y="205" width="8" height="170" rx="4" fill="#e53950"/><text x="52" y="296" class="ct" style="fill:#e53950;font-size:20px">+24V</text><rect x="104" y="420" width="8" height="170" rx="4" fill="#2f6bff"/><text x="52" y="510" class="ct" style="fill:#2f6bff;font-size:20px">0V</text><text x="58" y="396" class="tiny" style="opacity:.6">barras da fonte</text>`,
+ clp:()=>{
+  let s=`<rect x="240" y="262" width="520" height="158" rx="16" fill="#fff7d6" fill-opacity=".95" stroke="${INK}" stroke-width="4"/><text x="540" y="356" class="ct" style="font-size:17px">CLP · FÁBRICA 1200</text><circle id="led_run" class="clpled" cx="292" cy="344" r="9" fill="#9a94b8" stroke="${INK}" stroke-width="3"/><text x="312" y="349" class="tiny" style="text-anchor:start">RUN</text>`;
+  for(const [n,x] of Object.entries(TOPX)){s+=`<line x1="${x}" y1="246" x2="${x}" y2="262" stroke="${INK}" stroke-width="4"/><text x="${x}" y="286" class="lbl">${n}</text>`;if(n[0]==='I')s+=`<circle id="led_${n}" class="clpled" cx="${x}" cy="308" r="6" fill="#9a94b8" stroke="${INK}" stroke-width="2.5"/>`}
+  for(const [n,x] of Object.entries(BOTX)){s+=`<line x1="${x}" y1="420" x2="${x}" y2="436" stroke="${INK}" stroke-width="4"/><text x="${x}" y="408" class="lbl">${n}</text>`;if(n[0]==='Q')s+=`<circle id="led_${n}" class="clpled" cx="${x}" cy="382" r="6" fill="#9a94b8" stroke="${INK}" stroke-width="2.5"/>`}
+  return s},
+ btn:c=>`<rect x="12" y="46" width="56" height="42" rx="8" fill="#e9e5ff" stroke="${INK}" stroke-width="4"/><text x="40" y="73" class="ct" style="font-size:14px">${c.type==='btnNF'?'NF':'NA'}</text><g id="cap_${c.id}"><circle cx="40" cy="30" r="22" fill="${c.color}" stroke="${INK}" stroke-width="4"/><ellipse cx="33" cy="22" rx="7" ry="4" fill="#fff" opacity=".5"/></g><text x="40" y="-6" class="lbl">${c.label}</text>`,
+ emerg:c=>`<rect x="12" y="46" width="56" height="42" rx="8" fill="#ffe08a" stroke="${INK}" stroke-width="4"/><text x="40" y="73" class="ct" style="font-size:14px">NF</text><g id="cap_${c.id}"><circle cx="40" cy="28" r="27" fill="#c7243a" stroke="${INK}" stroke-width="4"/><ellipse cx="31" cy="17" rx="9" ry="5" fill="#fff" opacity=".4"/></g><text x="40" y="-8" class="lbl">${c.label}</text>`,
+ sensor:c=>`<rect x="18" y="22" width="64" height="46" rx="12" fill="${c.color}" stroke="${INK}" stroke-width="4"/><circle cx="50" cy="45" r="11" fill="#fff" stroke="${INK}" stroke-width="3"/><circle id="sled_${c.id}" cx="70" cy="30" r="5" fill="#9a94b8" stroke="${INK}" stroke-width="2"/><path d="M50 68L20 98" stroke="#8b5a2b" stroke-width="4" fill="none"/><path d="M50 68V98" stroke="#2f6bff" stroke-width="4" fill="none"/><path d="M50 68L80 98" stroke="#222" stroke-width="4" fill="none"/><text x="50" y="12" class="lbl">${c.label}</text><g id="obj_${c.id}" opacity="0"><rect x="30" y="-34" width="40" height="22" rx="5" fill="#ffcf7a" stroke="${INK}" stroke-width="3"/></g>`,
+ lamp:c=>`<circle id="glow_${c.id}" cx="40" cy="56" r="40" fill="${c.color}" opacity="0"/><path d="M22 2L32 36M58 2L48 36" stroke="${INK}" stroke-width="3" fill="none"/><circle id="bulb_${c.id}" cx="40" cy="56" r="24" fill="#d9d4e8" stroke="${INK}" stroke-width="4"/><path d="M30 56q5 -10 10 0t10 0" stroke="${INK}" stroke-width="3" fill="none"/><rect x="28" y="78" width="24" height="12" rx="3" fill="#8d86b3" stroke="${INK}" stroke-width="3"/><text x="40" y="112" class="lbl">${c.label}</text>`,
+ buzzer:c=>`<path d="M22 2L32 36M58 2L48 36" stroke="${INK}" stroke-width="3" fill="none"/><circle id="bz_${c.id}" cx="40" cy="56" r="24" fill="#ffcf7a" stroke="${INK}" stroke-width="4"/><circle cx="40" cy="56" r="8" fill="${INK}"/><g id="wave_${c.id}" opacity="0" fill="none" stroke="#ff4d5e" stroke-width="4" stroke-linecap="round"><path d="M72 40Q82 56 72 72"/><path d="M80 32Q96 56 80 80"/></g><text x="40" y="112" class="lbl">${c.label}</text>`,
+ contactor:c=>`<rect x="5" y="20" width="120" height="66" rx="10" fill="#c9d6ff" stroke="${INK}" stroke-width="4"/><path d="M35 2V24M95 2V24" stroke="${INK}" stroke-width="3"/><rect x="28" y="26" width="74" height="26" rx="6" fill="#fff" stroke="${INK}" stroke-width="3"/><circle id="kled_${c.id}" cx="42" cy="39" r="6" fill="#9a94b8" stroke="${INK}" stroke-width="2"/><text x="70" y="43" class="tiny">bobina</text><path d="M35 70V98M95 70V98" stroke="${INK}" stroke-width="3"/><line id="kbar_${c.id}" x1="35" y1="76" x2="95" y2="76" stroke="#19c37d" stroke-width="6" stroke-linecap="round" opacity="0"/><text x="65" y="-4" class="lbl">${c.label} · Contator</text><text x="112" y="68" class="tiny" style="text-anchor:end;font-size:9px">potência</text>`,
+ motor:c=>`<path d="M35 2V30M95 2V30" stroke="${INK}" stroke-width="3" fill="none"/><circle cx="65" cy="62" r="34" fill="#ffd23f" stroke="${INK}" stroke-width="4"/><g id="fan_${c.id}"><path d="M65 62L65 36M65 62L88 75M65 62L42 75" stroke="${INK}" stroke-width="6" stroke-linecap="round"/></g><circle cx="65" cy="62" r="7" fill="#fff" stroke="${INK}" stroke-width="3"/><text x="65" y="112" class="lbl">${c.label}</text>`
+};
+function drawComp(c){
+ const inner=c.type==='btnNA'||c.type==='btnNF'?DRAW.btn(c):DRAW[c.type](c);
+ return `<g transform="translate(${c.x} ${c.y})">${inner}</g>`;
+}
+function termsOf(c){return TYPES[c.type].terms(c).map(t=>({id:c.id+'.'+t.n,x:c.x+t.x,y:c.y+t.y,dir:t.dir,ring:t.ring}))}
+function tdesc(t){
+ const parts=t.split('.'),id=parts[0],n=parts.slice(1).join('.');
+ if(id==='clp')return {'L+':'L+ · alimentação positiva do CLP','M':'M · alimentação negativa (0V) do CLP','1M':'1M · comum das entradas','1L':'1L · comum das saídas'}[n]||(n[0]==='I'?`${n} · entrada digital`:`${n} · saída digital (contato de relé)`);
+ if(id==='src')return n[0]==='P'?'Fonte · barra do +24V':'Fonte · barra do 0V';
+ const c=L.comps.find(x=>x.id===id);const lab=c?c.label:id;
+ const names={a:'terminal 1',b:'terminal 2',br:'fio marrom (+)',bu:'fio azul (−)',bk:'fio preto (sinal)',A1:'A1 (bobina +)',A2:'A2 (bobina −)',m1:'terminal do motor',m2:'terminal do motor',c1:'contato de potência',c2:'contato de potência'};
+ return `${lab} · ${names[n]||n}`;
+}
+
+/* ---- construção do quadro ---- */
+function buildBoard(){
+ const quiz=L.type==='quiz';
+ TP={};
+ let comps='',terms='',clpS='';
+ L.comps.forEach(c=>{if(c.type==='clp')clpS+=drawComp(c);else comps+=drawComp(c);termsOf(c).forEach(t=>{TP[t.id]=t;terms+=`<g class="term" data-t="${t.id}" transform="translate(${t.x} ${t.y})"><title>${quiz?'':tdesc(t.id)}</title><circle r="17" fill="rgba(0,0,0,0)"/><circle class="dot" r="8" ${t.ring?`style="stroke:${t.ring}"`:''}/><circle class="core" r="2.6"/></g>`})});
+ svg.setAttribute('viewBox',quiz?'200 215 600 245':'0 0 1000 720');
+ svg.innerHTML=`<g id="gcomps">${comps}</g><g id="gwires"></g><g id="gclp">${clpS}</g><g id="gtemp"></g><g id="gterms">${terms}</g>`;
+ drawWires();
+}
+function allWires(){return L.pre.map(p=>({a:p[0],b:p[1],fixed:true,kind:p[2]})).concat(wires)}
+function wpath(a,b){
+ const dv={u:[0,-1],d:[0,1],l:[-1,0],r:[1,0]};
+ const dist=Math.hypot(b.x-a.x,b.y-a.y),k=Math.max(22,Math.min(95,dist*.45));
+ const c1=[a.x+dv[a.dir][0]*k,a.y+dv[a.dir][1]*k],c2=[b.x+dv[b.dir][0]*k,b.y+dv[b.dir][1]*k];
+ return `M${a.x} ${a.y}C${c1[0]} ${c1[1]} ${c2[0]} ${c2[1]} ${b.x} ${b.y}`;
+}
+function drawWires(){
+ const aw=allWires(),N=staticN(aw),nP=N(P_),nZ=N(Z_);
+ let s='';
+ aw.forEach((w,i)=>{
+  const a=TP[w.a],b=TP[w.b];if(!a||!b)return;
+  const n=N(w.a);const col=w.kind==='pot'?'#6b6585':n===nP?'#e53950':n===nZ?'#2f6bff':'#ff9f1c';
+  const wi=w.fixed?-1:i-L.pre.length;
+  s+=`<g class="wire" ${w.fixed?'':`data-i="${wi}"`}><path d="${wpath(a,b)}" fill="none" stroke="${INK}" stroke-width="${w.kind==='pot'?10:8}" stroke-linecap="round"/><path class="wvis" d="${wpath(a,b)}" fill="none" stroke="${col}" stroke-width="${w.kind==='pot'?6:4.5}" stroke-linecap="round" ${w.fixed&&w.kind!=='pot'?'stroke-dasharray="1 0"':''}/>${w.fixed?'':`<path class="whit" d="${wpath(a,b)}" fill="none" stroke="rgba(0,0,0,0)" stroke-width="20"/>`}</g>`;
+ });
+ $('#gwires').innerHTML=s;
+ const has=new Set();aw.forEach(w=>{has.add(w.a);has.add(w.b)});
+ $$('.term',svg).forEach(t=>{t.classList.toggle('has',has.has(t.dataset.t));t.classList.toggle('armed',armed===t.dataset.t)});
+}
+
+/* ---- ações de fios ---- */
+function persist(){P.progs[L.id]=wires.map(w=>[w.a,w.b]);save()}
+function safety(){if(energized){setEnergized(false);say('🔌 Segurança primeiro: desliguei o quadro para você mexer nos fios. Nunca mexa na fiação energizada!','think')}}
+function addWire(a,b){
+ if(a===b)return;
+ if(wires.some(w=>(w.a===a&&w.b===b)||(w.a===b&&w.b===a))||L.pre.some(p=>(p[0]===a&&p[1]===b)||(p[0]===b&&p[1]===a))){say('Esse fio já existe!','think');return}
+ safety();
+ wires.push({a,b});hist.push({t:'add',w:{a,b}});sfx.wire();persist();drawWires();
+ $('#tline').textContent=`🔗 Fio ligado: ${tdesc(a)}  ⟷  ${tdesc(b)}`;
+}
+function removeWire(i){
+ if(i<0||i>=wires.length)return;
+ safety();
+ const w=wires.splice(i,1)[0];hist.push({t:'rm',w,i});sfx.rm();persist();drawWires();
+}
+function undo(){
+ const h=hist.pop();if(!h){say('Não há nada para desfazer.','think');return}
+ safety();
+ if(h.t==='add'){const i=wires.findIndex(w=>w.a===h.w.a&&w.b===h.w.b);if(i>=0)wires.splice(i,1)}
+ else wires.splice(Math.min(h.i,wires.length),0,h.w);
+ sfx.rm();persist();drawWires();
+}
+
+/* ---- interação com terminais ---- */
+function svgPt(e){const pt=svg.createSVGPoint();pt.x=e.clientX;pt.y=e.clientY;return pt.matrixTransform(svg.getScreenCTM().inverse())}
+function drawTemp(e){
+ const from=drag?drag.from:armed;if(!from||!TP[from]){$('#gtemp').innerHTML='';return}
+ const a=TP[from],p=svgPt(e);
+ const d=`M${a.x} ${a.y}L${p.x} ${p.y}`;
+ $('#gtemp').innerHTML=`<path d="${d}" stroke="#ff5fa2" stroke-width="4" stroke-dasharray="8 6" fill="none" stroke-linecap="round" pointer-events="none"/>`;
+}
+svg.addEventListener('pointerdown',e=>{
+ const t=e.target.closest('.term');
+ if(!t){if(armed){armed=null;$('#gtemp').innerHTML='';drawWires()}return}
+ if(L.type==='quiz'){quizClick(t.dataset.t,t);return}
+ e.preventDefault();
+ drag={from:t.dataset.t,moved:false,x:e.clientX,y:e.clientY};
+});
+window.addEventListener('pointermove',e=>{
+ if(drag){if(Math.hypot(e.clientX-drag.x,e.clientY-drag.y)>7)drag.moved=true;if(drag.moved)drawTemp(e)}
+ else if(armed)drawTemp(e);
+});
+window.addEventListener('pointerup',e=>{
+ if(!drag)return;
+ const d=drag;drag=null;
+ const el=document.elementFromPoint(e.clientX,e.clientY),t=el&&el.closest?el.closest('.term'):null;
+ if(d.moved){
+  $('#gtemp').innerHTML='';
+  if(t&&t.dataset.t!==d.from)addWire(d.from,t.dataset.t);
+  armed=null;drawWires();return;
+ }
+ if(armed===null){armed=d.from;say(`Fio saindo de <b>${tdesc(d.from)}</b>. Agora clique no borne de destino.`,'think')}
+ else if(armed!==d.from){const a=armed;armed=null;$('#gtemp').innerHTML='';addWire(a,d.from)}
+ else{armed=null;$('#gtemp').innerHTML=''}
+ drawWires();
+});
+svg.addEventListener('click',e=>{
+ const w=e.target.closest('.wire[data-i]');
+ if(w&&!e.target.closest('.term'))removeWire(+w.dataset.i);
+});
+svg.addEventListener('mouseover',e=>{
+ const t=e.target.closest('.term');
+ if(t&&L.type!=='quiz')$('#tline').textContent='📍 '+tdesc(t.dataset.t);
+});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){armed=null;drag=null;$('#gtemp').innerHTML='';drawWires()}});
+
+/* ---- quiz ---- */
+function showQuestion(){
+ $('#qdots').innerHTML=L.questions.map((_,i)=>`<span class="${i<qi?'done':i===qi?'on':''}"></span>`).join('');
+ $('#qtext').innerHTML=`${qi+1}/${L.questions.length}. ${L.questions[qi].q}`;
+ say(L.questions[qi].q,'think');
+}
+function quizClick(t,el){
+ if(!L.questions[qi])return;
+ const q=L.questions[qi];
+ if(q.ok(t)){
+  sfx.wire();el.classList.add('good');setTimeout(()=>el.classList.remove('good'),500);
+  qi++;
+  if(qi>=L.questions.length){$('#qdots').innerHTML=L.questions.map(()=>'<span class="done"></span>').join('');complete([])}
+  else{say('✔ Isso mesmo! Próxima pergunta.','happy');setTimeout(showQuestion,700)}
+ }else{
+  fails++;sfx.fail();el.classList.add('bad');setTimeout(()=>el.classList.remove('bad'),500);
+  say(`Quase! Esse borne (${t.split('.').slice(1).join('.')}) é ${describe(t)}. Tente de novo.`,'bad');
+ }
+}
+
+/* ---- simulação ---- */
+function setEnergized(v,msg){
+ energized=v;mem={};
+ const b=$('#power');b.classList.toggle('on',v);b.textContent=v?'⏻ QUADRO LIGADO (clique para desligar)':'⚡ QUADRO DESLIGADO (clique para ligar)';
+ v?sfx.on():sfx.off();
+ if(msg)say(msg,'think');
+}
+$('#power').onclick=()=>{
+ if(L.type==='quiz')return;
+ if(energized){setEnergized(false);say('Quadro desligado. Pode mexer nos fios com segurança.','happy')}
+ else{setEnergized(true);say(wires.length||L.pre.length?'Quadro ligado! Teste os botões do painel de operação.':'Quadro ligado, mas ainda não há fios. Desligue e comece a ligar!','happy')}
+};
+let bannerT=null;
+function trip(f){
+ setEnergized(false);sfx.trip();
+ const b=$('#banner');b.textContent='⚡ Disjuntor desarmou! '+FM[f];b.classList.remove('hidden');
+ clearTimeout(bannerT);bannerT=setTimeout(()=>b.classList.add('hidden'),5000);
+ say(FM[f],'bad');
+}
+function aw(){return allWires()}
+function tick(){
+ if(!L||L.type==='quiz')return;
+ res=evaluate(L,aw(),ctl,energized,mem);
+ if(res.fault&&energized){trip(res.fault);res=evaluate(L,aw(),ctl,false,mem)}
+ paint(res);
+}
+let fanA=0;
+function paint(r){
+ const set=(id,k,v)=>{const e=document.getElementById(id);if(e)e.setAttribute(k,v)};
+ set('led_run','fill',r.powered?'#19c37d':'#9a94b8');
+ INS.forEach(i=>set('led_'+i,'fill',r.inputs[i]?'#19c37d':'#9a94b8'));
+ QS.forEach(q=>set('led_'+q,'fill',r.outs[q]?'#ffd23f':'#9a94b8'));
+ L.comps.forEach(c=>{
+  const id=c.id;
+  if(c.type==='btnNA'||c.type==='btnNF'||c.type==='emerg')set('cap_'+id,'transform',`translate(0 ${ctl[id]?7:0})`);
+  if(c.type==='sensor'){set('sled_'+id,'fill',mem.sens&&mem.sens[id]?'#19c37d':'#9a94b8');set('obj_'+id,'opacity',ctl[id]?1:0)}
+  if(c.type==='lamp'){const on=r.dev[id];set('bulb_'+id,'fill',on?c.color:'#d9d4e8');set('glow_'+id,'opacity',on?.55:0)}
+  if(c.type==='buzzer'){set('wave_'+id,'opacity',r.dev[id]?1:0)}
+  if(c.type==='contactor'){set('kled_'+id,'fill',r.dev[id]?'#19c37d':'#9a94b8');set('kbar_'+id,'opacity',r.dev[id]?1:0)}
+ });
+ $$('#ctls .mbtn').forEach(b=>b.classList.toggle('on',!!ctl[b.dataset.id]));
+}
+setInterval(tick,50);
+let lastT=performance.now();
+function spin(t){
+ const dt=Math.min((t-lastT)/1000,.1);lastT=t;
+ if(L&&res&&L.type!=='quiz'){
+  fanA+=720*dt;
+  L.comps.forEach(c=>{
+   if(c.type==='motor'){const e=document.getElementById('fan_'+c.id);if(e)e.setAttribute('transform',`rotate(${res.dev[c.id]?fanA%360:0} 65 62)`)}
+   if(c.type==='buzzer'){const e=document.getElementById('bz_'+c.id);if(e)e.setAttribute('transform',res.dev[c.id]?`translate(${Math.sin(fanA/6)*2} 0)`:'')}
+  });
+ }
+ requestAnimationFrame(spin);
+}
+requestAnimationFrame(spin);
+
+/* ---- painel ---- */
+function buildCtls(){
+ $('#ctls').innerHTML=L.controls.map(c=>`<button class="mbtn ${c.color}" data-id="${c.id}" data-t="${c.type}"><b>${c.label}</b><small>${c.sub}</small></button>`).join('');
+}
+const ctls=$('#ctls');
+ctls.addEventListener('pointerdown',e=>{
+ const b=e.target.closest('.mbtn');if(!b)return;e.preventDefault();sfx.click();
+ const id=b.dataset.id;
+ if(b.dataset.t==='push'){ctl[id]=true;try{b.setPointerCapture(e.pointerId)}catch(_){}}
+ else ctl[id]=!ctl[id];
+ if(!energized)$('#tline').textContent='💡 Os botões funcionam, mas sem o quadro ligado nada acontece no CLP.';
+});
+['pointerup','pointercancel','lostpointercapture'].forEach(ev=>ctls.addEventListener(ev,e=>{
+ const b=e.target.closest('.mbtn');if(b&&b.dataset.t==='push')ctl[b.dataset.id]=false;
+}));
+function buildKnow(){
+ if(L.type==='quiz'){$('#knowbox').innerHTML='<b>🧭 Dica de ouro</b><br>Os nomes dos bornes contam a história: <b>I</b> (Input) é entrada e <b>Q</b> (Output) é saída. Use a 📖 Trilha se precisar relembrar.';return}
+ let h='';
+ if(L.legend.length)h+=`<b>📍 O programa espera:</b><ul>${L.legend.map(x=>`<li>${x}</li>`).join('')}</ul>`;
+ if(L.program.length)h+=`<b style="display:block;margin-top:6px">🧠 Programa do CLP (já pronto):</b><pre>${L.program.join('\n')}</pre>`;
+ if(!h)h='<b>🧠 Nesta fase</b><br>Ainda não há programa: só queremos ver o CLP receber energia.';
+ h+=`<p class="lcap" style="margin-top:6px">Como ligar: clique em um borne e depois em outro (ou arraste). Clique em um fio para apagá-lo. Desligue o quadro antes de mexer!</p>`;
+ $('#knowbox').innerHTML=h;
+}
+
+/* ---- cabeçalho ---- */
+const starsHTML=n=>'★'.repeat(n)+'☆'.repeat(3-n);
+function renderHeader(){
+ $('#ltitle').textContent=`Fase ${L.id} · ${L.name}`;
+ $('#lmission').textContent=L.mission;
+ $('#stars').textContent=starsHTML(P.stars[L.id]||0);
+ $('#lv').innerHTML=LEVELS.map(l=>{const lock=l.id>P.unlocked;return `<button class="chip${l.id===L.id?' cur':''}${lock?' lock':''}" data-lv="${l.id}" title="${lock?'Complete a fase anterior':l.name}">${lock?'🔒':l.id}<i>${lock?'':starsHTML(P.stars[l.id]||0)}</i></button>`}).join('');
+ $('#snd').textContent=P.sound?'🔊':'🔇';
+}
+
+/* ---- modais ---- */
+let demoTimer=null;
+function modal(html,wide){$('#mbody').innerHTML=html;$('#mbody').classList.toggle('wide',!!wide);$('#modal').classList.remove('hidden')}
+function closeModal(){clearInterval(demoTimer);$('#modal').classList.add('hidden')}
+$('#modal').addEventListener('click',e=>{if(e.target.id==='modal')closeModal()});
+function ask(title,msg,yes,onYes){
+ modal(`<h2>${title}</h2><p>${msg}</p><div class="mbts"><button class="btn" id="a-no">Cancelar</button><button class="btn stop" id="a-yes">${yes}</button></div>`);
+ $('#a-no').onclick=closeModal;$('#a-yes').onclick=()=>{closeModal();onYes()};
+}
+function openHints(){
+ const n=Math.min(hints,3);
+ modal(`<h2>💡 Dicas da fase ${L.id}</h2><p style="font-size:12px;opacity:.7">As dicas já abertas ficam aqui. Usar dicas diminui as estrelas.</p>${L.hints.slice(0,n).map((h,i)=>`<div class="hintcard"><b>Dica ${i+1} de 3</b><p>${h}</p></div>`).join('')}<div class="mbts"><button class="btn" id="m-close">Fechar</button>${n<3?`<button class="btn rst" id="m-more">Mostrar a dica ${n+1} de 3</button>`:''}</div>`);
+ $('#m-close').onclick=closeModal;
+ const more=$('#m-more');if(more)more.onclick=()=>{hints=n+1;openHints()};
+}
+$('#hintbtn').onclick=()=>{if(hints===0)hints=1;sfx.click();openHints()};
+
+/* ---- trilha ---- */
+function demoCircuit(host,o){
+ host.innerHTML=`<svg viewBox="0 0 400 160"><g id="dw" fill="none" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"><path id="w1" d="M40 66V44H130"/><path id="w2" d="M190 44H330V64"/><path id="w3" d="M330 112V140H40V112"/></g><rect x="22" y="66" width="36" height="46" rx="6" fill="#fff" stroke="${INK}" stroke-width="4"/><text x="40" y="58" class="tiny" style="fill:#e53950">+24V</text><text x="40" y="156" class="tiny" style="fill:#2f6bff">0V</text><text x="40" y="94" class="tiny" style="font-size:14px">⎓</text><circle cx="130" cy="44" r="6" fill="#fff" stroke="${INK}" stroke-width="3"/><circle cx="190" cy="44" r="6" fill="#fff" stroke="${INK}" stroke-width="3"/><line id="blade" x1="130" y1="44" x2="190" y2="44" stroke="${INK}" stroke-width="6" stroke-linecap="round"/><text x="160" y="24" class="tiny">${o.swLabel}</text><circle id="dglow" cx="330" cy="88" r="38" fill="#ffe066" opacity="0"/><circle id="dbulb" cx="330" cy="88" r="24" fill="#d9d4e8" stroke="${INK}" stroke-width="4"/><path d="M320 88q5 -10 10 0t10 0" stroke="${INK}" stroke-width="3" fill="none"/><text x="330" y="132" class="tiny" style="display:none"></text><text x="268" y="92" class="tiny" style="text-anchor:end">${o.lampLabel}</text></svg><div class="row"><button class="mbtn green" id="dm-b" style="flex:0 1 200px"><b>${o.btn}</b><small>${o.mode==='hold'?'segure':'clique para alternar'}</small></button></div>`;
+ let on=false;
+ const upd=()=>{
+  const closed=o.sw==='NA'?on:!on;
+  $$('#dw path',host).forEach(p=>p.setAttribute('stroke',closed?'#19b36b':'#c3bddb'));
+  const bl=$('#blade',host);bl.setAttribute('x2',closed?190:176);bl.setAttribute('y2',closed?44:14);
+  $('#dbulb',host).setAttribute('fill',closed?'#ffe066':'#d9d4e8');$('#dglow',host).setAttribute('opacity',closed?.6:0);
+  $('#dm-b',host).classList.toggle('on',on);
+ };
+ const b=$('#dm-b',host);
+ if(o.mode==='hold'){b.onpointerdown=e=>{e.preventDefault();on=true;upd();try{b.setPointerCapture(e.pointerId)}catch(_){}};['pointerup','pointercancel','lostpointercapture'].forEach(ev=>b['on'+ev]=()=>{on=false;upd()})}
+ else b.onclick=()=>{on=!on;upd()};
+ upd();
+}
+function demoSensor(host){
+ host.innerHTML=`<svg viewBox="0 0 400 150"><g fill="none" stroke-width="6" stroke-linecap="round"><path id="sw1" d="M110 60H250"/><path id="sw2" d="M110 80H250"/><path id="sw3" d="M110 100H250"/></g><rect x="30" y="38" width="86" height="82" rx="14" fill="#9fd3ff" stroke="${INK}" stroke-width="4"/><circle cx="72" cy="79" r="16" fill="#fff" stroke="${INK}" stroke-width="3"/><text x="72" y="28" class="tiny">Sensor</text><text x="130" y="55" class="tiny" style="fill:#8b5a2b;text-anchor:start">marrom +</text><text x="130" y="75" class="tiny" style="fill:#2f6bff;text-anchor:start">azul −</text><text x="130" y="119" class="tiny" style="fill:#222;text-anchor:start">preto = sinal</text><circle id="sg" cx="320" cy="92" r="34" fill="#ffe066" opacity="0"/><circle id="sb" cx="320" cy="92" r="22" fill="#d9d4e8" stroke="${INK}" stroke-width="4"/><text x="320" y="140" class="tiny">Entrada do CLP</text></svg><div class="row"><label><input type="checkbox" id="c1"> marrom no +24V</label><label><input type="checkbox" id="c2"> azul no 0V</label><button class="mbtn yellow" id="dm-p" style="flex:0 1 160px"><b>Passar peça</b><small>segure</small></button></div>`;
+ let piece=false;
+ const upd=()=>{
+  const a=$('#c1',host).checked,b=$('#c2',host).checked,out=a&&b&&piece;
+  $('#sw1',host).setAttribute('stroke',a?'#8b5a2b':'#c3bddb');$('#sw2',host).setAttribute('stroke',b?'#2f6bff':'#c3bddb');$('#sw3',host).setAttribute('stroke',out?'#19b36b':'#c3bddb');
+  $('#sb',host).setAttribute('fill',out?'#ffe066':'#d9d4e8');$('#sg',host).setAttribute('opacity',out?.6:0);$('#dm-p',host).classList.toggle('on',piece);
+ };
+ $$('input',host).forEach(i=>i.onchange=upd);
+ const p=$('#dm-p',host);
+ p.onpointerdown=e=>{e.preventDefault();piece=true;upd();try{p.setPointerCapture(e.pointerId)}catch(_){}};
+ ['pointerup','pointercancel','lostpointercapture'].forEach(ev=>p['on'+ev]=()=>{piece=false;upd()});
+ upd();
+}
+const D_NA={sw:'NA',swLabel:'botão NA',lampLabel:'Lâmpada',btn:'Apertar',mode:'hold'};
+const LESSONS={
+1:[
+ {t:'O cérebro da fábrica',p:'O <b>CLP</b> lê sinais do mundo real (botões, sensores), decide com um <b>programa</b> e aciona coisas (lâmpadas, motores). O caminho é sempre: <b>entradas → programa → saídas</b>.'},
+ {t:'Os bornes (pinos)',p:'Os fios são presos em <b>bornes</b> de parafuso. Cada um tem nome:<br><b>I0.0, I0.1...</b> = entradas digitais (<b>I</b> de Input).<br><b>Q0.0, Q0.1...</b> = saídas digitais (<b>Q</b> de Output).<br><b>L+</b> e <b>M</b> = alimentação do próprio CLP (+24V e 0V).<br><b>1M</b> = comum das entradas (o retorno delas).<br><b>1L</b> = comum das saídas (por onde chega a tensão que elas entregam).'},
+ {t:'Os LEDs',p:'Em cada entrada e saída há um <b>LED</b>: acende quando o sinal está ativo. O LED <b>RUN</b> mostra que o CLP está energizado. É a primeira coisa que o eletricista olha!'}],
+2:[
+ {t:'Corrente precisa de ida e volta',p:'Uma fonte de 24V tem um lado <b>positivo (+24V)</b> e um lado <b>negativo (0V)</b>. A corrente só circula se houver um <b>caminho completo</b>: sai do +, passa pela carga e volta ao 0V. Veja com uma lâmpada:',demo:()=>demoCircuit(null,null)},
+ {t:'Cuidados de segurança',p:'<b>Curto-circuito</b>: ligar o +24V direto no 0V, sem carga no meio. <b>Polaridade invertida</b>: ligar o + onde vai o −. Os dois danificam equipamentos. E sempre: <b>desligue o quadro antes de mexer na fiação</b>!'}],
+3:[
+ {t:'O que é uma entrada digital',p:'Uma entrada digital lê só <b>0</b> ou <b>1</b>. Neste CLP, ela lê 1 quando o borne recebe <b>+24V</b> e existe o caminho de volta pelo comum das entradas. Pense na entrada como a <b>lâmpada</b> do exemplo: precisa de tensão e de retorno.',demo:()=>demoCircuit(null,{sw:'NA',swLabel:'botão NA',lampLabel:'Entrada',btn:'Apertar',mode:'hold'})},
+ {t:'Contato NA',p:'Botão <b>NA</b> (normalmente aberto): em repouso não passa nada. Ao apertar, ele fecha e leva a tensão adiante. Leia o programa no painel para saber em qual entrada cada botão deve ficar.'}],
+4:[
+ {t:'Contato NF',p:'Botão <b>NF</b> (normalmente fechado): em repouso <b>passa</b> tensão; ao apertar, <b>abre</b> e corta. Repare: com o botão em repouso, a entrada lê <b>1</b>!',demo:()=>demoCircuit(null,{sw:'NF',swLabel:'botão NF',lampLabel:'Entrada',btn:'Apertar',mode:'hold'})},
+ {t:'Por que o Para é NF?',p:'Se um fio do botão Para se soltar ou romper, a entrada vai a 0, e o programa entende como "Para apertado", então a máquina <b>para</b>. Isso se chama <b>segurança positiva</b>: falha vira parada, nunca vira perigo.'}],
+5:[
+ {t:'Sensor de 3 fios (PNP)',p:'Sensor tem eletrônica dentro e precisa de energia: fio <b>marrom</b> = positivo, fio <b>azul</b> = negativo, fio <b>preto</b> = <b>sinal</b>. Quando detecta algo, o preto entrega +24V. Teste: sem alimentar, o sinal nunca sai!',demo:()=>demoSensor(null)},
+ {t:'Dica de campo',p:'O fio preto vai para uma <b>entrada</b> do CLP. Cada sensor consome corrente, por isso o sensor tem alimentação própria, diferente do botão, que só passa a tensão adiante.'}],
+6:[
+ {t:'Saída a relé',p:'A saída a relé é como um <b>interruptor interno</b> entre o comum das saídas e o borne Q. Quando o programa liga a saída, a chave fecha. <b>O CLP não fornece energia</b>: só abre e fecha um caminho. Veja a "chave" fechando:',demo:()=>demoCircuit(null,{sw:'NA',swLabel:'relé da saída',lampLabel:'Carga',btn:'Programa liga Q0.0',mode:'toggle'})},
+ {t:'Quem fornece a energia?',p:'Você! O comum das saídas precisa receber o +24V, e a carga (lâmpada, bobina...) precisa estar entre o borne Q e o 0V. Esquecer o comum é o erro mais clássico de quem está começando.'}],
+7:[
+ {t:'Cargas grandes pedem contator',p:'Um motor puxa muita corrente e a saída do CLP aguenta pouco. Então a saída comanda um <b>contator</b>: uma chave forte acionada por uma <b>bobina</b> pequena de 24V (terminais <b>A1</b> e <b>A2</b>). A potência do motor passa pelos contatos do contator, não pelo CLP.'},
+ {t:'Nunca ligue o motor direto',p:'Ligar o motor direto na saída queima o relé do CLP. A bobina do contator se liga como a lâmpada da fase anterior: ida pela saída, volta pelo 0V.'}],
+8:[
+ {t:'Juntando tudo',p:'No chefão você faz o painel inteiro: <b>entradas</b> (NA, NF, sensor), <b>comuns</b>, <b>saídas</b> e <b>cargas</b>. Leia a lista "O programa espera" para saber o que vai em cada borne.'},
+ {t:'Dividir para conquistar',p:'Ligue um dispositivo por vez e use ✓ <b>VERIFICAR</b> para ver o que já funciona. O Relê aponta o que ainda falta. E lembre: desligue o quadro antes de mexer nos fios.'}]
+};
+let lesStep=0;
+function openLesson(id,step){
+ lesStep=step||0;clearInterval(demoTimer);
+ const steps=LESSONS[id],s=steps[lesStep],last=lesStep===steps.length-1,lv=LEVELS[id-1];
+ const dots=steps.map((_,i)=>`<span class="${i===lesStep?'on':''}"></span>`).join('');
+ modal(`<h2>📖 Trilha · Fase ${id}</h2><div class="dots">${dots}</div><h3>${s.t}</h3><p>${s.p}</p>${s.demo?'<div class="demo" id="demo"></div>':''}${last?`<p><b>🎯 Missão:</b> ${lv.mission}</p>`:''}<div class="mbts">${lesStep>0?'<button class="btn" id="l-prev">◀ Voltar</button>':''}<button class="btn run" id="l-next">${last?'Começar a fase 🚀':'Próximo ▶'}</button></div><p><a href="#" id="l-skip">pular trilha</a></p>`,true);
+ if(s.demo){const host=$('#demo');const f=s.demo.toString();
+  if(id===2)demoCircuit(host,D_NA);else if(id===3)demoCircuit(host,{sw:'NA',swLabel:'botão NA',lampLabel:'Entrada',btn:'Apertar',mode:'hold'});
+  else if(id===4)demoCircuit(host,{sw:'NF',swLabel:'botão NF',lampLabel:'Entrada',btn:'Apertar',mode:'hold'});
+  else if(id===5)demoSensor(host);
+  else if(id===6)demoCircuit(host,{sw:'NA',swLabel:'relé da saída',lampLabel:'Carga',btn:'Programa liga Q0.0',mode:'toggle'});}
+ const prev=$('#l-prev');if(prev)prev.onclick=()=>openLesson(id,lesStep-1);
+ $('#l-next').onclick=()=>{if(last)endLesson(id);else openLesson(id,lesStep+1)};
+ $('#l-skip').onclick=e=>{e.preventDefault();endLesson(id)};
+}
+function endLesson(id){P.seen[id]=1;save();closeModal()}
+$('#lessonbtn').onclick=()=>{if(LESSONS[L.id]){sfx.click();openLesson(L.id)}};
+function maybeLesson(){if(P.welcomed&&!P.seen[L.id]&&LESSONS[L.id])openLesson(L.id)}
+
+/* ---- verificar / concluir ---- */
+function complete(list){
+ const stars=1+(hints===0?1:0)+(fails<=1?1:0);
+ P.stars[L.id]=Math.max(P.stars[L.id]||0,stars);
+ if(L.id<LEVELS.length)P.unlocked=Math.max(P.unlocked,L.id+1);
+ save();renderHeader();sfx.win();
+ const last=L.id===LEVELS.length;
+ say(last?'🏆 Você montou o painel completo! Eu estou MUITO orgulhoso!':'🎉 Funcionou! Que eletricista incrível!','happy');
+ const li=list.length?`<ul class="tests">${list.map(r=>`<li class="ok">✔ ${r.name}</li>`).join('')}</ul>`:'';
+ modal(`<h2>${last?'🏆 Painel completo!':'🎉 Fase concluída!'}</h2><div class="bigstars">${starsHTML(stars)}</div><p>Dicas usadas: <b>${hints}</b> · Erros: <b>${fails}</b></p><p style="font-size:12px;opacity:.7">3 estrelas = nenhuma dica e no máximo 1 erro.</p>${li}<div class="mbts"><button class="btn" id="m-close">Continuar aqui</button>${last?'<button class="btn run" id="m-first">Jogar de novo</button>':'<button class="btn run" id="m-next">Próxima fase ▶</button>'}</div>`);
+ $('#m-close').onclick=closeModal;
+ if(last)$('#m-first').onclick=()=>{closeModal();loadLevel(1)};else $('#m-next').onclick=()=>{closeModal();loadLevel(L.id+1)};
+}
+function verify(){
+ if(L.type==='quiz'){say('Neste quiz é só clicar nos bornes certos do CLP.','think');return}
+ if(!wires.length){say('Você ainda não ligou nenhum fio! Clique em um borne e depois em outro para ligar.','think');sfx.fail();return}
+ if(energized)setEnergized(false);
+ const r=runTests(L,allWires()),ok=r.every(x=>x.ok);
+ if(ok){complete(r);return}
+ fails++;sfx.fail();
+ const faultR=r.find(x=>!x.ok&&Object.values(FM).includes(x.msg));
+ const dg=diagnose(L,allWires());
+ const pista=faultR?faultR.msg:dg||r.find(x=>!x.ok).msg;
+ say('Quase lá! '+pista,'bad');
+ modal(`<h2>🔧 Ainda não funcionou</h2><p>${r.filter(x=>x.ok).length} de ${r.length} testes passaram.</p><div class="pista">🤖 <b>Pista do Relê:</b> ${pista}</div><ul class="tests">${r.map(x=>`<li class="${x.ok?'ok':'bad'}">${x.ok?'✔':'✘'} ${x.name}${x.ok||x.msg===pista?'':`<small>${x.msg}</small>`}</li>`).join('')}</ul><div class="mbts"><button class="btn rst" id="m-close">Voltar ao quadro</button><button class="btn" id="m-hint">💡 Pedir dica</button></div>`);
+ $('#m-close').onclick=closeModal;$('#m-hint').onclick=()=>{if(hints===0)hints=1;openHints()};
+}
+$('#chk').onclick=verify;
+$('#undo').onclick=undo;
+$('#clearw').onclick=()=>{
+ if(L.type==='quiz')return;
+ if(!wires.length){say('Não há fios seus para apagar.','think');return}
+ ask('🗑 Limpar fios','Apagar todos os fios que você ligou nesta fase? (Os fios já prontos ficam.)','Sim, limpar',()=>{safety();wires=[];hist=[];persist();drawWires();sfx.rm();say('Fios removidos! Vamos recomeçar.','happy')});
+};
+
+/* ---- fases ---- */
+function loadLevel(id){
+ if(id>P.unlocked)return;
+ closeModal();armed=null;drag=null;
+ L=LEVELS[id-1];hints=0;fails=0;qi=0;ctl={};mem={};energized=false;res=null;
+ const saved=(P.progs[id]||[]).filter(p=>Array.isArray(p)&&p.length===2);
+ wires=L.type==='quiz'?[]:saved.map(p=>({a:p[0],b:p[1]}));hist=[];
+ const quiz=L.type==='quiz';
+ $('#quizbox').classList.toggle('hidden',!quiz);$('#opbox').classList.toggle('hidden',quiz);
+ $('#undo').classList.toggle('hidden',quiz);$('#clearw').classList.toggle('hidden',quiz);$('#chk').classList.toggle('hidden',quiz);
+ const b=$('#power');b.classList.remove('on');b.textContent='⚡ QUADRO DESLIGADO (clique para ligar)';
+ $('#banner').classList.add('hidden');$('#tline').textContent=quiz?'':'📍 Passe o mouse sobre um borne para ver o nome dele.';
+ renderHeader();buildBoard();buildCtls();buildKnow();
+ if(quiz)showQuestion();else say(`<b>Fase ${L.id}:</b> ${L.story}`,'happy');
+ maybeLesson();
+ if(!quiz)paint(evaluate(L,allWires(),ctl,false,{}));
+}
+$('#lv').addEventListener('click',e=>{const b=e.target.closest('.chip');if(b&&!b.classList.contains('lock'))loadLevel(+b.dataset.lv);else if(b){say('Essa fase ainda está trancada. Complete a anterior para liberar!','think');sfx.fail()}});
+$('#snd').onclick=()=>{P.sound=!P.sound;save();renderHeader();if(P.sound)sfx.click()};
+$('#rstp').onclick=()=>{ask('↺ Zerar tudo','Apagar <b>todo</b> o progresso: estrelas, fases desbloqueadas e fios salvos? Não dá para desfazer.','Sim, zerar tudo',()=>{
+ try{localStorage.removeItem(KEY)}catch(e){}
+ P=Object.assign({},DEF,{stars:{},progs:{},seen:{},unlocked:1,welcomed:true});save();
+ loadLevel(1);say('Tudo zerado! Vamos recomeçar a Fábrica do Relê do zero. 🔌','happy');
+})};
+
+/* ---- início ---- */
+loadLevel(1);
+if(!P.welcomed){
+ modal(`<h2>🔌 Fábrica do Relê · Ligações</h2><div style="font-size:60px">🤖</div><p>Oi! Eu sou o <b>Relê</b>. Na fábrica de doces, o painel elétrico está desmontado e só você pode ligá-lo!</p><p>Você vai <b>puxar fios</b> entre a fonte, botões, sensores e os <b>bornes (pinos) do CLP</b>, ligar o quadro e ver se funciona. Vou te ajudar a cada fase!</p><div class="mbts"><button class="btn run" id="m-go">Vamos começar! 🚀</button></div>`);
+ $('#m-go').onclick=()=>{P.welcomed=true;save();closeModal();sfx.win();maybeLesson()};
+}
+</script>
+</body>
+</html>

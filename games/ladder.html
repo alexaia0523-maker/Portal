@@ -1,0 +1,919 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Fábrica Maluca do Relê</title>
+<style>
+:root{--ink:#2b2250;--bg1:#fff3c9;--bg2:#ffd9ec;--purple:#6c4cf1;--pink:#ff5fa2;--yellow:#ffd23f;--teal:#2ec4b6;--orange:#ff9f1c;--green:#19c37d;--grey:#c3bddb;--red:#ff4d5e;--card:#fff}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{font-family:"Trebuchet MS","Segoe UI",system-ui,sans-serif;color:var(--ink);background:linear-gradient(160deg,var(--bg1),var(--bg2));-webkit-user-select:none;user-select:none;touch-action:manipulation}
+input,select{-webkit-user-select:auto;user-select:auto}
+h1,h2,p{margin:0}
+h2{font-size:15px}
+.card{background:var(--card);border:3px solid var(--ink);border-radius:18px;box-shadow:0 4px 0 var(--ink)}
+.hidden{display:none!important}
+#app{display:grid;height:100vh;height:100dvh;padding:10px;gap:10px;grid-template-columns:158px minmax(0,1fr) 340px;grid-template-rows:auto minmax(0,1fr) auto;grid-template-areas:"top top top" "pal ed mach" "foot foot foot"}
+.btn{font:inherit;font-weight:800;border:3px solid var(--ink);border-radius:14px;padding:8px 14px;background:#fff;color:var(--ink);cursor:pointer;box-shadow:0 3px 0 var(--ink);transition:transform .06s}
+.btn:active{transform:translateY(3px);box-shadow:0 0 0 var(--ink)}
+.btn[disabled]{opacity:.4;cursor:not-allowed}
+.btn.sm{padding:4px 10px;font-size:13px;border-radius:12px}
+.btn.run{background:var(--green);color:#fff}.btn.stop{background:var(--red);color:#fff}.btn.rst{background:var(--yellow)}.btn.chk{background:var(--purple);color:#fff}
+/* header */
+#top{grid-area:top;padding:8px 12px;display:flex;flex-direction:column;gap:6px}
+.row1,.row2{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.logo{font-weight:900;font-size:18px;color:var(--purple);white-space:nowrap}
+#lv{display:flex;gap:6px;flex:1;flex-wrap:wrap}
+.chip{width:42px;height:42px;border-radius:12px;border:3px solid var(--ink);background:#fff;font:inherit;font-weight:900;font-size:15px;line-height:1;cursor:pointer;padding:0;color:var(--ink)}
+.chip i{display:block;font-style:normal;font-size:8px;color:var(--orange);letter-spacing:-1px;margin-top:1px}
+.chip.bonus{border-color:var(--purple)}.chip.cur{background:var(--yellow)}.chip.lock{opacity:.45;cursor:not-allowed}
+.row2{justify-content:space-between}
+.ttl{flex:1;min-width:220px}
+.ttl h1{font-size:19px}
+.ttl p{font-size:14px;margin-top:2px}
+.side{display:flex;align-items:center;gap:10px}
+#stars{font-size:26px;color:var(--orange);letter-spacing:2px}
+/* palette */
+#pal{grid-area:pal;padding:10px;overflow:auto}
+#pal h2{margin-bottom:8px}
+.pitem{display:flex;align-items:center;gap:8px;padding:7px;border:3px solid var(--ink);border-radius:12px;background:#fff7d6;cursor:grab;margin-bottom:8px;font-weight:800;font-size:12px;line-height:1.1}
+.pitem small{display:block;font-weight:600;font-size:10px;opacity:.7}
+.pitem svg{width:38px;height:28px;flex:none}
+.pitem .mini{flex:none;width:38px;height:26px;border:3px solid var(--ink);border-radius:7px;display:grid;place-items:center;font-size:10px;font-weight:900;background:#fff}
+.pitem.armed{background:var(--yellow);transform:scale(1.04)}
+.pitem.locked{opacity:.4;cursor:not-allowed;filter:grayscale(1)}
+.tip{font-size:11px;opacity:.75;margin-top:6px;line-height:1.3}
+/* editor */
+#ed{grid-area:ed;display:flex;flex-direction:column;min-height:0;min-width:0}
+.edtop{display:flex;justify-content:space-between;align-items:center;padding:8px 12px;border-bottom:3px dashed var(--grey);gap:8px;flex-wrap:wrap}
+#rungs{overflow:auto;padding:14px 12px 24px;flex:1;min-height:0}
+.rung{position:relative;display:flex;align-items:stretch;margin:0 0 16px;padding-left:28px;width:max-content;min-width:100%}
+.rnum{position:absolute;left:0;top:30px;width:22px;height:22px;border-radius:50%;background:var(--ink);color:#fff;font-size:12px;font-weight:800;display:grid;place-items:center}
+.rail{width:9px;background:var(--grey);border-radius:5px;flex:none;transition:background .1s}
+.rail.on{background:var(--green)}
+.rdel{align-self:flex-start;margin:28px 0 0 8px;border:0;background:none;font-size:18px;cursor:pointer}
+.cols{display:flex;align-items:flex-start}
+.col{position:relative;width:96px;flex:none}
+.cell{position:relative;height:84px}
+.cell.row1.empty{height:34px}
+.cell.out{width:150px}
+.cell .wl,.cell .wr{position:absolute;top:50%;height:6px;margin-top:-3px;background:var(--grey);border-radius:3px;transition:background .1s}
+.cell.row1.empty .wl,.cell.row1.empty .wr{display:none}
+.cell.in .wl,.cell.pass .wr{background:var(--green)}
+.cell .wl{left:0;right:calc(50% + 16px)}.cell .wr{left:calc(50% + 16px);right:0}
+.cell.k-COIL .wl{right:calc(50% + 15px)}.cell.k-COIL .wr{left:calc(50% + 15px)}
+.cell.k-TON .wl,.cell.k-CTU .wl{right:calc(50% + 40px)}.cell.k-TON .wr,.cell.k-CTU .wr{left:calc(50% + 40px)}
+.cell.thru .wl{right:50%}.cell.thru .wr{left:50%}
+.col.par::before,.col.par::after{content:"";position:absolute;top:42px;width:6px;height:84px;background:var(--grey);border-radius:3px;transition:background .1s}
+.col.par::before{left:0}.col.par::after{right:0}
+.col.par.in::before{background:var(--green)}.col.par.out::after{background:var(--green)}
+.ph{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);min-width:46px;height:30px;padding:0 8px;border:2px dashed var(--grey);border-radius:10px;display:grid;place-items:center;color:#a39cc4;font-weight:800;font-size:12px;background:#fff;white-space:nowrap}
+.cell.row1 .ph{height:24px;font-size:10px}
+body[data-armed="contact"] .cell[data-zone="c"].empty .ph,body[data-armed="out"] .cell[data-zone="o"].empty .ph{border-color:var(--pink);color:var(--pink);animation:pulse 1s infinite}
+.cell.over .ph{background:var(--yellow);border-style:solid;border-color:var(--ink)}
+.piece{position:absolute;inset:0;color:var(--ink)}
+.cell.pass .piece .symw{color:var(--green)}
+.piece select,.piece input{font:inherit;font-size:10.5px;font-weight:700;border:2px solid var(--ink);border-radius:8px;background:#fff;color:var(--ink)}
+.piece>select{position:absolute;left:3px;top:0;width:76px;height:22px;padding:0 2px}
+.cell.out .piece>select{width:104px}
+.symw{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);line-height:0}
+.cap{position:absolute;left:0;right:0;bottom:2px;text-align:center;font-size:10px;font-weight:700;opacity:.6;height:20px;line-height:20px}
+.cap.row{opacity:1;display:flex;align-items:center;justify-content:center;gap:3px}
+.cap.row input{width:44px;height:19px;padding:0 2px}
+.cap.row select{width:62px;height:19px;padding:0}
+.rm{position:absolute;right:1px;top:2px;width:17px;height:17px;border-radius:50%;border:2px solid var(--ink);background:var(--pink);color:#fff;font-size:11px;line-height:1;font-weight:900;padding:0;cursor:pointer}
+.box{width:78px;height:40px;border:3px solid currentColor;border-radius:9px;display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1;background:#fff;font-weight:900;font-size:13px}
+.box small{font-size:10px;font-weight:700;margin-top:3px;color:var(--ink)}
+/* machine */
+#mach{grid-area:mach;display:flex;flex-direction:column;padding:10px;gap:8px;min-height:0;overflow:auto}
+#mview{border:3px solid var(--ink);border-radius:14px;overflow:hidden;background:#eaf4ff}
+#mview svg{display:block;width:100%;height:auto}
+#glow,#rays,#heat,#steam{transition:opacity .15s}
+#mbtns{display:flex;flex-wrap:wrap;gap:8px}
+.mbtn{flex:1 1 90px;font:inherit;border:3px solid var(--ink);border-radius:14px;padding:8px 6px;font-weight:900;cursor:pointer;color:var(--ink);box-shadow:0 4px 0 var(--ink);background:#fff;touch-action:none}
+.mbtn small{display:block;font-weight:600;font-size:10px;opacity:.7}
+.mbtn.green{background:#b8f2d6}.mbtn.red{background:#ffc2c8}.mbtn.yellow{background:#fff0a6}.mbtn.blue{background:#c3dcff}
+.mbtn.emg{background:var(--red);color:#fff;border-radius:50px}
+.mbtn.on{transform:translateY(3px);box-shadow:0 1px 0 var(--ink);filter:brightness(.88);outline:4px solid var(--green)}
+.mbtn.toggle::after{content:" ⏻";font-size:11px}
+/* footer */
+#foot{grid-area:foot;display:flex;align-items:center;gap:12px;padding:8px 12px}
+#relewrap{width:64px;flex:none}
+#rele{width:64px;height:70px;display:block;animation:bob 2.4s ease-in-out infinite}
+#bubble{flex:1;position:relative;background:#f3efff;border:3px solid var(--ink);border-radius:16px;padding:8px 12px;font-size:14px;line-height:1.3;min-height:48px;display:flex;align-items:center}
+#bubble::before{content:"";position:absolute;left:-12px;top:50%;margin-top:-8px;border:8px solid transparent;border-right-color:var(--ink);border-left:0}
+.btns{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+.hl{animation:pulse 1s infinite;outline:4px solid var(--pink);outline-offset:2px}
+@keyframes pulse{50%{transform:scale(1.07)}}
+@keyframes bob{50%{transform:translateY(-4px)}}
+@keyframes blink{0%,92%,100%{transform:scaleY(1)}96%{transform:scaleY(.1)}}
+.eye{transform-origin:center;transform-box:fill-box;animation:blink 4s infinite}
+/* modal */
+.overlay{position:fixed;inset:0;background:rgba(43,34,80,.55);display:grid;place-items:center;z-index:50;padding:12px}
+.mcard{max-width:520px;width:100%;padding:18px;max-height:92vh;overflow:auto;text-align:center}
+.mcard h2{font-size:22px;margin-bottom:8px}
+.mcard p{margin:6px 0;font-size:14px;line-height:1.4}
+.bigstars{font-size:44px;color:var(--orange);letter-spacing:4px}
+.tests{list-style:none;padding:0;margin:10px 0;text-align:left}
+.tests li{padding:6px 10px;border-radius:10px;margin-bottom:5px;font-size:13px;font-weight:700}
+.tests li.ok{background:#d6f7e7}.tests li.bad{background:#ffdde1}
+.tests li small{display:block;font-weight:600;margin-top:2px}
+.mbts{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:10px}
+.mcard.wide{max-width:720px}
+.mcard h3{margin:8px 0 4px;font-size:17px;color:var(--purple)}
+.dots{display:flex;gap:6px;justify-content:center;margin:6px 0}
+.dots span{width:12px;height:12px;border-radius:50%;border:2px solid var(--ink);background:#fff}
+.dots span.on{background:var(--yellow)}
+.lex{border:3px dashed var(--grey);border-radius:14px;padding:10px 8px 2px;margin:8px 0;overflow:auto;text-align:left;background:#fbfaff;pointer-events:none}
+.lex .rm,.lex .rdel{display:none}
+.lex select,.lex input{appearance:none;-webkit-appearance:none}
+.lbtns{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin:6px 0}
+.lcap{font-size:12px;opacity:.8}
+.lbtns .mbtn{flex:0 1 150px}
+.hintcard{text-align:left;background:#fff7d6;border:3px solid var(--ink);border-radius:12px;padding:8px 12px;margin:8px 0}
+.hintcard p{margin:2px 0 0}
+.mcard a{color:var(--purple);font-size:12px;font-weight:700}
+@media(max-width:900px){
+ #app{height:auto;min-height:100dvh;grid-template-columns:1fr;grid-template-rows:auto;grid-template-areas:"top" "pal" "ed" "mach" "foot"}
+ #pal{overflow:visible}#pal h2,.tip{display:none}
+ #pitems{display:flex;gap:8px;overflow:auto}
+ .pitem{flex:none;margin:0}
+ #rungs{min-height:260px}
+ #foot{position:sticky;bottom:6px;z-index:20;flex-wrap:wrap;padding:6px 8px;gap:8px}
+ #relewrap,#rele{width:44px;height:48px}
+ #bubble{min-width:150px;font-size:12px;padding:6px 8px;min-height:40px}
+ .btns{width:100%;justify-content:center}
+ .btn{padding:6px 10px;font-size:13px}
+ .logo{font-size:15px}.ttl h1{font-size:16px}
+}
+</style>
+</head>
+<body data-armed="">
+<div id="app">
+ <header id="top" class="card">
+  <div class="row1">
+   <div class="logo">🍬 Fábrica Maluca do Relê</div><a class="btn sm" href="../index.html" style="text-decoration:none" title="Voltar ao portal">🏠 Portal</a>
+   <nav id="lv"></nav>
+   <div><button class="btn sm" id="snd" title="Sons">🔊</button> <button class="btn sm" id="rstp" title="Zerar progresso">↺ Zerar</button></div>
+  </div>
+  <div class="row2">
+   <div class="ttl"><h1 id="ltitle"></h1><p id="lmission"></p></div>
+   <div class="side"><div id="stars"></div><button class="btn sm" id="lessonbtn">📖 Trilha</button><button class="btn sm rst" id="hintbtn">💡 Dica</button></div>
+  </div>
+ </header>
+ <aside id="pal" class="card"><h2>🧰 Peças</h2><div id="pitems"></div><p class="tip">Arraste a peça para a linha. No celular: toque na peça e depois no espaço pontilhado.</p></aside>
+ <main id="ed" class="card">
+  <div class="edtop"><h2>🪜 Diagrama Ladder</h2><div><button class="btn sm" id="addrung">＋ Linha</button> <button class="btn sm" id="clear">🧹 Limpar</button></div></div>
+  <div id="rungs"></div>
+ </main>
+ <section id="mach" class="card"><h2>🏭 Máquina</h2><div id="mview"></div><div id="mbtns"></div></section>
+ <footer id="foot" class="card">
+  <div id="relewrap">
+   <svg id="rele" viewBox="0 0 90 100">
+    <line x1="45" y1="8" x2="45" y2="22" stroke="#2b2250" stroke-width="4"/><circle cx="45" cy="7" r="6" fill="#ff5fa2" stroke="#2b2250" stroke-width="3"/>
+    <rect x="22" y="80" width="46" height="16" rx="7" fill="#ff9f1c" stroke="#2b2250" stroke-width="4"/>
+    <rect x="3" y="38" width="8" height="22" rx="4" fill="#ffd23f" stroke="#2b2250" stroke-width="3"/><rect x="79" y="38" width="8" height="22" rx="4" fill="#ffd23f" stroke="#2b2250" stroke-width="3"/>
+    <rect x="10" y="20" width="70" height="58" rx="17" fill="#7fd8ff" stroke="#2b2250" stroke-width="4"/>
+    <rect x="18" y="29" width="54" height="36" rx="11" fill="#2b2250"/>
+    <circle class="eye" id="e1" cx="35" cy="44" r="5" fill="#7cff8a"/><circle class="eye" id="e2" cx="55" cy="44" r="5" fill="#7cff8a"/>
+    <path id="mouth" d="M36 54Q45 63 54 54" stroke="#7cff8a" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+    <circle cx="25" cy="58" r="3" fill="#ff5fa2" opacity=".8"/><circle cx="65" cy="58" r="3" fill="#ff5fa2" opacity=".8"/>
+   </svg>
+  </div>
+  <div id="bubble"></div>
+  <div class="btns">
+   <button class="btn run" id="run">▶ RODAR</button>
+   <button class="btn stop" id="stop" disabled>■ PARAR</button>
+   <button class="btn rst" id="restart">↻ REINICIAR</button>
+   <button class="btn chk" id="chk">✓ VERIFICAR</button>
+  </div>
+ </footer>
+</div>
+<div id="modal" class="overlay hidden"><div class="mcard card" id="mbody"></div></div>
+
+<script>
+/*PURE_START*/
+const S={set:o=>({set:o}),w:s=>({w:s}),pulse:a=>({pulse:a}),ex:(o,msg)=>({ex:o,msg})};
+const rep=(n,s)=>Array(n).fill(s);
+const press=(a,t=.3)=>[S.set({[a]:true}),S.w(t),S.set({[a]:false}),S.w(.3)];
+const off=(...q)=>{const o={};q.forEach(k=>o[k]=false);return o};
+
+const LEVELS=[
+{id:1,name:'Lâmpada da entrada',mach:'lamp',cols:2,rungs:1,par:2,pieces:['NA','COIL'],
+ mission:'Acenda a lâmpada (Q0.0) enquanto o botão Liga (I0.0) estiver apertado.',
+ story:'Bem-vindo(a), técnico(a)! A lâmpada da entrada da fábrica está apagada. Vamos acendê-la com o seu primeiro circuito Ladder!',
+ inputs:[{a:'I0.0',l:'Liga',t:'push',c:'green'}],
+ outs:[{a:'Q0.0',l:'Lâmpada'}],
+ hints:['Use o Contato NA (normalmente aberto): ele fecha quando o botão é apertado. Depois ponha a Bobina no fim da linha.','Escolha I0.0 no contato (botão Liga) e Q0.0 na bobina (a lâmpada).','A linha fica: trilho esquerdo — [NA I0.0] — (Q0.0) — trilho direito. Aperte RODAR e segure o botão Liga.'],
+ tests:[
+  {name:'Sem apertar nada, a lâmpada fica apagada',steps:[S.w(.3),S.ex({'Q0.0':false},'A lâmpada acendeu sozinha! Sem apertar o botão ela deve ficar apagada.')]},
+  {name:'Apertou Liga: a lâmpada acende',steps:[S.set({'I0.0':true}),S.w(.3),S.ex({'Q0.0':true},'Apertei o botão e a lâmpada não acendeu. Ligue um contato NA de I0.0 até a bobina Q0.0.')]},
+  {name:'Soltou Liga: a lâmpada apaga',steps:[S.set({'I0.0':true}),S.w(.3),S.set({'I0.0':false}),S.w(.3),S.ex({'Q0.0':false},'Soltei o botão e a lâmpada continuou acesa. Nesta fase ela só acende enquanto o botão estiver apertado.')]}
+ ]},
+{id:2,name:'Esteira com botão de parar',mach:'belt',cols:3,rungs:1,par:3,pieces:['NA','NF','COIL'],
+ mission:'A esteira (Q0.0) roda com a chave Liga (I0.0) ligada, mas para quando o botão Parar (I0.1) é apertado.',
+ story:'A esteira de balas precisa de um botão de parar! Descubra para que serve o contato NF (normalmente fechado).',
+ inputs:[{a:'I0.0',l:'Liga',t:'toggle',c:'green'},{a:'I0.1',l:'Parar',t:'push',c:'red'}],
+ outs:[{a:'Q0.0',l:'Esteira'}],
+ hints:['A chave Liga fica ligada. O botão Parar só é apertado de vez em quando. A esteira roda quando Liga está ligada E Parar NÃO está apertado.','Ponha dois contatos em série (um depois do outro): um NA para Liga (I0.0) e um NF para Parar (I0.1).','A linha fica: [NA I0.0] — [NF I0.1] — (Q0.0).'],
+ tests:[
+  {name:'Esteira começa parada',steps:[S.w(.3),S.ex({'Q0.0':false},'A esteira andou sozinha! Ela só deve rodar com a chave Liga ligada.')]},
+  {name:'Chave Liga ligada: a esteira anda',steps:[S.set({'I0.0':true}),S.w(.3),S.ex({'Q0.0':true},'Liguei a chave e a esteira não andou. Use um contato NA em I0.0.')]},
+  {name:'Apertar Parar: a esteira para',steps:[S.set({'I0.0':true}),S.w(.3),S.set({'I0.1':true}),S.w(.3),S.ex({'Q0.0':false},'Apertei Parar e a esteira continuou! O contato de Parar (I0.1) precisa ser NF, em série com o Liga.')]},
+  {name:'Soltar Parar: a esteira volta a andar',steps:[S.set({'I0.0':true,'I0.1':true}),S.w(.3),S.set({'I0.1':false}),S.w(.3),S.ex({'Q0.0':true},'Soltei o Parar e a esteira não voltou. Com o contato NF, ela deve voltar enquanto Liga estiver ligada.')]},
+  {name:'Chave desligada: a esteira para',steps:[S.set({'I0.0':true}),S.w(.3),S.set({'I0.0':false}),S.w(.3),S.ex({'Q0.0':false},'Desliguei a chave e a esteira continuou rodando.')]}
+ ]},
+{id:3,name:'Esteira com selo',mach:'belt',cols:3,rungs:1,par:4,pieces:['NA','NF','COIL'],
+ mission:'Aperte Liga (I0.0) uma vez e a esteira (Q0.0) continua rodando; ela só para com Desliga (I0.1).',
+ story:'Agora a esteira precisa "lembrar" que foi ligada. Esse truque famoso do Ladder se chama SELO (ou retenção).',
+ inputs:[{a:'I0.0',l:'Liga',t:'push',c:'green'},{a:'I0.1',l:'Desliga',t:'push',c:'red'}],
+ outs:[{a:'Q0.0',l:'Esteira'}],
+ hints:['Os botões são soltos logo depois de apertados. A saída Q0.0 pode ajudar a esteira a lembrar: use o próprio Q0.0 como contato!','Coloque um contato NA de Q0.0 logo abaixo do contato Liga (paralelo = OU). Depois um NF de Desliga (I0.1) em série.','A linha fica: [NA I0.0 // NA Q0.0] — [NF I0.1] — (Q0.0).'],
+ tests:[
+  {name:'Esteira começa parada',steps:[S.w(.3),S.ex({'Q0.0':false},'A esteira andou sozinha!')]},
+  {name:'Liga e solta: a esteira continua',steps:[...press('I0.0'),S.w(.5),S.ex({'Q0.0':true},'Soltei o botão Liga e a esteira parou. Faltou o selo: ponha um contato NA de Q0.0 em paralelo com o Liga.')]},
+  {name:'Desliga para a esteira (e ela não volta sozinha)',steps:[...press('I0.0'),...press('I0.1'),S.ex({'Q0.0':false},'Apertei Desliga e a esteira não parou. Use um contato NF para o botão Desliga (I0.1).'),S.w(1),S.ex({'Q0.0':false},'A esteira ligou sozinha depois do Desliga!')]},
+  {name:'Desliga tem prioridade sobre Liga',steps:[S.set({'I0.0':true,'I0.1':true}),S.w(.4),S.ex({'Q0.0':false},'Apertei Liga e Desliga juntos e a esteira ligou. Na segurança, o Desliga deve mandar mais!')]}
+ ]},
+{id:4,name:'Misturador com porta de segurança',mach:'mixer',cols:3,rungs:1,par:4,pieces:['NA','NF','COIL'],
+ mission:'O misturador (Q0.0) gira com a porta fechada (I0.4) E com o botão Painel (I0.0) OU Remoto (I0.1) apertado.',
+ story:'Segurança em primeiro lugar! O misturador nunca pode girar com a porta aberta. Aqui você aprende E (série) e OU (paralelo).',
+ inputs:[{a:'I0.0',l:'Painel',t:'push',c:'green'},{a:'I0.1',l:'Remoto',t:'push',c:'blue'},{a:'I0.4',l:'Porta fechada',t:'toggle',c:'yellow'}],
+ outs:[{a:'Q0.0',l:'Misturador'}],
+ hints:['E = peças em série (uma depois da outra). OU = peças em paralelo (uma embaixo da outra).','Painel (I0.0) OU Remoto (I0.1) ficam em paralelo na mesma coluna. A Porta (I0.4) vem em série depois.','A linha fica: [NA I0.0 // NA I0.1] — [NA I0.4] — (Q0.0).'],
+ tests:[
+  {name:'Porta aberta: o misturador não gira',steps:[S.set({'I0.0':true}),S.w(.3),S.ex({'Q0.0':false},'O misturador girou com a porta aberta! Perigo! Coloque a Porta (I0.4) em série.')]},
+  {name:'Porta fechada + Painel: gira',steps:[S.set({'I0.4':true,'I0.0':true}),S.w(.3),S.ex({'Q0.0':true},'Com a porta fechada e o Painel apertado, o misturador deveria girar.')]},
+  {name:'Porta fechada + Remoto: gira',steps:[S.set({'I0.4':true,'I0.1':true}),S.w(.3),S.ex({'Q0.0':true},'O botão Remoto (I0.1) não ligou o misturador. Ponha-o em paralelo com o Painel.')]},
+  {name:'Sem apertar botão: não gira',steps:[S.set({'I0.4':true}),S.w(.3),S.ex({'Q0.0':false},'O misturador girou sem ninguém apertar botão.')]},
+  {name:'Abriu a porta: o misturador para',steps:[S.set({'I0.4':true,'I0.0':true}),S.w(.3),S.set({'I0.4':false}),S.w(.3),S.ex({'Q0.0':false},'Abri a porta com o misturador girando e ele não parou!')]}
+ ]},
+{id:5,name:'Forno que desliga sozinho',mach:'oven',cols:3,rungs:2,par:6,pieces:['NA','NF','COIL','TON'],
+ mission:'Liga (I0.0) acende o forno (Q0.0), que assa por 5 segundos e desliga sozinho, usando um temporizador TON.',
+ story:'Os biscoitos queimaram! O forno precisa desligar sozinho depois de 5 segundos. Vamos usar o temporizador TON.',
+ inputs:[{a:'I0.0',l:'Liga',t:'push',c:'green'}],
+ outs:[{a:'Q0.0',l:'Forno'}],
+ hints:['Use o selo da fase 3 para o forno ficar ligado depois que você solta o botão Liga.','Na linha 2, quando Q0.0 estiver ligada, o TON T1 conta 5 segundos. Quando T1 terminar, ele corta o selo com um contato NF de T1 na linha 1.','Linha 1: [NA I0.0 // NA Q0.0] — [NF T1] — (Q0.0). Linha 2: [NA Q0.0] — TON T1 (5 s).'],
+ tests:[
+  {name:'Forno começa desligado',steps:[S.w(.3),S.ex({'Q0.0':false},'O forno ligou sozinho!')]},
+  {name:'Liga e solta: o forno continua ligado',steps:[S.set({'I0.0':true}),S.w(.3),S.set({'I0.0':false}),S.w(.5),S.ex({'Q0.0':true},'Soltei o Liga e o forno desligou. Use o selo (NA Q0.0 em paralelo com o Liga).')]},
+  {name:'Assa por cerca de 5 segundos e desliga',steps:[S.set({'I0.0':true}),S.w(.3),S.set({'I0.0':false}),S.w(3.5),S.ex({'Q0.0':true},'O forno desligou cedo demais. Ele deve assar por 5 segundos (confira o tempo do TON).'),S.w(2.7),S.ex({'Q0.0':false},'Passaram-se mais de 5 segundos e o forno continua ligado. Quando o TON T1 terminar, um contato NF de T1 deve cortar o selo.')]},
+  {name:'Depois de desligar, não religa sozinho',steps:[S.set({'I0.0':true}),S.w(.3),S.set({'I0.0':false}),S.w(8),S.ex({'Q0.0':false},'O forno religou sozinho depois de desligar.')]}
+ ]},
+{id:6,name:'Caixa com 10 balas',mach:'box',cols:3,rungs:2,par:4,pieces:['NA','NF','COIL','TON','CTU'],
+ mission:'Conte as balas do sensor (I0.3): ao chegar em 10, feche a caixa (Q0.0). O botão Zerar (I0.0) reinicia a contagem.',
+ story:'Hora de embalar! A caixa só fecha com exatamente 10 balas. Quem conta é o contador CTU.',
+ inputs:[{a:'I0.0',l:'Zerar',t:'push',c:'red'},{a:'I0.3',l:'Passa bala',t:'pulse',c:'yellow'}],
+ outs:[{a:'Q0.0',l:'Fecha caixa'}],
+ hints:['O contador CTU soma 1 a cada vez que o sensor passa de apagado para aceso.','Linha 1: [NA I0.3] vai para um CTU C1 com PV = 10 e reset = I0.0. Linha 2 usa o contato C1, que liga quando a contagem chega em 10.','Linha 1: [NA I0.3] — CTU C1 (PV 10, R I0.0). Linha 2: [NA C1] — (Q0.0).'],
+ tests:[
+  {name:'Com 9 balas a caixa ainda está aberta',steps:[...rep(9,S.pulse('I0.3')),S.ex({'Q0.0':false},'A caixa fechou antes de completar 10 balas. Confira o valor PV do contador: deve ser 10.')]},
+  {name:'A 10ª bala fecha a caixa',steps:[...rep(10,S.pulse('I0.3')),S.ex({'Q0.0':true},'Já passaram 10 balas e a caixa não fechou. Ligue o contato NA de C1 à bobina Q0.0.')]},
+  {name:'Zerar reabre a caixa',steps:[...rep(10,S.pulse('I0.3')),...press('I0.0'),S.ex({'Q0.0':false},'Apertei Zerar e a caixa continuou fechada. Ligue o reset do contador ao botão Zerar (I0.0).')]},
+  {name:'Depois de zerar, conta de novo até 10',steps:[...rep(10,S.pulse('I0.3')),...press('I0.0'),...rep(9,S.pulse('I0.3')),S.ex({'Q0.0':false},'Depois de zerar, a caixa fechou antes das 10 balas.'),S.pulse('I0.3'),S.ex({'Q0.0':true},'Depois de zerar, a 10ª bala não fechou a caixa.')]}
+ ]},
+{id:7,name:'Semáforo da fábrica',mach:'light',cols:3,rungs:6,par:15,pieces:['NA','NF','COIL','TON','CTU'],
+ mission:'Com a chave ligada (I0.0): verde 3 s, amarelo 1 s, vermelho 3 s, e repete. Chave desligada apaga tudo.',
+ story:'O caminhão de balas está confuso! Faça o semáforo da fábrica funcionar usando vários temporizadores em cadeia.',
+ inputs:[{a:'I0.0',l:'Chave',t:'toggle',c:'green'}],
+ outs:[{a:'Q0.0',l:'Verde'},{a:'Q0.1',l:'Amarelo'},{a:'Q0.2',l:'Vermelho'}],
+ hints:['Pense em relógios em cadeia: T1 conta o verde (3 s). Quando T1 termina, T2 conta o amarelo (1 s). Quando T2 termina, T3 conta o vermelho (3 s). Quando T3 termina, tudo recomeça.','Linhas 1 a 3 (temporizadores): [NA I0.0][NF T3] → TON T1 3 s; [NA T1] → TON T2 1 s; [NA T2] → TON T3 3 s.','Linhas 4 a 6 (luzes): Verde Q0.0 = [NA I0.0][NF T1]; Amarelo Q0.1 = [NA T1][NF T2]; Vermelho Q0.2 = [NA T2].'],
+ tests:[
+  {name:'Chave desligada: tudo apagado',steps:[S.w(.5),S.ex(off('Q0.0','Q0.1','Q0.2'),'Com a chave desligada, todas as luzes devem ficar apagadas.')]},
+  {name:'Ciclo: verde, amarelo, vermelho e volta ao verde',steps:[S.set({'I0.0':true}),S.w(1.5),S.ex({'Q0.0':true,'Q0.1':false,'Q0.2':false},'No começo só o VERDE deve estar aceso (por 3 segundos).'),S.w(2),S.ex({'Q0.0':false,'Q0.1':true,'Q0.2':false},'Depois do verde, só o AMARELO deve acender (por 1 segundo).'),S.w(1.5),S.ex({'Q0.0':false,'Q0.1':false,'Q0.2':true},'Depois do amarelo, só o VERMELHO deve acender (por 3 segundos).'),S.w(3),S.ex({'Q0.0':true,'Q0.1':false,'Q0.2':false},'O ciclo deve recomeçar no verde depois do vermelho.')]},
+  {name:'Desligar a chave apaga tudo',steps:[S.set({'I0.0':true}),S.w(2),S.set({'I0.0':false}),S.w(.4),S.ex(off('Q0.0','Q0.1','Q0.2'),'Desliguei a chave e alguma luz continuou acesa.')]}
+ ]},
+{id:8,name:'CHEFÃO: a linha completa',mach:'boss',cols:5,rungs:4,par:13,pieces:['NA','NF','COIL','TON','CTU'],
+ mission:'Esteira com selo, parada por Desliga, Emergência, porta aberta ou caixa cheia (5 balas); lacre e sirene.',
+ story:'Chefão! Esteira (Q0.0): liga com Liga e mantém; para com Desliga, Emergência, porta aberta ou caixa cheia. O sensor conta 5 balas e acende o lacre (Q0.1). Trocar caixa zera a contagem. A sirene (Q0.2) toca na emergência.',
+ inputs:[{a:'I0.0',l:'Liga',t:'push',c:'green'},{a:'I0.1',l:'Desliga',t:'push',c:'red'},{a:'I0.2',l:'Emerg.',t:'toggle',c:'emg'},{a:'I0.3',l:'Sensor',t:'pulse',c:'yellow'},{a:'I0.4',l:'Porta fechada',t:'toggle',c:'blue'},{a:'I0.5',l:'Troca',t:'push',c:'yellow'}],
+ outs:[{a:'Q0.0',l:'Esteira'},{a:'Q0.1',l:'Lacre'},{a:'Q0.2',l:'Sirene'}],
+ hints:['Linha 1 é o selo da esteira com várias condições em série: Liga/selo, NF Desliga, NF Emergência, NA Porta, NF C1 (caixa cheia).','Linha 2: [NA I0.3] → CTU C1 (PV 5, reset I0.5). Linha 3: [NA C1] → Q0.1 (lacre). Linha 4: [NA I0.2] → Q0.2 (sirene).','Linha 1: [NA I0.0 // NA Q0.0] [NF I0.1] [NF I0.2] [NA I0.4] [NF C1] — (Q0.0).'],
+ tests:[
+  {name:'Tudo começa desligado',steps:[S.w(.4),S.ex(off('Q0.0','Q0.1','Q0.2'),'Algo ligou sozinho! Esteira, lacre e sirene devem começar desligados.')]},
+  {name:'Porta aberta: a esteira não liga',steps:[...press('I0.0'),S.ex({'Q0.0':false},'A esteira ligou com a porta aberta! Coloque a Porta (I0.4) em série.')]},
+  {name:'Porta fechada: Liga e a esteira mantém (selo)',steps:[S.set({'I0.4':true}),...press('I0.0'),S.ex({'Q0.0':true},'Com a porta fechada, apertei Liga e a esteira não ficou ligada. Confira o selo e a Porta.')]},
+  {name:'Desliga para a esteira',steps:[S.set({'I0.4':true}),...press('I0.0'),...press('I0.1'),S.ex({'Q0.0':false},'Apertei Desliga e a esteira continuou. Use um contato NF em I0.1.')]},
+  {name:'Emergência para a esteira e toca a sirene',steps:[S.set({'I0.4':true}),...press('I0.0'),S.set({'I0.2':true}),S.w(.3),S.ex({'Q0.0':false,'Q0.2':true},'Na emergência a esteira deve parar (NF I0.2) e a sirene Q0.2 deve tocar.'),S.set({'I0.2':false}),S.w(.5),S.ex({'Q0.0':false,'Q0.2':false},'Soltei a emergência: a sirene deve calar e a esteira NÃO deve voltar sozinha.')]},
+  {name:'Abrir a porta para a esteira',steps:[S.set({'I0.4':true}),...press('I0.0'),S.set({'I0.4':false}),S.w(.3),S.ex({'Q0.0':false},'Abri a porta e a esteira continuou rodando!'),S.set({'I0.4':true}),S.w(.4),S.ex({'Q0.0':false},'Fechei a porta e a esteira voltou sozinha. Ela só liga com o botão Liga.')]},
+  {name:'5 balas: caixa cheia, lacre e esteira para',steps:[S.set({'I0.4':true}),...press('I0.0'),...rep(4,S.pulse('I0.3')),S.ex({'Q0.0':true,'Q0.1':false},'Com 4 balas a esteira deve seguir ligada e o lacre apagado. Confira o PV do contador (deve ser 5).'),S.pulse('I0.3'),S.ex({'Q0.0':false,'Q0.1':true},'Com 5 balas o lacre (Q0.1) deve acender e a esteira deve parar (contato NF de C1 no selo).')]},
+  {name:'Trocar a caixa zera o contador',steps:[S.set({'I0.4':true}),...press('I0.0'),...rep(5,S.pulse('I0.3')),...press('I0.5'),S.ex({'Q0.1':false},'Troquei a caixa e o lacre continuou aceso. Ligue o reset do contador em I0.5.'),...press('I0.0'),S.ex({'Q0.0':true},'Depois de trocar a caixa, apertei Liga e a esteira não ligou.')]}
+ ]},
+{id:9,bonus:true,name:'Pisca-pisca de alerta',mach:'lamp',cols:3,rungs:3,par:8,pieces:['NA','NF','COIL','TON'],
+ mission:'Com a chave ligada (I0.0), a lâmpada (Q0.0) pisca: 1 s acesa, 1 s apagada, e repete. Chave desligada apaga.',
+ story:'FASE BÔNUS! A lâmpada de alerta da fábrica precisa piscar. Dois temporizadores vão se revezar, um conta o aceso e o outro o apagado.',
+ inputs:[{a:'I0.0',l:'Chave',t:'toggle',c:'green'}],
+ outs:[{a:'Q0.0',l:'Lâmpada'}],
+ hints:['Pisca = fica acesa um tempo e apagada outro tempo. Você precisa de dois relógios: T1 conta a parte acesa e T2 a parte apagada.','T1 conta com a chave ligada, mas é zerado quando T2 termina (NF T2). T2 só começa quando T1 termina (NA T1).','Linha 1: [NA I0.0][NF T2] → TON T1 1 s. Linha 2: [NA T1] → TON T2 1 s. Linha 3: [NA I0.0][NF T1] → Q0.0.'],
+ tests:[
+  {name:'Chave desligada: lâmpada apagada',steps:[S.w(.5),S.ex({'Q0.0':false},'A lâmpada acendeu sem a chave ligada.')]},
+  {name:'Liga a chave: começa acesa',steps:[S.set({'I0.0':true}),S.w(.5),S.ex({'Q0.0':true},'Liguei a chave e a lâmpada não acendeu logo. Ela deve começar acesa.')]},
+  {name:'Depois de 1 s apaga',steps:[S.set({'I0.0':true}),S.w(1.5),S.ex({'Q0.0':false},'Passou mais de 1 segundo e a lâmpada continua acesa. Quando T1 terminar, ela deve apagar (contato NF de T1).')]},
+  {name:'Volta a acender e continua piscando',steps:[S.set({'I0.0':true}),S.w(2.5),S.ex({'Q0.0':true},'A lâmpada não voltou a acender. Quando T2 terminar, T1 precisa recomeçar (NF T2 na linha 1).'),S.w(1),S.ex({'Q0.0':false},'A lâmpada deveria apagar de novo no segundo ciclo.'),S.w(1),S.ex({'Q0.0':true},'A lâmpada deveria acender no terceiro ciclo.')]},
+  {name:'Desligar a chave apaga e religar recomeça',steps:[S.set({'I0.0':true}),S.w(1.5),S.set({'I0.0':false}),S.w(.4),S.ex({'Q0.0':false},'Desliguei a chave e a lâmpada não apagou.'),S.set({'I0.0':true}),S.w(.5),S.ex({'Q0.0':true},'Religuei a chave e a lâmpada não começou acesa de novo.')]}
+ ]},
+{id:10,bonus:true,name:'Semáforo com botão de pedestre',mach:'light',cols:3,rungs:6,par:15,pieces:['NA','NF','COIL','TON'],
+ mission:'Normalmente o verde fica aceso. Ao apertar Pedestre (I0.0): amarelo 2 s, vermelho 3 s e volta ao verde.',
+ story:'FASE BÔNUS! Um pedestre quer atravessar a rua. O botão só é apertado por um instante, então o circuito precisa lembrar do pedido. Use a memória M0.0!',
+ inputs:[{a:'I0.0',l:'Pedestre',t:'push',c:'blue'}],
+ outs:[{a:'Q0.0',l:'Verde'},{a:'Q0.1',l:'Amarelo'},{a:'Q0.2',l:'Vermelho'}],
+ hints:['M0.0 é uma memória (bobina interna): ela guarda o pedido do pedestre com selo, até o ciclo acabar. T1 conta o amarelo (2 s) e T2 o vermelho (3 s).','Linha 1: [NA I0.0 // NA M0.0][NF T2] → M0.0. Linha 2: [NA M0.0] → TON T1 2 s. Linha 3: [NA T1] → TON T2 3 s.','Luzes: Verde Q0.0 = [NF M0.0]. Amarelo Q0.1 = [NA M0.0][NF T1]. Vermelho Q0.2 = [NA T1].'],
+ tests:[
+  {name:'Sem pedido: só o verde fica aceso',steps:[S.w(3),S.ex({'Q0.0':true,'Q0.1':false,'Q0.2':false},'Sem ninguém apertar o botão, só o VERDE deve ficar aceso.')]},
+  {name:'Pedestre aperta: amarelo',steps:[...press('I0.0'),S.w(.6),S.ex({'Q0.0':false,'Q0.1':true,'Q0.2':false},'Depois do pedido, só o AMARELO deve acender (por 2 segundos). O circuito precisa lembrar do pedido com o selo de M0.0.')]},
+  {name:'Depois do amarelo vem o vermelho',steps:[...press('I0.0'),S.w(2.4),S.ex({'Q0.0':false,'Q0.1':false,'Q0.2':true},'Depois do amarelo, só o VERMELHO deve acender (por 3 segundos).')]},
+  {name:'Depois do vermelho volta o verde',steps:[...press('I0.0'),S.w(5.3),S.ex({'Q0.0':true,'Q0.1':false,'Q0.2':false},'Depois do vermelho, o VERDE deve voltar e o ciclo acabar.'),S.w(3),S.ex({'Q0.0':true,'Q0.2':false},'O ciclo recomeçou sozinho! Ele só deve repetir com um novo pedido.')]},
+  {name:'Novo pedido: o ciclo acontece de novo',steps:[...press('I0.0'),S.w(6),...press('I0.0'),S.w(.6),S.ex({'Q0.1':true,'Q0.0':false},'Apertei o botão de novo e o amarelo não acendeu.')]}
+ ]},
+{id:11,bonus:true,name:'Caixa que reabre sozinha',mach:'box',cols:3,rungs:4,par:8,pieces:['NA','NF','COIL','TON','CTU'],
+ mission:'Ao chegar 6 balas (sensor I0.3), a caixa fecha (Q0.0) por 3 s. Depois reabre e a contagem recomeça do zero sozinha.',
+ story:'FASE BÔNUS! Ninguém mais quer apertar o botão Zerar. Faça a caixa fechar, esperar 3 segundos e se zerar sozinha para o próximo lote!',
+ inputs:[{a:'I0.3',l:'Passa bala',t:'pulse',c:'yellow'}],
+ outs:[{a:'Q0.0',l:'Fecha caixa'}],
+ hints:['O reset do contador pode ser qualquer endereço, até uma memória (M0.0). E essa memória pode ser ligada por um temporizador.','Linha 1: [NA I0.3] → CTU C1 (PV 6, reset M0.0). Linha 2: [NA C1] → Q0.0. Linha 3: [NA C1] → TON T1 3 s.','Linha 4: [NA T1] → M0.0. Quando T1 termina, M0.0 zera o contador, a caixa abre e T1 volta a zero.'],
+ tests:[
+  {name:'Com 5 balas a caixa continua aberta',steps:[...rep(5,S.pulse('I0.3')),S.ex({'Q0.0':false},'A caixa fechou antes de 6 balas. Confira o PV (deve ser 6).')]},
+  {name:'A 6ª bala fecha a caixa',steps:[...rep(6,S.pulse('I0.3')),S.ex({'Q0.0':true},'Passaram 6 balas e a caixa não fechou.')]},
+  {name:'A caixa fica fechada por cerca de 3 s',steps:[...rep(6,S.pulse('I0.3')),S.w(2),S.ex({'Q0.0':true},'A caixa reabriu cedo demais. Ela deve ficar fechada por 3 segundos.')]},
+  {name:'Depois de 3 s a caixa reabre',steps:[...rep(6,S.pulse('I0.3')),S.w(3.5),S.ex({'Q0.0':false},'Já passaram mais de 3 segundos e a caixa continua fechada. Use T1 para ligar M0.0 e M0.0 como reset do contador.')]},
+  {name:'O segundo lote também conta 6',steps:[...rep(6,S.pulse('I0.3')),S.w(4),...rep(5,S.pulse('I0.3')),S.ex({'Q0.0':false},'No segundo lote a caixa fechou antes de 6 balas. O contador não zerou direito.'),S.pulse('I0.3'),S.ex({'Q0.0':true},'No segundo lote a 6ª bala não fechou a caixa.')]}
+ ]},
+{id:12,bonus:true,name:'Misturador em 3 ciclos',mach:'mixer',cols:3,rungs:5,par:15,pieces:['NA','NF','COIL','TON','CTU'],
+ mission:'Liga (I0.0) com a porta fechada (I0.4): gira 3 s, descansa 2 s, e faz isso 3 vezes. Porta aberta para. Novo lote (I0.1) zera.',
+ story:'FASE BÔNUS! A receita pede 3 rodadas de mistura, com descanso entre elas. Junte o pisca-pisca, o selo e o contador!',
+ inputs:[{a:'I0.0',l:'Liga',t:'push',c:'green'},{a:'I0.1',l:'Novo lote',t:'push',c:'red'},{a:'I0.4',l:'Porta fechada',t:'toggle',c:'yellow'}],
+ outs:[{a:'Q0.0',l:'Misturador'}],
+ hints:['Cada ciclo é: gira um tempo e descansa outro, como o pisca-pisca. O contador conta quantos ciclos já terminaram.','M0.0 mantém o lote ligado (selo) e é cortada pela porta aberta ou pelo contador cheio. T1 conta o giro (3 s), T2 o descanso (2 s). Cada vez que T2 termina, o contador soma 1.','Linha 1: [NA I0.0 // NA M0.0][NA I0.4][NF C1] → M0.0. Linha 2: [NA M0.0][NF T2] → TON T1 3 s. Linha 3: [NA T1] → TON T2 2 s. Linha 4: [NA T2] → CTU C1 (PV 3, R I0.1). Linha 5: [NA M0.0][NF T1] → Q0.0.'],
+ tests:[
+  {name:'Porta aberta: não gira',steps:[...press('I0.0'),S.w(.5),S.ex({'Q0.0':false},'O misturador girou com a porta aberta! Coloque a porta em série.')]},
+  {name:'Porta fechada + Liga: gira',steps:[S.set({'I0.4':true}),...press('I0.0'),S.w(.4),S.ex({'Q0.0':true},'Com a porta fechada, apertei Liga e o misturador não girou (lembre do selo).')]},
+  {name:'Depois de 3 s descansa',steps:[S.set({'I0.4':true}),...press('I0.0'),S.w(3),S.ex({'Q0.0':false},'Depois de 3 segundos o misturador deveria parar para descansar.')]},
+  {name:'Depois do descanso gira de novo',steps:[S.set({'I0.4':true}),...press('I0.0'),S.w(5),S.ex({'Q0.0':true},'Depois de 2 segundos de descanso o misturador deveria girar de novo.')]},
+  {name:'Faz exatamente 3 ciclos e para',steps:[S.set({'I0.4':true}),...press('I0.0'),S.w(10.4),S.ex({'Q0.0':true},'O 3º ciclo de giro deveria estar acontecendo agora.'),S.w(6),S.ex({'Q0.0':false},'Depois de 3 ciclos o misturador deveria parar de vez (confira o PV e o NF de C1).')]},
+  {name:'Abrir a porta para e não volta sozinho',steps:[S.set({'I0.4':true}),...press('I0.0'),S.w(.5),S.set({'I0.4':false}),S.w(.3),S.ex({'Q0.0':false},'Abri a porta e o misturador não parou.'),S.set({'I0.4':true}),S.w(.5),S.ex({'Q0.0':false},'Fechei a porta e o misturador voltou sozinho. Só com Liga.')]},
+  {name:'Novo lote permite rodar de novo',steps:[S.set({'I0.4':true}),...press('I0.0'),S.w(17),...press('I0.1'),...press('I0.0'),S.w(.4),S.ex({'Q0.0':true},'Depois de apertar Novo lote e Liga, o misturador deveria girar de novo. Ligue o reset de C1 em I0.1.')]}
+ ]},
+{id:13,bonus:true,name:'CHEFÃO FINAL: partida com aviso',mach:'boss',cols:5,rungs:6,par:18,pieces:['NA','NF','COIL','TON','CTU'],
+ mission:'Ao apertar Liga (I0.0) a sirene (Q0.2) toca 3 s e só então a esteira (Q0.0) liga. Desliga, Emergência, porta aberta ou 5 balas param tudo.',
+ story:'CHEFÃO FINAL! Em fábrica de verdade, a sirene avisa antes da esteira partir. A esteira só liga depois de 3 s de aviso. A sirene e a esteira nunca tocam juntas. Com 5 balas o lacre (Q0.1) acende e a esteira para; Troca zera.',
+ inputs:[{a:'I0.0',l:'Liga',t:'push',c:'green'},{a:'I0.1',l:'Desliga',t:'push',c:'red'},{a:'I0.2',l:'Emerg.',t:'toggle',c:'emg'},{a:'I0.3',l:'Sensor',t:'pulse',c:'yellow'},{a:'I0.4',l:'Porta fechada',t:'toggle',c:'blue'},{a:'I0.5',l:'Troca',t:'push',c:'yellow'}],
+ outs:[{a:'Q0.0',l:'Esteira'},{a:'Q0.1',l:'Lacre'},{a:'Q0.2',l:'Sirene'}],
+ hints:['Use M0.0 como "sistema armado": selo com Liga e todas as condições de segurança. Depois T1 conta 3 s de aviso a partir de M0.0.','Esteira = [NA T1]. Sirene = [NA M0.0][NF T1] (toca só durante a contagem). Contador e lacre são como no chefão da fase 8.','Linha 1: [NA I0.0 // NA M0.0][NF I0.1][NF I0.2][NA I0.4][NF C1] → M0.0. Linha 2: [NA M0.0] → TON T1 3 s. Linha 3: [NA T1] → Q0.0. Linha 4: [NA M0.0][NF T1] → Q0.2. Linha 5: [NA I0.3] → CTU C1 (PV 5, R I0.5). Linha 6: [NA C1] → Q0.1.'],
+ tests:[
+  {name:'Tudo começa desligado',steps:[S.w(.4),S.ex(off('Q0.0','Q0.1','Q0.2'),'Algo ligou sozinho!')]},
+  {name:'Porta aberta: nada liga',steps:[...press('I0.0'),S.w(1),S.ex(off('Q0.0','Q0.2'),'Com a porta aberta nem a sirene nem a esteira devem ligar.')]},
+  {name:'Liga: primeiro só a sirene',steps:[S.set({'I0.4':true}),...press('I0.0'),S.w(.4),S.ex({'Q0.2':true,'Q0.0':false},'Depois de apertar Liga, a sirene deve tocar e a esteira ainda NÃO. Use T1 para esperar 3 s.')]},
+  {name:'Depois de 3 s a esteira liga e a sirene cala',steps:[S.set({'I0.4':true}),...press('I0.0'),S.w(3.5),S.ex({'Q0.0':true,'Q0.2':false},'Depois de 3 s a esteira deve ligar e a sirene calar. Esteira = NA T1; sirene = NA M0.0 e NF T1.')]},
+  {name:'Desliga durante o aviso cancela a partida',steps:[S.set({'I0.4':true}),...press('I0.0'),S.w(1),...press('I0.1'),S.w(4),S.ex(off('Q0.0','Q0.2'),'Apertei Desliga durante o aviso e a partida continuou. O NF de Desliga deve cortar o selo M0.0.')]},
+  {name:'Desliga para a esteira',steps:[S.set({'I0.4':true}),...press('I0.0'),S.w(4),...press('I0.1'),S.w(.3),S.ex({'Q0.0':false},'Apertei Desliga e a esteira não parou.')]},
+  {name:'Emergência para tudo e não volta sozinha',steps:[S.set({'I0.4':true}),...press('I0.0'),S.w(4),S.set({'I0.2':true}),S.w(.3),S.ex({'Q0.0':false},'A emergência não parou a esteira.'),S.set({'I0.2':false}),S.w(5),S.ex(off('Q0.0','Q0.2'),'Soltei a emergência e a máquina voltou sozinha. Ela só parte com Liga.')]},
+  {name:'Abrir a porta para e não volta sozinha',steps:[S.set({'I0.4':true}),...press('I0.0'),S.w(4),S.set({'I0.4':false}),S.w(.3),S.ex({'Q0.0':false},'Abri a porta e a esteira continuou!'),S.set({'I0.4':true}),S.w(5),S.ex(off('Q0.0','Q0.2'),'Fechei a porta e a máquina voltou sozinha.')]},
+  {name:'5 balas: lacre e esteira para',steps:[S.set({'I0.4':true}),...press('I0.0'),S.w(4),...rep(4,S.pulse('I0.3')),S.ex({'Q0.0':true,'Q0.1':false},'Com 4 balas a esteira segue ligada e o lacre apagado.'),S.pulse('I0.3'),S.w(.2),S.ex({'Q0.0':false,'Q0.1':true},'Com 5 balas o lacre acende e a esteira para (NF de C1 no selo).')]},
+  {name:'Troca zera e a partida tem aviso de novo',steps:[S.set({'I0.4':true}),...press('I0.0'),S.w(4),...rep(5,S.pulse('I0.3')),...press('I0.5'),S.ex({'Q0.1':false},'Troquei a caixa e o lacre continuou aceso.'),...press('I0.0'),S.w(.4),S.ex({'Q0.2':true,'Q0.0':false},'Depois da troca, Liga deve tocar a sirene primeiro.'),S.w(3.5),S.ex({'Q0.0':true},'Depois do aviso a esteira deveria ligar.')]}
+ ]}
+];
+
+function makeEngine(){
+ const e={in:{},bits:{},tm:{},ct:{},flow:[],
+  get(a){const k=a[0];if(k==='I')return !!e.in[a];if(k==='T')return !!(e.tm[a]&&e.tm[a].done);if(k==='C')return !!(e.ct[a]&&e.ct[a].done);return !!e.bits[a]},
+  scan(dt,prog){
+   const flow=[];
+   for(const r of prog.rungs){
+    let p=true;const fcols=[];
+    for(const col of r.cols){
+     const cin=p;let any=false,cout=false;const cells=[];
+     for(let row=0;row<2;row++){
+      const c=col[row];if(!c){cells.push(null);continue}
+      any=true;const v=e.get(c.addr);const closed=c.kind==='NF'?!v:v;const pass=cin&&closed;
+      cells.push({pass});if(pass)cout=true;
+     }
+     if(!any)cout=cin;
+     fcols.push({in:cin,out:cout,cells});p=cout;
+    }
+    const o=r.out;
+    if(o){
+     if(o.kind==='COIL')e.bits[o.addr]=p;
+     else if(o.kind==='TON'){const t=e.tm[o.addr]||(e.tm[o.addr]={acc:0,done:false});if(p){t.acc+=dt;if(t.acc>=(o.preset||1)-1e-9)t.done=true}else{t.acc=0;t.done=false}}
+     else if(o.kind==='CTU'){const c=e.ct[o.addr]||(e.ct[o.addr]={count:0,done:false,prev:false});if(o.reset&&e.get(o.reset))c.count=0;else if(p&&!c.prev)c.count++;c.prev=p;c.done=c.count>=(o.preset||1)}
+    }
+    flow.push({cols:fcols,p});
+   }
+   e.flow=flow;
+  }};
+ return e;
+}
+function runTests(level,prog){
+ const res=[];
+ for(const t of level.tests){
+  const eng=makeEngine();let fail=null;
+  const sc=n=>{for(let i=0;i<n;i++)eng.scan(0.05,prog)};
+  for(const s of t.steps){
+   if(s.set)Object.assign(eng.in,s.set);
+   else if(s.w)sc(Math.round(s.w/0.05));
+   else if(s.pulse){eng.in[s.pulse]=true;sc(4);eng.in[s.pulse]=false;sc(4)}
+   else if(s.ex){for(const a in s.ex){if(eng.get(a)!==s.ex[a]){fail=s.msg;break}}}
+   if(fail)break;
+  }
+  res.push({name:t.name,ok:!fail,msg:fail});
+ }
+ return res;
+}
+function newRung(n){return{cols:Array.from({length:n},()=>[null,null]),out:null}}
+function newProgram(L){return{rungs:Array.from({length:L.rungs},()=>newRung(L.cols))}}
+function countPieces(p){let n=0;p.rungs.forEach(r=>{r.cols.forEach(c=>c.forEach(x=>{if(x)n++}));if(r.out)n++});return n}
+/*PURE_END*/
+
+/* ================= UI ================= */
+const $=(s,r=document)=>r.querySelector(s),$$=(s,r=document)=>[...r.querySelectorAll(s)];
+const KEY='fabricaRele_v1';
+const DEF={stars:{},unlocked:1,programs:{},sound:true,welcomed:false};
+function loadP(){try{return Object.assign({},DEF,JSON.parse(localStorage.getItem(KEY)||'{}'))}catch(e){return Object.assign({},DEF)}}
+let P=loadP();P.seen=P.seen||{};if(P.stars&&P.stars[8]&&P.unlocked<9)P.unlocked=9;
+function save(){try{localStorage.setItem(KEY,JSON.stringify(P))}catch(e){}}
+let L=null,PR=null,hintsUsed=0,armed=null,dragKind=null;
+const sim={eng:makeEngine(),running:false,timer:null,last:0,acc:0};
+const ms={};
+const tut={on:false,st:-1,pressed:false};
+const ZONE={NA:'c',NF:'c',COIL:'o',TON:'o',CTU:'o'};
+const KNAME={NA:'Contato NA',NF:'Contato NF',COIL:'Bobina',TON:'Temporizador TON',CTU:'Contador CTU'};
+const KSUB={NA:'normalmente aberto',NF:'normalmente fechado',COIL:'saída',TON:'atraso para ligar',CTU:'conta pulsos'};
+const UNLOCK={NA:1,NF:2,COIL:1,TON:5,CTU:6};
+
+/* ---- sons ---- */
+let AC=null;
+function beep(f,d=.1,type='sine',v=.07,delay=0){
+ if(!P.sound)return;
+ try{AC=AC||new(window.AudioContext||window.webkitAudioContext)();const o=AC.createOscillator(),g=AC.createGain();o.type=type;o.frequency.value=f;const t=AC.currentTime+delay;g.gain.setValueAtTime(v,t);g.gain.exponentialRampToValueAtTime(.0001,t+d);o.connect(g);g.connect(AC.destination);o.start(t);o.stop(t+d+.02)}catch(e){}
+}
+const sfx={place(){beep(660,.08,'triangle')},rm(){beep(260,.1,'triangle')},run(){beep(440,.1);beep(660,.12,'sine',.07,.1)},win(){[523,659,784,1046].forEach((f,i)=>beep(f,.18,'triangle',.08,i*.12))},fail(){beep(220,.25,'sawtooth',.05)},click(){beep(900,.03,'square',.03)},relay(){beep(180,.04,'square',.04)}};
+
+/* ---- Relê ---- */
+function say(t,mood='happy'){
+ $('#bubble').innerHTML='<span>'+t+'</span>';
+ const m=$('#mouth'),e1=$('#e1'),e2=$('#e2');
+ const d={happy:'M36 54Q45 63 54 54',bad:'M36 60Q45 51 54 60',think:'M38 57H52'}[mood]||'M36 54Q45 63 54 54';
+ m.setAttribute('d',d);
+ [e1,e2].forEach(e=>e.setAttribute('r',mood==='bad'?3.5:5));
+}
+
+/* ---- endereços ---- */
+function inputAddrs(){return L.inputs.map(i=>i.a).concat(L.id>=3?['M0.0','M0.1']:[])}
+function contactAddrs(){let a=L.inputs.map(i=>i.a).concat(L.outs.map(o=>o.a));if(L.id>=3)a.push('M0.0','M0.1');if(L.id>=5)a.push('T1','T2','T3');if(L.id>=6)a.push('C1');return a}
+function coilAddrs(){return L.outs.map(o=>o.a).concat(L.id>=3?['M0.0','M0.1']:[])}
+function addrLabel(a){if(!a)return 'sem reset';const f=L.inputs.concat(L.outs).find(x=>x.a===a);if(f)return f.l;if(a[0]==='M')return 'Memória';if(a[0]==='T')return 'Temporizador';if(a[0]==='C')return 'Contador';return ''}
+const opts=(list,sel,blank)=>(blank?`<option value=""${!sel?' selected':''}>sem reset</option>`:'')+list.map(a=>`<option value="${a}"${a===sel?' selected':''}>${a} · ${addrLabel(a)}</option>`).join('');
+function firstOut(k){for(const r of PR.rungs)if(r.out&&r.out.kind===k)return r.out;return null}
+
+/* ---- símbolos ---- */
+function sym(k){
+ const a='width="44" height="36" viewBox="0 0 44 36" fill="none" stroke="currentColor" stroke-linecap="round"';
+ if(k==='NA')return `<svg ${a} stroke-width="5"><path d="M6 4V32M38 4V32"/></svg>`;
+ if(k==='NF')return `<svg ${a} stroke-width="5"><path d="M6 4V32M38 4V32"/><path d="M33 6L11 30" stroke-width="4"/></svg>`;
+ if(k==='COIL')return `<svg ${a} stroke-width="5"><path d="M15 4Q3 18 15 32M29 4Q41 18 29 32"/><circle cx="22" cy="18" r="3.5" fill="currentColor" stroke="none"/></svg>`;
+ return '';
+}
+
+/* ---- header / palette ---- */
+function starsHTML(n){return '★'.repeat(n)+'☆'.repeat(3-n)}
+function renderHeader(){
+ $('#ltitle').textContent=`Fase ${L.id} · ${L.name}`;
+ $('#lmission').textContent=L.mission;
+ $('#stars').textContent=starsHTML(P.stars[L.id]||0);
+ $('#lv').innerHTML=LEVELS.map(l=>{const lock=l.id>P.unlocked;return `<button class="chip${l.id===L.id?' cur':''}${lock?' lock':''}${l.bonus?' bonus':''}" data-lv="${l.id}" title="${lock?'Complete a fase anterior':l.name}">${lock?'🔒':l.id}<i>${lock?'':starsHTML(P.stars[l.id]||0)}</i></button>`}).join('');
+ $('#hintbtn').textContent=`💡 Dica${hintsUsed?` (${Math.min(hintsUsed,3)}/3)`:''}`;
+ $('#snd').textContent=P.sound?'🔊':'🔇';
+}
+function renderPalette(){
+ $('#pitems').innerHTML=['NA','NF','COIL','TON','CTU'].map(k=>{
+  const ok=L.pieces.includes(k);
+  const ic=k==='TON'||k==='CTU'?`<span class="mini">${k}</span>`:sym(k);
+  return `<div class="pitem${ok?'':' locked'}${armed===k?' armed':''}" data-k="${k}" draggable="${ok}">${ic}<div>${KNAME[k]}<small>${ok?KSUB[k]:'🔒 fase '+UNLOCK[k]}</small></div></div>`}).join('');
+}
+function setArmed(k){
+ armed=k;
+ document.body.dataset.armed=k?(ZONE[k]==='c'?'contact':'out'):'';
+ $$('.pitem').forEach(p=>p.classList.toggle('armed',p.dataset.k===k));
+}
+
+/* ---- editor ---- */
+function cellHTML(cell,r,c,row,thru){
+ const base=`data-r="${r}" data-c="${c}" data-row="${row}" data-zone="c"`;
+ if(!cell)return `<div class="cell empty${thru?' thru':''} row${row}" ${base}><i class="wl"></i><i class="wr"></i><span class="ph">${row?'ou':'+'}</span></div>`;
+ return `<div class="cell filled k-${cell.kind} row${row}" ${base}><i class="wl"></i><i class="wr"></i><div class="piece"><select data-f="addr">${opts(contactAddrs(),cell.addr)}</select><div class="symw">${sym(cell.kind)}</div><div class="cap">${cell.kind==='NA'?'contato NA':'contato NF'}</div><button class="rm" data-act="rm" title="Remover">×</button></div></div>`;
+}
+function outHTML(o,ri){
+ const base=`data-r="${ri}" data-c="out" data-row="0" data-zone="o"`;
+ if(!o)return `<div class="cell out empty thru row0" ${base}><i class="wl"></i><i class="wr"></i><span class="ph">saída</span></div>`;
+ let mid,bot,list;
+ if(o.kind==='COIL'){mid=sym('COIL');bot='<div class="cap">bobina</div>';list=coilAddrs()}
+ else if(o.kind==='TON'){mid=`<div class="box">TON<small class="live" data-r="${ri}">0.0 s</small></div>`;bot=`<div class="cap row"><input data-f="preset" type="number" min="0.5" max="60" step="0.5" value="${o.preset}"> s</div>`;list=['T1','T2','T3']}
+ else{mid=`<div class="box">CTU<small class="live" data-r="${ri}">0</small></div>`;bot=`<div class="cap row">PV<input data-f="preset" type="number" min="1" max="99" step="1" value="${o.preset}">R<select data-f="reset">${opts(inputAddrs(),o.reset,true)}</select></div>`;list=['C1']}
+ return `<div class="cell out filled k-${o.kind} row0" ${base}><i class="wl"></i><i class="wr"></i><div class="piece"><select data-f="addr">${opts(list,o.addr)}</select><div class="symw">${mid}</div>${bot}<button class="rm" data-act="rm" title="Remover">×</button></div></div>`;
+}
+function rungHTML(r,ri){
+ let h=`<div class="rung" data-r="${ri}"><div class="rnum">${ri+1}</div><div class="rail l"></div><div class="cols">`;
+ r.cols.forEach((col,ci)=>{
+  const both=col[0]&&col[1];
+  h+=`<div class="col${both?' par':''}" data-r="${ri}" data-c="${ci}">${cellHTML(col[0],ri,ci,0,!col[0]&&!col[1])}${cellHTML(col[1],ri,ci,1,false)}</div>`;
+ });
+ h+=outHTML(r.out,ri)+`</div><div class="rail r"></div>`;
+ if(PR.rungs.length>1)h+=`<button class="rdel" data-act="delrung" title="Apagar linha">🗑</button>`;
+ return h+'</div>';
+}
+function renderRungs(){
+ const el=$('#rungs');const sx=el.scrollLeft,sy=el.scrollTop;
+ el.innerHTML=PR.rungs.map(rungHTML).join('');
+ el.scrollLeft=sx;el.scrollTop=sy;
+ $('#addrung').disabled=PR.rungs.length>=Math.min(8,L.rungs+2);
+ applyFlow();tutUpdate();
+}
+function applyFlow(){applyFlowTo($('#rungs'),PR,sim.eng,sim.running)}
+function applyFlowTo(root,prog,eng,run){
+ const f=eng.flow;
+ $$('.rung',root).forEach(rg=>{
+  const ri=+rg.dataset.r,fl=run?f[ri]:null;
+  $('.rail.l',rg).classList.toggle('on',run);
+  $('.rail.r',rg).classList.toggle('on',!!(fl&&fl.p));
+  $$('.col',rg).forEach(col=>{const fc=fl&&fl.cols[+col.dataset.c];col.classList.toggle('in',!!(fc&&fc.in));col.classList.toggle('out',!!(fc&&fc.out))});
+  $$('.cell',rg).forEach(cell=>{
+   let inn=false,pass=false;
+   if(fl){
+    if(cell.dataset.c==='out'){inn=fl.p;pass=fl.p&&cell.classList.contains('filled')}
+    else{const fc=fl.cols[+cell.dataset.c];if(fc){if(cell.classList.contains('thru')){inn=fc.in;pass=fc.out}else{const x=fc.cells[+cell.dataset.row];if(x){inn=fc.in;pass=x.pass}}}}
+   }
+   cell.classList.toggle('in',inn);cell.classList.toggle('pass',pass);
+  });
+  const lv=$('.live',rg);
+  if(lv){const o=prog.rungs[ri].out;
+   if(o.kind==='TON'){const t=eng.tm[o.addr];lv.textContent=`${(t?t.acc:0).toFixed(1)} s`}
+   else{const c=eng.ct[o.addr];lv.textContent=`${c?c.count:0}/${o.preset}`}}
+ });
+}
+function newOut(kind){
+ if(kind==='COIL'){const used=PR.rungs.filter(r=>r.out&&r.out.kind==='COIL').map(r=>r.out.addr);const free=coilAddrs().filter(a=>!used.includes(a));return{kind,addr:(free[0]||coilAddrs()[0])}}
+ if(kind==='TON'){const used=PR.rungs.filter(r=>r.out&&r.out.kind==='TON').map(r=>r.out.addr);const free=['T1','T2','T3'].filter(a=>!used.includes(a));return{kind,addr:free[0]||'T1',preset:3}}
+ return{kind,addr:'C1',preset:10,reset:''};
+}
+function place(kind,r,c,row){
+ if(!L.pieces.includes(kind)){say(`Essa peça é liberada na fase ${UNLOCK[kind]}. Por enquanto use as outras!`,'think');return false}
+ const R=PR.rungs[r];
+ if(c==='out'){
+  if(ZONE[kind]!=='o'){say('Contatos ficam antes da saída. O quadrado do final da linha é só para Bobina, TON ou CTU.','think');sfx.fail();return false}
+  R.out=newOut(kind);
+ }else{
+  if(ZONE[kind]!=='c'){say('Bobina, temporizador e contador são saídas: ficam no quadrado "saída", no fim da linha!','think');sfx.fail();return false}
+  const col=R.cols[+c];let rw=+row;if(rw===1&&!col[0])rw=0;
+  col[rw]={kind,addr:L.inputs[0].a};
+ }
+ sfx.place();persist();renderRungs();return true;
+}
+function removeAt(r,c,row){
+ const R=PR.rungs[r];
+ if(c==='out')R.out=null;
+ else{const col=R.cols[+c];col[+row]=null;if(!col[0]&&col[1]){col[0]=col[1];col[1]=null}}
+ sfx.rm();persist();renderRungs();
+}
+function persist(){P.programs[L.id]=PR;save()}
+
+/* eventos do editor */
+const rungsEl=$('#rungs');
+rungsEl.addEventListener('click',e=>{
+ const act=e.target.closest('[data-act]');
+ if(act){
+  if(act.dataset.act==='rm'){const c=act.closest('.cell');removeAt(+c.dataset.r,c.dataset.c,c.dataset.row)}
+  else if(act.dataset.act==='delrung'){const r=+act.closest('.rung').dataset.r;PR.rungs.splice(r,1);sfx.rm();persist();renderRungs()}
+  return;
+ }
+ if(e.target.closest('select,input'))return;
+ const cell=e.target.closest('.cell');
+ if(cell&&armed){if(place(armed,+cell.dataset.r,cell.dataset.c,cell.dataset.row))setArmed(null)}
+});
+rungsEl.addEventListener('change',e=>{
+ const f=e.target.dataset.f;if(!f)return;
+ const cell=e.target.closest('.cell');if(!cell)return;
+ const R=PR.rungs[+cell.dataset.r];
+ const t=cell.dataset.c==='out'?R.out:R.cols[+cell.dataset.c][+cell.dataset.row];
+ if(!t)return;
+ if(f==='preset'){let v=parseFloat(e.target.value);if(!(v>0))v=1;t.preset=v;e.target.value=v}else t[f]=e.target.value;
+ sfx.click();persist();tutUpdate();
+});
+rungsEl.addEventListener('dragover',e=>{const c=e.target.closest('.cell');if(c&&dragKind){e.preventDefault();$$('.cell.over').forEach(x=>x!==c&&x.classList.remove('over'));c.classList.add('over')}});
+rungsEl.addEventListener('dragleave',e=>{const c=e.target.closest('.cell');if(c&&!c.contains(e.relatedTarget))c.classList.remove('over')});
+rungsEl.addEventListener('drop',e=>{
+ const c=e.target.closest('.cell');$$('.cell.over').forEach(x=>x.classList.remove('over'));
+ if(!c||!dragKind)return;e.preventDefault();
+ const k=dragKind;dragKind=null;setArmed(null);place(k,+c.dataset.r,c.dataset.c,c.dataset.row);
+});
+$('#pitems').addEventListener('dragstart',e=>{
+ const it=e.target.closest('.pitem');if(!it||it.classList.contains('locked')){e.preventDefault();return}
+ dragKind=it.dataset.k;e.dataTransfer.setData('text/plain',dragKind);e.dataTransfer.effectAllowed='copy';
+ document.body.dataset.armed=ZONE[dragKind]==='c'?'contact':'out';
+});
+$('#pitems').addEventListener('dragend',()=>{dragKind=null;document.body.dataset.armed=armed?(ZONE[armed]==='c'?'contact':'out'):'';$$('.cell.over').forEach(x=>x.classList.remove('over'))});
+$('#pitems').addEventListener('click',e=>{
+ const it=e.target.closest('.pitem');if(!it)return;
+ if(it.classList.contains('locked')){say(`Essa peça aparece na fase ${UNLOCK[it.dataset.k]}. Siga em frente!`,'think');sfx.fail();return}
+ sfx.click();setArmed(armed===it.dataset.k?null:it.dataset.k);
+ if(armed)say(`${KNAME[armed]} selecionado! Agora toque no espaço pontilhado da linha onde ele deve entrar.`,'happy');
+});
+document.addEventListener('keydown',e=>{if(e.key==='Escape')setArmed(null)});
+$('#addrung').onclick=()=>{if(PR.rungs.length<Math.min(8,L.rungs+2)){PR.rungs.push(newRung(L.cols));sfx.place();persist();renderRungs()}};
+function ask(title,msg,yes,onYes){
+ modal(`<h2>${title}</h2><p>${msg}</p><div class="mbts"><button class="btn" id="a-no">Cancelar</button><button class="btn stop" id="a-yes">${yes}</button></div>`);
+ $('#a-no').onclick=closeModal;$('#a-yes').onclick=()=>{closeModal();onYes()};
+}
+$('#clear').onclick=()=>{ask('🧹 Limpar circuito','Apagar todas as peças desta fase e começar do zero?','Sim, limpar',()=>{stopSim();PR=newProgram(L);persist();renderRungs();sfx.rm();say('Circuito limpo! Vamos recomeçar.','happy')})};
+
+/* ---- simulação ---- */
+function resetMs(){for(const k in ms)delete ms[k];Object.assign(ms,{c:{},pv:{},off:0,phys:0,drops:[],lid:0,ang:0,dx:0,pr:0})}
+function startSim(){
+ if(sim.running)return;
+ sim.eng=makeEngine();sim.running=true;sim.last=performance.now();sim.acc=0;resetMs();
+ sim.timer=setInterval(tick,50);sfx.run();setBtns();
+ say('Rodando! Aperte os botões da máquina e veja a corrente passar em <b style="color:#12a36a">verde</b>.','happy');
+ tutUpdate();
+}
+function tick(){
+ const now=performance.now();sim.acc+=Math.min(now-sim.last,300)/1000;sim.last=now;
+ let n=0;while(sim.acc>=0.05&&n<8){sim.eng.scan(0.05,PR);sim.acc-=0.05;n++}
+ applyFlow();
+}
+function stopSim(){
+ clearInterval(sim.timer);sim.running=false;sim.eng=makeEngine();resetMs();
+ applyFlow();setBtns();
+}
+function setBtns(){$('#run').disabled=sim.running;$('#stop').disabled=!sim.running}
+function setInput(a,v){
+ if(!sim.running){say('Primeiro aperte o botão verde <b>▶ RODAR</b> para ligar a fábrica!','think');sfx.fail();return false}
+ sim.eng.in[a]=v;if(v)tut.pressed=true;tutUpdate();return true;
+}
+function pulse(a){
+ if(sim.running&&sim.eng.in[a])return;
+ if(setInput(a,true))setTimeout(()=>{if(sim.running)sim.eng.in[a]=false},170);
+}
+$('#run').onclick=startSim;
+$('#stop').onclick=()=>{stopSim();say('Simulação parada. Edite o circuito com calma!','happy')};
+$('#restart').onclick=()=>{const was=sim.running;stopSim();if(was)startSim();else say('Tudo reiniciado!','happy')};
+
+function buildBtns(){
+ $('#mbtns').innerHTML=L.inputs.map(i=>`<button class="mbtn ${i.c} ${i.t}" data-a="${i.a}" data-t="${i.t}"><b>${i.l}</b><small>${i.a}${i.t==='toggle'?' · chave':i.t==='pulse'?' · pulso':''}</small></button>`).join('');
+}
+const mb=$('#mbtns');
+mb.addEventListener('pointerdown',e=>{
+ const b=e.target.closest('.mbtn');if(!b)return;e.preventDefault();
+ const a=b.dataset.a,t=b.dataset.t;sfx.click();
+ if(t==='push'){if(setInput(a,true)&&b.setPointerCapture){try{b.setPointerCapture(e.pointerId)}catch(_){}}}
+ else if(t==='toggle')setInput(a,!sim.eng.in[a]);
+ else pulse(a);
+});
+['pointerup','pointercancel','lostpointercapture'].forEach(ev=>mb.addEventListener(ev,e=>{
+ const b=e.target.closest('.mbtn');if(b&&b.dataset.t==='push'&&sim.running)sim.eng.in[b.dataset.a]=false;
+}));
+
+/* ---- máquinas ---- */
+const el=id=>ms.c[id]||(ms.c[id]=$('#msvg #'+id));
+const bg=(f=196)=>`<rect width="320" height="240" fill="#eaf4ff"/><rect y="${f}" width="320" height="${240-f}" fill="#cdbcff"/><path d="M0 ${f}H320" stroke="#2b2250" stroke-width="4"/>`;
+const CANDY=['#ff5fa2','#ffd23f','#2ec4b6','#ff9f1c','#8f6bff'];
+const candyG=(i,c)=>`<g id="cd${i}"><circle r="9" fill="${c}" stroke="#2b2250" stroke-width="3"/><path d="M-5 -2Q0 -7 5 -2" stroke="#fff" stroke-width="2" fill="none" opacity=".85"/></g>`;
+function beltSVG(y){
+ let s=`<defs><clipPath id="bclip"><rect x="26" y="${y}" width="268" height="26" rx="13"/></clipPath></defs>`;
+ s+=`<rect x="18" y="${y-5}" width="284" height="36" rx="18" fill="#4b4570" stroke="#2b2250" stroke-width="4"/><g clip-path="url(#bclip)"><rect x="26" y="${y}" width="268" height="26" fill="#7b73ad"/><g id="stripes">`;
+ for(let x=-20;x<320;x+=20)s+=`<path d="M${x} ${y}V${y+26}" stroke="#5a5290" stroke-width="5"/>`;
+ s+='</g></g>';
+ [38,282].forEach((x,i)=>{s+=`<g id="rl${i}"><circle r="12" fill="#ffd23f" stroke="#2b2250" stroke-width="3"/><path d="M-8 0H8M0 -8V8" stroke="#2b2250" stroke-width="3"/></g>`});
+ for(let i=0;i<5;i++)s+=candyG(i,CANDY[i]);
+ return s;
+}
+function beltUpd(run,dt,y){
+ if(run)ms.off=(ms.off||0)+70*dt;const off=ms.off||0;
+ el('stripes').setAttribute('transform',`translate(${off%20} 0)`);
+ [0,1].forEach(i=>el('rl'+i).setAttribute('transform',`translate(${i?282:38} ${y+13}) rotate(${off*3})`));
+ for(let i=0;i<5;i++)el('cd'+i).setAttribute('transform',`translate(${30+((i*52+off)%260)} ${y-9})`);
+}
+function rays(cx,cy,r1,r2,n){let s='';for(let i=0;i<n;i++){const a=i/n*6.283;s+=`<path d="M${(cx+Math.cos(a)*r1).toFixed(1)} ${(cy+Math.sin(a)*r1).toFixed(1)}L${(cx+Math.cos(a)*r2).toFixed(1)} ${(cy+Math.sin(a)*r2).toFixed(1)}" stroke="#ffb703" stroke-width="4" stroke-linecap="round"/>`}return s}
+const mixc=(a,b,t)=>{const p=h=>[1,3,5].map(i=>parseInt(h.substr(i,2),16));const x=p(a),y=p(b);return `rgb(${x.map((v,i)=>Math.round(v+(y[i]-v)*t)).join(',')})`};
+const rise=(e,a)=>{const v=!!e.in[a],r=v&&!ms.pv[a];ms.pv[a]=v;return r};
+const txt=(id,x,y,s,extra='')=>`<text id="${id}" x="${x}" y="${y}" text-anchor="middle" font-weight="800" font-size="${s}" fill="#2b2250" ${extra}></text>`;
+
+const MACH={
+lamp:{build(){return bg(200)+`<circle id="glow" cx="160" cy="112" r="85" fill="#ffe066" opacity="0"/><g id="rays" opacity="0">${rays(160,112,44,62,12)}</g><path d="M160 0V64" stroke="#2b2250" stroke-width="4"/><rect x="146" y="58" width="28" height="24" rx="6" fill="#8d86b3" stroke="#2b2250" stroke-width="4"/><circle id="bulb" cx="160" cy="112" r="32" fill="#d9d4e8" stroke="#2b2250" stroke-width="4"/><path d="M148 112q6 -14 12 0t12 0" stroke="#2b2250" stroke-width="3" fill="none"/>`+txt('lt',160,226,15)},
+ upd(e){const on=!!e.bits['Q0.0'];el('bulb').setAttribute('fill',on?'#ffe066':'#d9d4e8');el('glow').setAttribute('opacity',on?.55:0);el('rays').setAttribute('opacity',on?1:0);el('lt').textContent=on?'Lâmpada: ACESA':'Lâmpada: apagada'}},
+belt:{build(){return bg(200)+`<rect x="70" y="26" width="180" height="52" rx="14" fill="#fff" stroke="#2b2250" stroke-width="4"/>`+txt('st',160,58,18)+`<path d="M50 164L40 200M270 164L280 200" stroke="#2b2250" stroke-width="8"/>`+beltSVG(140)},
+ upd(e,dt){const on=!!e.bits['Q0.0'];beltUpd(on,dt,140);const s=el('st');s.textContent=on?'ESTEIRA LIGADA':'ESTEIRA PARADA';s.setAttribute('fill',on?'#12a36a':'#ff4d5e')}},
+mixer:{build(){return bg(210)+`<rect x="108" y="16" width="104" height="42" rx="12" fill="#6c4cf1" stroke="#2b2250" stroke-width="4"/><circle id="led" cx="128" cy="37" r="6" fill="#999" stroke="#2b2250" stroke-width="2"/><rect x="156" y="58" width="8" height="106" fill="#8d86b3" stroke="#2b2250" stroke-width="3"/><path d="M86 120Q86 207 160 207Q234 207 234 120Z" fill="#fff" stroke="#2b2250" stroke-width="4"/><path d="M90 130Q160 118 230 130Q226 192 160 200Q94 192 90 130Z" fill="#ff9bc8"/><g id="bl1"><rect x="-36" y="-6" width="72" height="12" rx="6" fill="#ffd23f" stroke="#2b2250" stroke-width="3"/></g><g id="bl2"><rect x="-36" y="-6" width="72" height="12" rx="6" fill="#ff9f1c" stroke="#2b2250" stroke-width="3"/></g><g id="door"><rect x="72" y="74" width="176" height="136" rx="14" fill="rgba(110,180,255,.38)" stroke="#2b2250" stroke-width="4"/><rect x="228" y="128" width="9" height="32" rx="4" fill="#2b2250"/></g>`+txt('dst',160,232,14)},
+ upd(e,dt){const on=!!e.bits['Q0.0'],open=!e.in['I0.4'];ms.ang+=(on?10:0)*dt;
+  el('bl1').setAttribute('transform',`translate(160 165) scale(${Math.cos(ms.ang)} 1)`);el('bl2').setAttribute('transform',`translate(160 165) scale(${Math.sin(ms.ang)} 1)`);
+  ms.dx+=((open?160:0)-ms.dx)*Math.min(1,dt*9);el('door').setAttribute('transform',`translate(${ms.dx.toFixed(1)} 0)`);
+  el('led').setAttribute('fill',on?'#19c37d':'#999');const d=el('dst');d.textContent=open?'PORTA ABERTA':'PORTA FECHADA';d.setAttribute('fill',open?'#ff4d5e':'#12a36a')}},
+oven:{build(){return bg(214)+`<rect x="44" y="22" width="232" height="186" rx="24" fill="#ff7aa8" stroke="#2b2250" stroke-width="4"/>`+txt('ost',160,50,16)+`<rect x="70" y="62" width="180" height="104" rx="14" fill="#3a3358" stroke="#2b2250" stroke-width="4"/><g id="heat" opacity="0"><path d="M84 76H236M84 154H236" stroke="#ff9f1c" stroke-width="6" stroke-linecap="round"/><rect x="72" y="64" width="176" height="100" rx="12" fill="#ff9f1c" opacity=".18"/></g><ellipse id="cake" cx="160" cy="134" rx="42" ry="22" fill="#ffe3a3" stroke="#2b2250" stroke-width="3"/><path d="M130 124q8 -6 14 0M170 126q8 -6 14 0" stroke="#2b2250" stroke-width="2" fill="none" opacity=".4"/><g id="steam" opacity="0" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round"><path d="M130 112q-8 -10 0 -20t0 -20"/><path d="M160 112q-8 -10 0 -20t0 -20"/><path d="M190 112q-8 -10 0 -20t0 -20"/></g><rect x="70" y="178" width="180" height="16" rx="8" fill="#fff" stroke="#2b2250" stroke-width="3"/><rect id="prog" x="72" y="180" width="0" height="12" rx="6" fill="#19c37d"/>`},
+ upd(e){const on=!!e.bits['Q0.0'],ton=firstOut('TON'),t=ton&&e.tm[ton.addr],pr=t?Math.min(1,t.acc/ton.preset):0;
+  if(on)ms.pr=pr;el('heat').setAttribute('opacity',on?1:0);el('steam').setAttribute('opacity',on&&ms.pr>.5?.9:0);
+  el('prog').setAttribute('width',(176*ms.pr).toFixed(1));el('cake').setAttribute('fill',mixc('#ffe3a3','#a8531a',ms.pr));
+  const s=el('ost');s.textContent=on?'FORNO LIGADO':(ms.pr>.9?'PRONTO! 🍪':'FORNO DESLIGADO');s.setAttribute('fill',on?'#fff7b0':'#fff')}},
+box:{build(){let pile='';for(let i=0;i<12;i++)pile+=`<circle id="pc${i}" cx="${158+(i%6)*18}" cy="${i<6?206:188}" r="8" fill="${CANDY[i%5]}" stroke="#2b2250" stroke-width="2.5" opacity="0"/>`;
+  return bg(226)+`<rect x="10" y="10" width="104" height="46" rx="9" fill="#1f3b2d" stroke="#2b2250" stroke-width="4"/>`+txt('lcd',62,41,20,'fill="#7cff8a" font-family="monospace"')+`<path d="M150 8H270L238 62H182Z" fill="#8d86b3" stroke="#2b2250" stroke-width="4"/><path d="M140 128H280L268 222H152Z" fill="#ffcf7a" stroke="#2b2250" stroke-width="4"/>${pile}<g id="drops"></g><g id="lid"><rect x="136" y="116" width="148" height="14" rx="6" fill="#ff5fa2" stroke="#2b2250" stroke-width="4"/></g>`+txt('bst',70,100,13)+txt('bst2',70,118,11)},
+ upd(e,dt){
+  if(rise(e,'I0.3'))ms.drops.push({y:62});
+  if(rise(e,'I0.0'))ms.phys=0;
+  let s='';ms.drops=ms.drops.filter(d=>{d.y+=230*dt;const tgt=ms.phys<6?206:188;if(d.y>=tgt-6){ms.phys++;return false}s+=`<circle cx="210" cy="${d.y.toFixed(0)}" r="8" fill="#ff5fa2" stroke="#2b2250" stroke-width="2.5"/>`;return true});
+  el('drops').innerHTML=s;
+  for(let i=0;i<12;i++)el('pc'+i).setAttribute('opacity',i<ms.phys?1:0);
+  const closed=!!e.bits['Q0.0'];const target=closed?0:-65;ms.lid+=(target-ms.lid)*Math.min(1,dt*10);el('lid').setAttribute('transform',`rotate(${ms.lid.toFixed(1)} 136 123)`);
+  const c=firstOut('CTU'),st=c&&e.ct[c.addr];{const cnt=st?st.count:0;if(cnt<(ms.pcnt||0))ms.phys=0;ms.pcnt=cnt}el('lcd').textContent=c?`C1 ${st?st.count:0}/${c.preset}`:'C1 --';
+  el('bst').textContent=closed?'CAIXA FECHADA':'caixa aberta';el('bst2').textContent=`balas: ${Math.min(ms.phys,12)}`}},
+light:{build(){return bg(214)+`<rect x="148" y="170" width="24" height="44" fill="#8d86b3" stroke="#2b2250" stroke-width="4"/><rect x="108" y="10" width="104" height="170" rx="22" fill="#4b4570" stroke="#2b2250" stroke-width="4"/>`+[['lr',52,'#ff4d5e'],['ly',96,'#ffd23f'],['lg',140,'#19c37d']].map(([id,y,c])=>`<circle id="h${id}" cx="160" cy="${y}" r="34" fill="${c}" opacity="0"/><circle id="${id}" cx="160" cy="${y}" r="19" fill="${c}" stroke="#2b2250" stroke-width="3"/>`).join('')+txt('sw',160,234,13)},
+ upd(e){[['lr','Q0.2','#ff4d5e','#6b3a49'],['ly','Q0.1','#ffd23f','#6b6240'],['lg','Q0.0','#19c37d','#2f5a52']].forEach(([id,q,on,offc])=>{const v=!!e.bits[q];el(id).setAttribute('fill',v?on:offc);el('h'+id).setAttribute('opacity',v?.35:0)});el('sw').textContent=L.inputs[0].t==='toggle'?(e.in['I0.0']?'Chave: LIGADA':'Chave: desligada'):(e.in['I0.0']?'Pedestre: APERTADO':'Pedestre: solto')}},
+boss:{build(){let pile='';for(let i=0;i<5;i++)pile+=`<circle id="pc${i}" cx="${228+i*14}" cy="224" r="7" fill="${CANDY[i]}" stroke="#2b2250" stroke-width="2.5" opacity="0"/>`;
+  return bg(232)+`<rect x="8" y="8" width="100" height="40" rx="9" fill="#1f3b2d" stroke="#2b2250" stroke-width="4"/>`+txt('lcd',58,36,19,'fill="#7cff8a" font-family="monospace"')+`<circle id="lamp" cx="150" cy="26" r="14" fill="#6b6240" stroke="#2b2250" stroke-width="3"/><text x="150" y="56" text-anchor="middle" font-size="9" font-weight="800" fill="#2b2250">LACRE</text><g id="siren"><circle id="sglow" cx="268" cy="28" r="26" fill="#ff4d5e" opacity="0"/><circle id="sir" cx="268" cy="28" r="14" fill="#6b3a49" stroke="#2b2250" stroke-width="3"/></g><text x="268" y="58" text-anchor="middle" font-size="9" font-weight="800" fill="#2b2250">SIRENE</text>`+txt('dr',90,80,13)+txt('em',230,80,13)+`<path d="M50 190L40 232M270 190L280 232" stroke="#2b2250" stroke-width="8"/><rect x="206" y="196" width="96" height="34" rx="6" fill="#ffcf7a" stroke="#2b2250" stroke-width="4"/>${pile}`+beltSVG(150)},
+ upd(e,dt){
+  const on=!!e.bits['Q0.0'];beltUpd(on,dt,150);
+  if(rise(e,'I0.3'))ms.phys=Math.min(5,ms.phys+1);if(rise(e,'I0.5'))ms.phys=0;
+  for(let i=0;i<5;i++)el('pc'+i).setAttribute('opacity',i<ms.phys?1:0);
+  const c=firstOut('CTU'),st=c&&e.ct[c.addr];el('lcd').textContent=c?`C1 ${st?st.count:0}/${c.preset}`:'C1 --';
+  const q1=!!e.bits['Q0.1'],q2=!!e.bits['Q0.2'];el('lamp').setAttribute('fill',q1?'#ffd23f':'#6b6240');
+  ms.ang+=dt*8;const fl=q2&&Math.sin(ms.ang)>0;el('sir').setAttribute('fill',q2?(fl?'#ff4d5e':'#b3293a'):'#6b3a49');el('sglow').setAttribute('opacity',fl?.55:0);
+  const open=!e.in['I0.4'],emg=!!e.in['I0.2'];const d=el('dr');d.textContent=open?'PORTA ABERTA':'PORTA OK';d.setAttribute('fill',open?'#ff4d5e':'#12a36a');
+  const m=el('em');m.textContent=emg?'EMERGÊNCIA!':'';m.setAttribute('fill','#ff4d5e')}}
+};
+function buildMach(){
+ $('#mview').innerHTML=`<svg id="msvg" viewBox="0 0 320 240">${MACH[L.mach].build()}</svg>`;
+ buildBtns();
+}
+let lastF=performance.now(),sig='';
+function frame(t){
+ const dt=Math.min((t-lastF)/1000,.1);lastF=t;
+ if(L&&$('#msvg')){
+  try{MACH[L.mach].upd(sim.eng,dt)}catch(err){}
+  $$('.mbtn').forEach(b=>b.classList.toggle('on',!!sim.eng.in[b.dataset.a]));
+  const s=sim.running?L.outs.map(o=>sim.eng.bits[o.a]?1:0).join(''):'';
+  if(sim.running&&s!==sig&&sig!=='')sfx.relay();sig=s;
+ }
+ requestAnimationFrame(frame);
+}
+
+/* ---- dicas / tutorial ---- */
+function openHints(){
+ const n=Math.min(hintsUsed,3);
+ modal(`<h2>💡 Dicas da fase ${L.id}</h2><p style="font-size:12px;opacity:.7">Todas as dicas que você já abriu ficam aqui. Usar dicas diminui as estrelas.</p>${L.hints.slice(0,n).map((h,i)=>`<div class="hintcard"><b>Dica ${i+1} de 3</b><p>${h}</p></div>`).join('')}<div class="mbts"><button class="btn" id="m-close">Fechar</button>${n<3?`<button class="btn rst" id="m-more">Mostrar a dica ${n+1} de 3</button>`:''}</div>`);
+ $('#m-close').onclick=closeModal;
+ const more=$('#m-more');if(more)more.onclick=()=>{hintsUsed=n+1;renderHeader();openHints()};
+ renderHeader();
+}
+$('#hintbtn').onclick=()=>{if(hintsUsed===0)hintsUsed=1;sfx.click();openHints()};
+$('#lessonbtn').onclick=()=>{if(LESSONS[L.id]){sfx.click();openLesson(L.id)}};
+const TUT=['👋 <b>Passo 1:</b> arraste o <b>Contato NA</b> para o primeiro espaço da linha (ou toque na peça e depois no espaço).','Muito bem! <b>Passo 2:</b> agora a <b>Bobina</b> (a saída) vai no quadrado do final da linha.','Perfeito! I0.0 é o botão Liga e Q0.0 é a lâmpada. <b>Passo 3:</b> aperte <b>▶ RODAR</b> para ligar o circuito.','<b>Passo 4:</b> segure o botão <b>Liga</b> na máquina e veja a corrente ficar verde!','<b>Passo 5:</b> aperte <b>✓ VERIFICAR</b> para eu testar o seu circuito.'];
+function tutUpdate(){
+ if(!tut.on||!L||L.id!==1)return;
+ const hasNA=PR.rungs.some(r=>r.cols.some(c=>c[0]&&c[0].kind==='NA'));
+ const hasCoil=PR.rungs.some(r=>r.out&&r.out.kind==='COIL');
+ const st=!hasNA?0:!hasCoil?1:!sim.running?2:!tut.pressed?3:4;
+ $$('.hl').forEach(x=>x.classList.remove('hl'));
+ const sel=['.pitem[data-k="NA"]','.pitem[data-k="COIL"]','#run','.mbtn','#chk'][st];
+ const x=$(sel);if(x)x.classList.add('hl');
+ if(st!==tut.st){tut.st=st;say(TUT[st],'happy')}
+}
+
+/* ---- verificação ---- */
+function modal(html,wide){$('#mbody').innerHTML=html;$('#mbody').classList.toggle('wide',!!wide);$('#modal').classList.remove('hidden')}
+function closeModal(){clearInterval(lessonTimer);$('#modal').classList.add('hidden')}
+$('#modal').addEventListener('click',e=>{if(e.target.id==='modal')closeModal()});
+function verify(){
+ if(!PR.rungs.some(r=>r.out)){say('Seu circuito ainda está vazio! Arraste um contato e uma bobina para a linha.','think');sfx.fail();return}
+ if(tut.on){tut.on=false;$$('.hl').forEach(x=>x.classList.remove('hl'))}
+ const res=runTests(L,PR),ok=res.every(r=>r.ok);
+ const list=`<ul class="tests">${res.map(r=>`<li class="${r.ok?'ok':'bad'}">${r.ok?'✔':'✘'} ${r.name}${r.ok?'':`<small>🤖 ${r.msg}</small>`}</li>`).join('')}</ul>`;
+ if(!ok){
+  const f=res.find(r=>!r.ok);say(`Quase lá! ${f.msg}`,'bad');sfx.fail();
+  modal(`<h2>🔧 Ainda não funcionou</h2><p>${res.filter(r=>r.ok).length} de ${res.length} testes passaram.</p>${list}<div class="mbts"><button class="btn rst" id="m-close">Voltar ao circuito</button><button class="btn" id="m-hint">💡 Pedir dica</button></div>`);
+  $('#m-close').onclick=closeModal;$('#m-hint').onclick=()=>{closeModal();$('#hintbtn').click()};
+  return;
+ }
+ const pieces=countPieces(PR),stars=1+(pieces<=L.par?1:0)+(hintsUsed===0?1:0);
+ P.stars[L.id]=Math.max(P.stars[L.id]||0,stars);
+ if(L.id<LEVELS.length)P.unlocked=Math.max(P.unlocked,L.id+1);
+ save();renderHeader();sfx.win();
+ const last=L.id===LEVELS.length,boss1=L.id===8;
+ say(last?'🏆 Você salvou a Fábrica Maluca de verdade! Eu estou MUITO orgulhoso!':boss1?'🏆 Chefão derrotado! Mas a fábrica tem FASES BÔNUS esperando você!':'🎉 Funcionou! Que técnico(a) incrível!','happy');
+ modal(`<h2>${last?'🏆 Fábrica salva!':boss1?'🏆 Chefão derrotado! Fases bônus liberadas!':'🎉 Fase concluída!'}</h2><div class="bigstars">${starsHTML(stars)}</div><p>Peças usadas: <b>${pieces}</b> (meta: ${L.par}) · Dicas usadas: <b>${hintsUsed}</b></p><p style="font-size:12px;opacity:.7">3 estrelas = usar só as peças necessárias e nenhuma dica.</p>${list}<div class="mbts"><button class="btn" id="m-close">Continuar editando</button>${last?'<button class="btn run" id="m-first">Jogar de novo</button>':'<button class="btn run" id="m-next">Próxima fase ▶</button>'}</div>`);
+ $('#m-close').onclick=closeModal;
+ if(last)$('#m-first').onclick=()=>{closeModal();loadLevel(1)};else $('#m-next').onclick=()=>{closeModal();loadLevel(L.id+1)};
+}
+$('#chk').onclick=verify;
+
+/* ---- fases ---- */
+function validProgram(p,lv){
+ try{return p&&p.rungs&&p.rungs.length>=1&&p.rungs.length<=8&&p.rungs.every(r=>r.cols.length===lv.cols&&r.cols.every(c=>c.length===2))}catch(e){return false}
+}
+function loadLevel(id){
+ if(id>P.unlocked)return;
+ stopSim();setArmed(null);closeModal();
+ L=LEVELS[id-1];hintsUsed=0;
+ PR=validProgram(P.programs[id],L)?P.programs[id]:newProgram(L);
+ tut.on=(id===1&&!P.stars[1]);tut.st=-1;tut.pressed=false;
+ renderHeader();renderPalette();renderRungs();buildMach();setBtns();
+ if(tut.on)tutUpdate();else say(`<b>Fase ${L.id}:</b> ${L.story}`,'happy');
+ $('#rungs').scrollTop=0;
+ maybeLesson();
+}
+function maybeLesson(){if(P.welcomed&&!P.seen[L.id]&&LESSONS[L.id])openLesson(L.id)}
+$('#lv').addEventListener('click',e=>{const b=e.target.closest('.chip');if(b&&!b.classList.contains('lock'))loadLevel(+b.dataset.lv);else if(b){say('Essa fase ainda está trancada. Complete a anterior para liberar!','think');sfx.fail()}});
+$('#snd').onclick=()=>{P.sound=!P.sound;save();renderHeader();if(P.sound)sfx.click()};
+$('#rstp').onclick=()=>{ask('↺ Zerar tudo','Apagar <b>todo</b> o progresso: estrelas, fases desbloqueadas e circuitos salvos? Não dá para desfazer.','Sim, zerar tudo',()=>{
+ try{localStorage.removeItem(KEY)}catch(e){}
+ P=Object.assign({},DEF,{stars:{},programs:{},seen:{},unlocked:1,welcomed:true});save();
+ loadLevel(1);say('Tudo zerado! Vamos começar a Fábrica Maluca do zero. 🍬','happy');
+})};
+
+/* ---- trilha: mini-lições interativas antes de cada fase ---- */
+const NAc=a=>({kind:'NA',addr:a}),NFc=a=>({kind:'NF',addr:a});
+const RG=(cols,out)=>({cols:cols.map(c=>Array.isArray(c)?[c[0]||null,c[1]||null]:[c,null]),out});
+const OC=a=>({kind:'COIL',addr:a}),OT=(a,p)=>({kind:'TON',addr:a,preset:p}),OCT=(a,p,r)=>({kind:'CTU',addr:a,preset:p,reset:r||''});
+const IA={a:'I0.6',l:'Botão A',t:'push',c:'green'},IB={a:'I0.7',l:'Botão B',t:'push',c:'blue'},IS={a:'I0.5',l:'Sensor',t:'pulse',c:'yellow'},IR={a:'I0.4',l:'Zerar',t:'push',c:'red'};
+const LBL={'Q0.6':'Luz X','Q0.7':'Luz Y','T9':'Temporizador','T8':'Temporizador','C9':'Contador'};
+const LESSONS={
+1:[
+ {t:'O que é Ladder?',p:'Ladder é a linguagem dos CLPs e parece uma <b>escada deitada</b>. Os dois lados são os <b>trilhos</b> (a energia) e cada degrau é uma <b>linha</b>. Se a corrente conseguir ir do trilho esquerdo até o direito, a <b>saída liga</b>.',ex:{inputs:[IA],rungs:[RG([NAc('I0.6')],OC('Q0.6'))],cap:'Exemplo de outra máquina: segure o Botão A e veja a corrente ficar verde e a Luz X acender.'}},
+ {t:'As duas peças desta fase',p:'<b>Contato NA</b> (normalmente aberto): deixa a corrente passar só quando a entrada está <b>ligada</b>.<br><b>Bobina</b>: é a saída. Quando recebe corrente, liga a lâmpada, o motor, a esteira...'},
+ {t:'Endereços',p:'<b>I</b> = entrada (botões e sensores). <b>Q</b> = saída (lâmpadas e motores). Você escolhe o endereço no seletor em cima de cada peça. Leia a missão para saber quais endereços usar!'}],
+2:[
+ {t:'Contato NF: o contrário do NA',p:'O <b>Contato NF</b> (normalmente fechado) deixa a corrente passar quando a entrada está <b>desligada</b>. Quando a entrada liga (botão apertado), ele <b>abre</b> e corta a corrente.',ex:{inputs:[IB],rungs:[RG([NFc('I0.7')],OC('Q0.6'))],cap:'Esta luz fica acesa sozinha. Segure o Botão B e ela apaga!'}},
+ {t:'Peças em série = E',p:'Peças <b>uma depois da outra</b> (em série) funcionam como <b>E</b>: todas precisam deixar a corrente passar.',ex:{inputs:[IA,IB],rungs:[RG([NAc('I0.6'),NAc('I0.7')],OC('Q0.6'))],cap:'A Luz X só acende com o Botão A E o Botão B apertados juntos.'}},
+ {t:'Pense antes de montar',p:'Na esteira, o que precisa estar certo para ela rodar? E o que deve fazê-la parar? Decida quais peças ficam em série.'}],
+3:[
+ {t:'O problema do botão',p:'Um botão de pressão só fica ligado enquanto você segura. Se a esteira ligasse só assim, ela pararia assim que você soltasse o dedo! A esteira precisa <b>lembrar</b> que foi ligada.'},
+ {t:'Paralelo = OU',p:'Peças <b>uma embaixo da outra</b> (em paralelo) funcionam como <b>OU</b>: basta uma deixar a corrente passar. Para pôr em paralelo, solte a peça no espaço "ou".',ex:{inputs:[IA,IB],rungs:[RG([[NAc('I0.6'),NAc('I0.7')]],OC('Q0.6'))],cap:'Qualquer um dos dois botões acende a Luz X.'}},
+ {t:'A saída que se lembra',p:'Veja o truque: o <b>próprio contato da saída</b> (Q0.6) em paralelo com o botão. Depois que a saída liga, ela mesma mantém a corrente, e isso é o <b>selo</b>. Neste exemplo falta uma peça: a luz acende, mas nunca mais apaga!',ex:{inputs:[IA],rungs:[RG([[NAc('I0.6'),NAc('Q0.6')]],OC('Q0.6'))],cap:'Aperte e solte o Botão A: a luz fica acesa para sempre. Na sua fase, qual peça faria parar?'}}],
+4:[
+ {t:'E e OU juntos',p:'<b>Série (E)</b>: todas as peças precisam conduzir. <b>Paralelo (OU)</b>: basta uma conduzir. Você pode combinar os dois na mesma linha.',ex:{inputs:[IA,IB,IS],rungs:[RG([[NAc('I0.6'),NAc('I0.7')]],OC('Q0.6'))],cap:'Exemplo só de OU: A ou B acende a luz.'}},
+ {t:'Segurança em série',p:'Travas de segurança, como a porta, ficam <b>em série</b> com todo o resto: se uma delas abrir, a máquina para, não importa o que mais esteja ligado. Pense em onde cada peça da missão deve entrar.'}],
+5:[
+ {t:'Temporizador TON',p:'O <b>TON</b> (atraso para ligar) conta o tempo enquanto recebe corrente. Ao chegar no tempo programado, liga o seu bit de pronto (aqui <b>T9</b>), que você usa como contato. Se a corrente some, ele zera.',ex:{inputs:[IA],rungs:[RG([NAc('I0.6')],OT('T9',3)),RG([NAc('T9')],OC('Q0.6'))],cap:'Segure o Botão A por 3 segundos: o tempo aparece na caixinha e a Luz X acende no fim.'}},
+ {t:'Pense antes de montar',p:'O forno precisa ficar ligado sozinho (você já sabe como) e depois parar sozinho. Que peça poderia cortar a corrente quando o tempo acabar? Lembre que um TON só conta se a sua linha estiver recebendo corrente.'}],
+6:[
+ {t:'Contador CTU',p:'O <b>CTU</b> soma <b>1</b> cada vez que a entrada vai de desligada para ligada (um pulso). Ao chegar no valor <b>PV</b>, liga o seu bit de pronto (aqui <b>C9</b>), que você usa como contato. A entrada <b>R</b> (reset) zera a contagem.',ex:{inputs:[IS,IR],rungs:[RG([NAc('I0.5')],OCT('C9',3,'I0.4'))],cap:'Aqui PV = 3. Clique em Sensor 3 vezes e veja a contagem. Use Zerar para voltar a 0.'}},
+ {t:'Pense antes de montar',p:'Quantas balas a caixa precisa? Quem deve contar, e o que deve acontecer quando a contagem chegar lá? Use o resultado do contador como se fosse um botão.'}],
+7:[
+ {t:'Temporizadores em cadeia',p:'Para fazer uma sequência, o bit de pronto de um TON pode <b>iniciar</b> o próximo. Assim cada etapa começa quando a anterior termina.',ex:{inputs:[IA],rungs:[RG([NAc('I0.6')],OT('T8',2)),RG([NAc('T8')],OT('T9',2))],cap:'Segure o Botão A: primeiro um temporizador conta 2 s, depois o outro.'}},
+ {t:'Pense antes de montar',p:'Desenhe no papel a linha do tempo: o que acende em cada etapa? Cada luz depende de qual relógio? E como o ciclo volta ao começo? Se travar, use as dicas.'}],
+8:[
+ {t:'Juntando tudo',p:'No chefão você usa tudo: <b>selo</b>, <b>NF</b> de segurança, <b>série</b>, <b>contador</b> e <b>várias saídas</b>. Leia a missão e a história com calma, e transforme cada regra em uma linha ou em uma peça do circuito.'},
+ {t:'Dividir para conquistar',p:'Monte um pedaço por vez e use o botão <b>✓ VERIFICAR</b> para ver quais testes já passam. Os testes dizem exatamente o que ainda está errado.'}],
+9:[
+ {t:'Dois relógios se revezando',p:'Para piscar, o bit de pronto de um TON <b>zera o outro</b>. T1 conta o tempo aceso; quando termina, T2 conta o apagado; quando T2 termina, ele <b>corta T1</b> (com um NF) e tudo recomeça.',ex:{inputs:[IA],rungs:[RG([NAc('I0.6'),NFc('T8')],OT('T9',1)),RG([NAc('T9')],OT('T8',1)),RG([NAc('I0.6'),NFc('T9')],OC('Q0.6'))],cap:'Segure o Botão A: a Luz X pisca sozinha, acesa 1 s e apagada 1 s.'}},
+ {t:'Pense antes de montar',p:'Desenhe a linha do tempo: aceso 1 s, apagado 1 s. Quem conta cada parte? Quem faz o ciclo voltar ao começo?'}],
+10:[
+ {t:'Memória M: a anotação do CLP',p:'A <b>memória (M0.0)</b> é uma bobina interna: não liga nada na máquina, mas <b>guarda uma informação</b>. Ótima para lembrar de um pedido rápido, como o botão do pedestre, que só é apertado por um instante.'},
+ {t:'Selo na memória',p:'O selo funciona com qualquer bobina, não só com saídas. A memória liga com o botão, se mantém sozinha e é cortada quando o ciclo termina. Depois é só usar M0.0 como contato nas outras linhas.'}],
+11:[
+ {t:'Reset automático',p:'O reset do CTU pode ser <b>qualquer endereço</b>, até uma memória. Se um temporizador ligar essa memória, o contador <b>se zera sozinho</b> depois de um tempo.'},
+ {t:'Pense antes de montar',p:'Quem conta as 6 balas? Quem mantém a caixa fechada por 3 s? E quem zera o contador no fim? Cada uma dessas tarefas vira uma linha.'}],
+12:[
+ {t:'Contando ciclos',p:'Um contador pode contar <b>ciclos inteiros</b>: ligue-o ao bit de pronto do último temporizador. Cada vez que a rodada termina, ele soma 1 e, ao chegar no PV, corta o selo do lote.'},
+ {t:'Juntando as ideias',p:'Você já sabe: <b>selo</b> (fase 3), <b>revezamento de TON</b> (fase 9), <b>memória</b> (fase 10) e <b>contador</b> (fase 6). Monte um pedaço por vez e use o ✓ VERIFICAR.'}],
+13:[
+ {t:'Partida com aviso',p:'Em máquina de verdade, uma <b>sirene avisa</b> antes de a esteira partir. A memória M0.0 vira o <b>"sistema armado"</b>: o TON conta 3 s a partir dela, a sirene toca durante a contagem e a esteira liga no fim.'},
+ {t:'Último desafio',p:'Todas as condições de segurança (Desliga, Emergência, porta, caixa cheia) cortam o <b>selo de M0.0</b>, e isso para o aviso e a esteira de uma vez. Dividir para conquistar: um pedaço por vez!'}]
+};
+function fixLessonSelects(root,prog){
+ $$('.cell',root).forEach(cell=>{const R=prog.rungs[+cell.dataset.r];const t=cell.dataset.c==='out'?R.out:R.cols[+cell.dataset.c][+cell.dataset.row];if(!t)return;
+  $$('select',cell).forEach(sel=>{const v=t[sel.dataset.f];const lab=(LBL[v]||(ALLIN[v]||''));sel.innerHTML=`<option>${v?v+' · '+lab:'sem reset'}</option>`})})}
+const ALLIN={'I0.6':'Botão A','I0.7':'Botão B','I0.5':'Sensor','I0.4':'Zerar'};
+let lessonTimer=null,lesStep=0,lesEng=null;
+function openLesson(id){lesStep=0;renderLesson(id)}
+function endLesson(id){clearInterval(lessonTimer);P.seen[id]=1;save();closeModal()}
+function renderLesson(id){
+ clearInterval(lessonTimer);
+ const steps=LESSONS[id],s=steps[lesStep],last=lesStep===steps.length-1,lv=LEVELS[id-1];
+ const dots=steps.map((_,i)=>`<span class="${i===lesStep?'on':''}"></span>`).join('');
+ modal(`<h2>📖 Trilha · Fase ${id}</h2><div class="dots">${dots}</div><h3>${s.t}</h3><p>${s.p}</p>${s.ex?`<div class="lex" id="lex"></div><div class="lbtns" id="lbtns"></div><p class="lcap">${s.ex.cap||''}</p>`:''}${last?`<p><b>🎯 Missão:</b> ${lv.mission}</p>`:''}<div class="mbts">${lesStep>0?'<button class="btn" id="l-prev">◀ Voltar</button>':''}<button class="btn run" id="l-next">${last?'Começar a fase 🚀':'Próximo ▶'}</button></div><p><a href="#" id="l-skip">pular trilha</a></p>`,true);
+ if(s.ex){
+  const prog={rungs:s.ex.rungs};lesEng=makeEngine();
+  $('#lex').innerHTML=prog.rungs.map(rungHTML).join('');
+  $('#lbtns').innerHTML=s.ex.inputs.map(i=>{const a=i.a;return `<button class="mbtn ${i.c} ${i.t}" data-a="${a}" data-t="${i.t}"><b>${i.l}</b><small>${a}${i.t==='toggle'?' · chave':i.t==='pulse'?' · pulso':''}</small></button>`}).join('');
+  fixLessonSelects($('#lex'),prog);
+  const lb=$('#lbtns');
+  lb.onpointerdown=e=>{const b=e.target.closest('.mbtn');if(!b)return;e.preventDefault();const a=b.dataset.a,t=b.dataset.t;sfx.click();
+   if(t==='push'){lesEng.in[a]=true;try{b.setPointerCapture(e.pointerId)}catch(_){}}
+   else if(t==='toggle')lesEng.in[a]=!lesEng.in[a];
+   else if(!lesEng.in[a]){lesEng.in[a]=true;setTimeout(()=>{lesEng.in[a]=false},170)}};
+  ['pointerup','pointercancel','lostpointercapture'].forEach(ev=>{lb['on'+ev]=e=>{const b=e.target.closest('.mbtn');if(b&&b.dataset.t==='push')lesEng.in[b.dataset.a]=false}});
+  const paint=()=>{lesEng.scan(.05,prog);applyFlowTo($('#lex'),prog,lesEng,true);$$('#lbtns .mbtn').forEach(b=>b.classList.toggle('on',!!lesEng.in[b.dataset.a]))};
+  paint();lessonTimer=setInterval(paint,50);
+ }
+ const prev=$('#l-prev');if(prev)prev.onclick=()=>{lesStep--;renderLesson(id)};
+ $('#l-next').onclick=()=>{if(last)endLesson(id);else{lesStep++;renderLesson(id)}};
+ $('#l-skip').onclick=e=>{e.preventDefault();endLesson(id)};
+}
+
+/* ---- início ---- */
+resetMs();
+loadLevel(1);
+requestAnimationFrame(frame);
+if(!P.welcomed){
+ modal(`<h2>🍬 Fábrica Maluca do Relê</h2><div style="font-size:60px">🤖</div><p>Oi! Eu sou o <b>Relê</b>, o robozinho da fábrica de doces. As máquinas travaram e só obedecem a quem monta o circuito <b>Ladder</b> certo! São 8 fases e mais 5 fases <b>bônus</b> para os craques.</p><p>Você monta o circuito arrastando peças, aperta <b>RODAR</b> e vê a corrente <b style="color:#12a36a">verde</b> passando. Vou te ajudar em cada fase!</p><div class="mbts"><button class="btn run" id="m-go">Vamos começar! 🚀</button></div>`);
+ $('#m-go').onclick=()=>{P.welcomed=true;save();closeModal();sfx.win();maybeLesson()};
+}
+</script>
+</body>
+</html>
