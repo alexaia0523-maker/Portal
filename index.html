@@ -12,7 +12,8 @@ html,body{margin:0}
 body{font-family:"Trebuchet MS","Segoe UI",system-ui,sans-serif;color:var(--ink);background:linear-gradient(160deg,#fff3c9,#ffd9ec 55%,#dff3ff);min-height:100vh}
 a{color:inherit}
 .wrap{max-width:1000px;margin:0 auto;padding:24px 16px 40px}
-header{display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin-bottom:22px}
+.prof{margin-left:auto;font-weight:900;font-size:14px;color:#fff;background:var(--purple);border:3px solid var(--ink);border-radius:14px;padding:8px 14px;text-decoration:none;box-shadow:0 3px 0 var(--ink);white-space:nowrap}.prof:active{transform:translateY(3px);box-shadow:none}
+header{display:flex;position:relative;align-items:center;gap:16px;flex-wrap:wrap;margin-bottom:22px}
 #rele{width:84px;height:92px;flex:none;animation:bob 2.4s ease-in-out infinite}
 @keyframes bob{50%{transform:translateY(-5px)}}
 @keyframes blink{0%,92%,100%{transform:scaleY(1)}96%{transform:scaleY(.1)}}
@@ -68,6 +69,7 @@ footer a{font-weight:700}
    <h1>Fábrica Maluca do Relê</h1>
    <p class="sub">Jogos para aprender automação industrial e CLP, do jeito mais fácil: arrastando peças, puxando fios e vendo a máquina funcionar.</p>
   </div>
+  <a class="prof" href="questoes/professor.html">👩‍🏫 Área do professor</a>
  </header>
  <p class="bubble" id="msg">🤖 Oi! Eu sou o Relê. Escolha um jogo para começar!</p>
 
@@ -119,6 +121,16 @@ footer a{font-weight:700}
     <h2>Sala de Questões</h2>
     <p>Crie seu usuário, responda as questões de cada fase com correção automática e deixe suas notas salvas para o professor.</p>
     <ul><li>190 questões em 38 fases (Ladder, Ligações, Partida Direta e Reversão)</li><li>Notas salvas na nuvem, em qualquer aparelho</li><li>Monte circuitos Ladder e teste na hora</li></ul>
+    <div class="prog"><span class="go" style="margin-left:auto">Entrar ▶</span></div>
+   </div>
+  </a>
+  <a class="card" href="questoes/professor.html">
+   <div class="thumb" style="background:linear-gradient(135deg,#e4dcff,#c9f5dd)">👩‍🏫</div>
+   <div class="body">
+    <span class="tag">Professor</span>
+    <h2>Área do professor</h2>
+    <p>Veja as notas de todos os alunos por fase, a média da turma e as questões mais erradas. Exporte para Excel e libere ou bloqueie fases.</p>
+    <ul><li>Entrada com e-mail e senha</li><li>Redefinir PIN de aluno</li><li>Notas em Excel (CSV) ou PDF</li></ul>
     <div class="prog"><span class="go" style="margin-left:auto">Entrar ▶</span></div>
    </div>
   </a>
