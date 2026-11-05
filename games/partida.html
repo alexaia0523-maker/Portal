@@ -40,13 +40,17 @@ h1,h2,h3,p{margin:0}.hidden{display:none!important}
 .mcard{max-width:520px;width:100%;padding:18px;max-height:92vh;overflow:auto;text-align:center}.mcard h2{font-size:22px;margin-bottom:8px}.mcard p{margin:6px 0;font-size:14px;line-height:1.4}
 .bigstars{font-size:46px;color:var(--orange);letter-spacing:4px}.mbts{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:10px}
 @keyframes pulse{50%{r:20;opacity:.5}}.blink{animation:pulse .6s infinite}
+details.dt{margin-top:8px;border:2px solid var(--grey);border-radius:12px;padding:6px 10px;background:#fcfbff}details.dt summary{cursor:pointer;font-weight:900;font-size:14px}details.dt svg{margin-top:8px}
+ul.ci{margin:8px 0;padding-left:18px;font-size:13.5px;line-height:1.45}#cnt.full{color:#0a7a4b}
+.wg:hover .wo{stroke-width:10}.wg:hover .wi{stroke-width:6}.wg.lk:hover .wo{stroke-width:6}
+@media(min-width:701px){#app{padding-bottom:84px}}
 @media(max-width:700px){#foot{position:static}#scroll{max-height:78vh}.btns .btn{padding:6px 8px;font-size:12px}.logo{font-size:15px}#cheat ul{columns:1}#rele{width:42px;height:46px}.btns{width:100%;justify-content:center}}
 </style></head><body>
 <div id="app">
  <header id="top" class="card"><div class="row"><div class="logo">Bancada do Relê · Partida Direta</div><a class="btn sm" href="../index.html">🏠 Portal</a><span class="sp"></span><button class="btn sm" id="snd">🔊</button></div><nav id="lv"></nav></header>
  <section id="lesson" class="card"></section>
  <section id="benchbox" class="card">
-  <div id="tools" class="row"><span style="font-weight:800;font-size:13px">Cor do cabo:</span><span id="cols" class="row" style="gap:6px"></span><span class="sp"></span><button class="btn sm" id="zout">➖</button><button class="btn sm" id="zfit">Ajustar</button><button class="btn sm" id="zin">➕</button></div>
+  <div id="tools" class="row"><span style="font-weight:800;font-size:13px">Cor do cabo:</span><span id="cols" class="row" style="gap:6px"></span><span id="cnt" style="font-weight:800;font-size:13px"></span><span class="sp"></span><button class="btn sm" id="zout">➖</button><button class="btn sm" id="zfit">Ajustar</button><button class="btn sm" id="zin">➕</button></div>
   <div id="scroll"><svg id="bench" xmlns="http://www.w3.org/2000/svg"></svg></div>
   <div id="status">Arraste de um borne a outro para ligar um cabo. Toque num cabo para remover.</div>
  </section>
@@ -55,7 +59,7 @@ h1,h2,h3,p{margin:0}.hidden{display:none!important}
  <footer id="foot" class="card">
   <svg id="rele" viewBox="0 0 90 100"><line x1="45" y1="8" x2="45" y2="22" stroke="#2b2250" stroke-width="4"/><circle cx="45" cy="7" r="6" fill="#ff5fa2" stroke="#2b2250" stroke-width="3"/><rect x="22" y="80" width="46" height="16" rx="7" fill="#ff9f1c" stroke="#2b2250" stroke-width="4"/><rect x="3" y="38" width="8" height="22" rx="4" fill="#ffd23f" stroke="#2b2250" stroke-width="3"/><rect x="79" y="38" width="8" height="22" rx="4" fill="#ffd23f" stroke="#2b2250" stroke-width="3"/><rect x="10" y="20" width="70" height="58" rx="17" fill="#7fd8ff" stroke="#2b2250" stroke-width="4"/><rect x="18" y="29" width="54" height="36" rx="11" fill="#2b2250"/><circle class="eye" cx="35" cy="44" r="5" fill="#7cff8a"/><circle class="eye" cx="55" cy="44" r="5" fill="#7cff8a"/><path id="mouth" d="M36 54Q45 63 54 54" stroke="#7cff8a" stroke-width="3.5" fill="none" stroke-linecap="round"/><circle cx="25" cy="58" r="3" fill="#ff5fa2" opacity=".8"/><circle cx="65" cy="58" r="3" fill="#ff5fa2" opacity=".8"/></svg>
   <div id="bubble"></div>
-  <div class="btns"><button class="btn sm" id="bhint">💡 Dica</button><button class="btn sm" id="blist">📋 Lista de ligações</button><button class="btn sm" id="bundo">↶ Desfazer</button><button class="btn sm" id="bclear">🗑️ Limpar</button><button class="btn run" id="btest">▶ Testar</button></div>
+  <div class="btns"><button class="btn sm" id="bsch">📐 Esquema</button><button class="btn sm" id="bhint">💡 Dica</button><button class="btn sm" id="blist">📋 Lista de ligações</button><button class="btn sm" id="bundo">↶ Desfazer</button><button class="btn sm" id="bclear">🗑️ Limpar</button><button class="btn run" id="btest">▶ Testar</button></div>
  </footer>
 </div>
 <div id="modal" class="overlay hidden"><div class="mcard card" id="mbody"></div></div>
@@ -120,6 +124,44 @@ function runTests(level,wires){
   return{name:t.name,ok:!fail,msg:fail}})}
 function wireSat(wires,a,b){const uf=UF();wires.forEach(w=>uf.union(w[0],w[1]));return uf.find(a)===uf.find(b)}
 /*PURE_END*/
+
+/*SCH_START*/
+const I_='#2b2250';
+const na=(l,p)=>({t:'NA',l,p}),nf=(l,p)=>({t:'NF',l,p}),fu=l=>({t:'FU',l}),sw=l=>({t:'SW',l}),coil=l=>({t:'COIL',l}),lamp=(l,c)=>({t:'LAMP',l,c});
+function sym(it){const w=76,cx=38;const tx=(y,t,sz)=>`<text x="${cx}" y="${y}" text-anchor="middle" font-size="${sz||11}" font-weight="800" fill="${I_}">${t}</text>`;
+ let s=`<line x1="0" y1="0" x2="${w}" y2="0" stroke="${I_}" stroke-width="2.5"/>`;
+ if(it.t==='NA'||it.t==='NF'||it.t==='SW'){s+=`<rect x="${cx-12}" y="-13" width="24" height="26" fill="#fff"/><line x1="${cx-9}" y1="-13" x2="${cx-9}" y2="13" stroke="${I_}" stroke-width="3"/><line x1="${cx+9}" y1="-13" x2="${cx+9}" y2="13" stroke="${I_}" stroke-width="3"/>`;
+  if(it.t==='NF')s+=`<line x1="${cx-15}" y1="14" x2="${cx+15}" y2="-14" stroke="#c0182c" stroke-width="2.5"/>`;
+  s+=tx(-22,it.l)+(it.p?tx(31,it.p,9):'')}
+ else if(it.t==='FU')s+=`<rect x="${cx-16}" y="-8" width="32" height="16" fill="#fff" stroke="${I_}" stroke-width="3"/><line x1="${cx-16}" y1="0" x2="${cx+16}" y2="0" stroke="${I_}" stroke-width="2"/>`+tx(-16,it.l);
+ else if(it.t==='COIL')s+=`<circle cx="${cx}" cy="0" r="17" fill="#ffe6f1" stroke="${I_}" stroke-width="3"/>`+tx(4,it.l)+tx(32,'A1-A2',9);
+ else if(it.t==='LAMP')s+=`<circle cx="${cx}" cy="0" r="16" fill="${it.c||'#fff'}" stroke="${I_}" stroke-width="3"/><line x1="${cx-11}" y1="-11" x2="${cx+11}" y2="11" stroke="${I_}" stroke-width="2.5"/><line x1="${cx+11}" y1="-11" x2="${cx-11}" y2="11" stroke="${I_}" stroke-width="2.5"/>`+tx(-24,it.l);
+ return{w,top:34,bot:36,svg:s}}
+function series(items){let x=0,top=0,bot=0,svg='';for(const it of items){const n=it.par?par(it.par):sym(it);svg+=`<g transform="translate(${x},0)">${n.svg}</g>`;x+=n.w;top=Math.max(top,n.top);bot=Math.max(bot,n.bot)}return{w:x,top,bot,svg}}
+function par(br){const bs=br.map(series);const w=Math.max(...bs.map(b=>b.w))+20;let y=0,svg='',prev=0,ys=[];
+ bs.forEach((b,i)=>{if(i>0)y+=prev+b.top+8;ys.push(y);svg+=`<g transform="translate(10,${y})">${b.svg}</g><line x1="0" y1="${y}" x2="10" y2="${y}" stroke="${I_}" stroke-width="2.5"/><line x1="${10+b.w}" y1="${y}" x2="${w}" y2="${y}" stroke="${I_}" stroke-width="2.5"/>`;prev=b.bot});
+ svg+=`<line x1="1" y1="0" x2="1" y2="${y}" stroke="${I_}" stroke-width="2.5"/><line x1="${w-1}" y1="0" x2="${w-1}" y2="${y}" stroke="${I_}" stroke-width="2.5"/>`;
+ return{w,top:bs[0].top,bot:y+prev,svg}}
+function ladderSVG(rows){const ns=rows.map(r=>series(r.items));const W=Math.max(...ns.map(n=>n.w))+110;let y=ns[0].top+14,out='',ys=[];
+ rows.forEach((r,i)=>{ys.push(y);const n=ns[i];out+=`<line x1="14" y1="${y}" x2="34" y2="${y}" stroke="${I_}" stroke-width="2.5"/><g transform="translate(34,${y})">${n.svg}</g><line x1="${34+n.w}" y1="${y}" x2="${W-40}" y2="${y}" stroke="${I_}" stroke-width="2.5"/>`;
+  if(r.note)out+=`<text x="38" y="${y+n.bot+14}" font-size="10.5" font-weight="700" fill="#5b5470">${r.note}</text>`;
+  const nx=ns[i+1];y+=n.bot+(r.note?22:6)+(nx?nx.top:0)+10});
+ const H=y+8;out=`<line x1="14" y1="14" x2="14" y2="${ys[ys.length-1]}" stroke="#e53935" stroke-width="5"/><line x1="${W-40}" y1="14" x2="${W-40}" y2="${ys[ys.length-1]}" stroke="#37474f" stroke-width="5"/><text x="14" y="10" text-anchor="middle" font-size="11" font-weight="900" fill="#e53935">FASE</text><text x="${W-40}" y="10" text-anchor="middle" font-size="11" font-weight="900" fill="#37474f">NEUTRO</text>`+out;
+ return `<svg viewBox="0 0 ${W} ${H}" style="width:100%;max-width:${W}px;height:auto;display:block;margin:0 auto">${out}</svg>`}
+function powerSVG(kind){const rev=kind==='rev',C=['#e53935','#fdd835','#1e88e5'],ys=[62,94,126];let s='';
+ const box=(x,y,w,h,t,f)=>`<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="8" fill="${f||'#fff'}" stroke="${I_}" stroke-width="3"/><text x="${x+w/2}" y="${y+16}" text-anchor="middle" font-size="11" font-weight="900" fill="${I_}">${t}</text>`;
+ const ln=(x1,y1,x2,y2,c,d)=>`<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${I_}" stroke-width="7" stroke-linecap="round"/><line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${c}" stroke-width="4" stroke-linecap="round"${d?' stroke-dasharray="1 8"':''}/>`;
+ const tg=(x,y,t,c)=>`<text x="${x}" y="${y}" font-size="9" font-weight="900" fill="${c||I_}">${t}</text>`;
+ s+=box(20,36,70,116,'FONTE','#e4dcff')+box(150,36,70,116,'Q1','#fff')+box(270,36,80,116,rev?'K1 · FRENTE':'K1','#fff')+box(420,36,80,116,'F2 térmico','#fff')+box(560,36,70,116,'MOTOR','#e4dcff');
+ ys.forEach((y,i)=>{s+=ln(90,y,150,y,C[i])+ln(220,y,270,y,C[i])+ln(350,y,420,y,C[i])+ln(500,y,560,y,C[i])+tg(96,y-6,['R','S','T'][i])+tg(228,y-6,['2','4','6'][i])+tg(356,y-6,'L'+(i+1))+tg(506,y-6,['U','V','W'][i])});
+ let H=190;
+ if(rev){const y2=[206,238,270];H=316;s+=box(270,176,80,116,'K2 · REVERSO','#dff0ff');
+  [0,1,2].forEach(i=>{const jx=232+i*9;s+=ln(jx,ys[i],jx,y2[i],C[i])+ln(jx,y2[i],270,y2[i],C[i])+`<circle cx="${jx}" cy="${ys[i]}" r="4" fill="${I_}"/>`});
+  [0,1,2].forEach(i=>{s+=ln(350,y2[i],420,ys[2-i],C[i])});
+  s+=`<text x="385" y="${H-4}" text-anchor="middle" font-size="11" font-weight="900" fill="#c0182c">K2 cruza duas fases: L1 ↔ L3</text><text x="395" y="${y2[0]-36}" font-size="9" font-weight="800" fill="#5b5470">saídas cruzadas</text>`}
+ return `<svg viewBox="0 0 650 ${H}" style="width:100%;max-width:650px;height:auto;display:block;margin:0 auto">${s}</svg>`}
+function schemHTML(sp){if(!sp)return'';return (sp.power?powerSVG(sp.power):ladderSVG(sp.rows))+(sp.note?`<p class="hint" style="margin-top:6px;text-align:center">${sp.note}</p>`:'')}
+/*SCH_END*/
 
 /*LV_START*/
 const q_=(id,v)=>({q:[id,v]}),P_=id=>({p:id}),R_=id=>({r:id}),H_=id=>({h:id}),U_=id=>({u:id}),TR=id=>({trip:id}),RS=id=>({reset:id}),E_=(ex,msg)=>({ex,msg});
@@ -201,6 +243,19 @@ const GAME={id:'partida',title:'Bancada do Relê · Partida Direta',key:'fabrica
 ]};
 /*LV_END*/
 
+const _m=[sw('Q1'),fu('F1'),nf('S0','11-12'),{par:[[na('S1','13-14')],[na('K1','13-14')]]},coil('K1'),nf('F2','95-96')];
+const _lamps=[{items:[lamp('H1','#19c37d')],note:'H1 (verde): em paralelo com a bobina, no borne A1 de K1'},{items:[nf('K1','21-22'),lamp('H2','#ff4d5e')],note:'H2 (vermelha): sai do fusível F1 e passa pelo NF 21-22 de K1'},{items:[na('F2','97-98'),lamp('H3','#ffc400')],note:'H3 (amarela): sai do fusível F1 e passa pelo NA 97-98 do térmico'}];
+const SCH={
+1:{rows:[{items:[sw('Q1'),lamp('H1','#19c37d')]}],note:'Fase R → disjuntor Q1 → lâmpada H1 → neutro N'},
+2:{rows:[{items:[sw('Q1'),na('S1','13-14'),lamp('H1','#19c37d')]}],note:'O botão NA fecha só enquanto você aperta'},
+3:{rows:[{items:[sw('Q1'),nf('S0','11-12'),lamp('H1','#19c37d')]}],note:'O botão NF conduz em repouso e abre ao apertar'},
+4:{power:'direct',note:'Potência: as três fases passam por Q1, K1 e F2 até o motor, sempre na mesma ordem (1→1, 3→3, 5→5).'},
+5:{rows:[{items:[sw('Q1'),fu('F1'),nf('S0','11-12'),na('S1','13-14'),coil('K1')]}],note:'Comando: fase → F1 → S0 (NF) → S1 (NA) → bobina K1 → neutro. Ainda sem selo.'},
+6:{rows:[{items:[sw('Q1'),fu('F1'),nf('S0','11-12'),{par:[[na('S1','13-14')],[na('K1','13-14')]]},coil('K1')]}],note:'O contato 13-14 de K1 (selo) fica em paralelo com S1 e mantém a bobina ligada.'},
+7:{rows:[{items:[sw('Q1'),fu('F1'),nf('S0','11-12'),{par:[[na('S1','13-14')],[na('K1','13-14')]]},coil('K1'),nf('F2','95-96')]}],note:'O NF 95-96 do relé térmico fica em série: na sobrecarga ele abre e desliga a bobina.'},
+8:{rows:[{items:_m},..._lamps],note:'Comando completo com as três lâmpadas de sinalização.'},
+9:{rows:[{items:_m},..._lamps],note:'Esquema completo da partida direta.'}};
+
 const $=s=>document.querySelector(s);
 const KEY=GAME.key;
 let S={stars:{},wires:{},sound:true};
@@ -244,8 +299,16 @@ M:c=>({w:240,h:230,svg:box(240,230,'#e4dcff')+`<circle cx="120" cy="124" r="68" 
  jacks:[jk('U',50,26,'U1','b'),jk('V',120,26,'V1','b'),jk('W',190,26,'W1','b')]})
 };
 /* ---------- estado do jogo ---------- */
-let LV=null,comps=[],pre=[],wires=[],st=null,res=null,pos={},jpos={},color='#e53935',hist=[],armed=null,drag=null,zoom=1,vbW=1100,vbH=600,lock=false,hints=0,attempts=0,listUsed=false,motorAng=0,motorRun=0,motorDir=0;
-const COLORS=['#e53935','#212121','#1e88e5','#fdd835','#43a047','#8e24aa','#f57c00'];
+let LV=null,comps=[],pre=[],wires=[],st=null,res=null,pos={},jpos={},color=null,hist=[],armed=null,drag=null,zoom=1,vbW=1100,vbH=600,lock=false,hints=0,attempts=0,listUsed=false,schemUsed=false,motorAng=0,motorRun=0,motorDir=0;
+const COLORS=['#8e24aa','#43a047','#f57c00','#212121','#eceff1'];
+const PCOL={R:'#e53935',S:'#fdd835',T:'#1e88e5',N:'#37474f'};
+function netLabels(){const uf=UF();allW().forEach(w=>uf.union(w[0],w[1]));const firstK=(comps.find(c=>c.type==='K')||{}).id;
+ for(const c of comps){const id=c.id,a=(x,y)=>uf.union(id+'.'+x,id+'.'+y);
+  if(c.type==='Q'||c.type==='F2'||(c.type==='K'&&c.id===firstK)){a(1,2);a(3,4);a(5,6)}
+  if(c.type==='FU')a(1,2);if(c.type==='K'){a(13,14);a(21,22)}if(c.type==='F2'){a(95,96);a(97,98)}if(c.type==='S0')a(11,12);if(c.type==='SB'){a(13,14);if(c.nf)a(21,22)}}
+ const src=comps.find(c=>c.type==='SRC'),lab={};if(src)['R','S','T','N'].forEach(n=>{lab[uf.find(src.id+'.'+n)]=n});
+ return t=>{const[id,p]=t.split('.');const c=comps.find(x=>x.id===id);if(c&&c.type==='K'&&c.id!==firstK&&['2','4','6'].includes(p))t=id+'.'+(+p-1);return lab[uf.find(t)]||null}}
+function autoCol(L,w){const l=L(w[0])||L(w[1]);return l?PCOL[l]:'#8d6e63'}
 const svg=$('#bench');
 function layout(){const Wd=1100,gap=16;let x=gap,y=gap,rh=0;pos={};jpos={};for(const c of comps){const d=DRAW[c.type](c);if(x+d.w>Wd-gap&&x>gap){x=gap;y+=rh+gap;rh=0}pos[c.id]={x,y,d};d.jacks.forEach(j=>jpos[c.id+'.'+j.n]={x:x+j.x,y:y+j.y});x+=d.w+gap;rh=Math.max(rh,d.h)}vbW=Wd;vbH=y+rh+gap}
 function termName(t){const[a,b]=t.split('.');const c=comps.find(x=>x.id===a);const d=pos[a]&&pos[a].d.jacks.find(j=>j.n===b);return(c&&c.type==='SRC'?'Fonte ':a+' ')+'('+(d?d.l.replace(/\/.*/,''):b)+')'}
@@ -255,17 +318,19 @@ function buildBench(){
   for(const j of p.d.jacks){const lx=j.lp==='b'?[0,23]:j.lp==='a'?[0,-14]:j.lp==='r'?[16,4]:[-16,4];h+=`<circle cx="${j.x}" cy="${j.y}" r="10" fill="${j.fill}" stroke="${INK}" stroke-width="3"/><circle cx="${j.x}" cy="${j.y}" r="3.5" fill="${INK}"/>`;
    lab+=`<text x="${j.x+lx[0]}" y="${j.y+lx[1]}" font-size="11" font-weight="900" text-anchor="${j.lp==='r'?'start':j.lp==='l'?'end':'middle'}" fill="${INK}" stroke="#fff" stroke-width="3.5" paint-order="stroke" stroke-linejoin="round">${j.l}</text>`}
   h+='</g>';lab+='</g>'}
- h+='<g id="wl"></g>'+lab+'<path id="tmpw" d="" fill="none" stroke="#999" stroke-width="5" stroke-dasharray="6 5" pointer-events="none"/><g id="hl" pointer-events="none"></g><g id="jh">';
- for(const k in jpos)h+=`<circle data-t="${k}" cx="${jpos[k].x}" cy="${jpos[k].y}" r="17" fill="transparent" style="cursor:crosshair;touch-action:none"/>`;
+ h+='<g id="wl"></g>'+lab+'<path id="tmpw" d="" fill="none" stroke="#999" stroke-width="5" stroke-dasharray="6 5" pointer-events="none"/><g id="nh" pointer-events="none"></g><g id="hl" pointer-events="none"></g><g id="jh">';
+ for(const k in jpos)h+=`<circle data-t="${k}" cx="${jpos[k].x}" cy="${jpos[k].y}" r="17" fill="transparent" style="cursor:crosshair;touch-action:none"><title>${termName(k)}</title></circle>`;
  h+='</g>';svg.setAttribute('viewBox',`0 0 ${vbW} ${vbH}`);svg.innerHTML=h;setZoom(zoom);renderWires()}
 function setZoom(z){zoom=Math.max(.4,Math.min(1.6,z));svg.setAttribute('width',Math.round(vbW*zoom));svg.setAttribute('height',Math.round(vbH*zoom))}
 function fit(){const w=$('#scroll').clientWidth-6;setZoom(Math.max(.62,Math.min(1.2,w/vbW)))}
 function wpath(a,b,i){const p=jpos[a],q=jpos[b];if(!p||!q)return'';const d=Math.hypot(p.x-q.x,p.y-q.y),sag=18+d*.1+(i%4)*6,off=((i*7)%5-2)*5;return`M${p.x} ${p.y}C${p.x+off} ${p.y+sag},${q.x+off} ${q.y+sag},${q.x} ${q.y}`}
-function renderWires(){let h='';const all=[...pre.map(w=>({w,lock:1})),...wires.map(w=>({w,lock:0}))];
- all.forEach((o,i)=>{const d=wpath(o.w[0],o.w[1],i),col=o.lock?'#5b5470':(o.w[2]||'#e53935');h+=`<path d="${d}" fill="none" stroke="${INK}" stroke-width="${o.lock?6:7.5}" stroke-linecap="round"/><path d="${d}" fill="none" stroke="${col}" stroke-width="${o.lock?3.2:4.6}" stroke-linecap="round"${o.lock?' stroke-dasharray="1 0"':''}/>`;
+function renderWires(){let h='';const L=netLabels();const all=[...pre.map(w=>({w,lock:1})),...wires.map(w=>({w,lock:0}))];
+ all.forEach((o,i)=>{const d=wpath(o.w[0],o.w[1],i),col=o.w[2]||autoCol(L,o.w);h+=`<g class="wg${o.lock?' lk':''}"><path class="wo" d="${d}" fill="none" stroke="${INK}" stroke-width="${o.lock?6:7.5}" stroke-linecap="round"/><path class="wi" d="${d}" fill="none" stroke="${col}" stroke-width="${o.lock?3.4:4.6}" stroke-linecap="round"${o.lock?' stroke-dasharray="9 5"':''}/>`;
   for(const e of [o.w[0],o.w[1]]){const p=jpos[e];h+=`<circle cx="${p.x}" cy="${p.y}" r="6" fill="${col}" stroke="${INK}" stroke-width="2.5"/>`}
-  if(!o.lock)h+=`<path data-w="${i-pre.length}" d="${d}" fill="none" stroke="transparent" stroke-width="18" style="cursor:pointer"/>`});
+  if(!o.lock)h+=`<path data-w="${i-pre.length}" d="${d}" fill="none" stroke="transparent" stroke-width="18" style="cursor:pointer"><title>Toque para remover este cabo</title></path>`;h+='</g>'});
  $('#wl').innerHTML=h;
+ let nh='';if(armed){const uf=UF();allW().forEach(w=>uf.union(w[0],w[1]));const r=uf.find(armed);for(const k in jpos)if(k!==armed&&uf.find(k)===r)nh+=`<circle cx="${jpos[k].x}" cy="${jpos[k].y}" r="15" fill="none" stroke="#6c4cf1" stroke-width="3" stroke-dasharray="4 3"/>`}
+ const hn=document.getElementById('nh');if(hn)hn.innerHTML=nh;
  document.querySelectorAll('#jh circle').forEach(c=>c.setAttribute('stroke',c.dataset.t===armed?'#6c4cf1':'none'));
  document.querySelectorAll('#jh circle').forEach(c=>c.setAttribute('stroke-width',3));
  const a=document.querySelector(`#jh circle[data-t="${armed}"]`);if(a)a.setAttribute('fill','rgba(108,76,241,.25)');}
@@ -292,17 +357,19 @@ svg.addEventListener('pointerdown',e=>{
   else if(a==='master'){st.master=!st.master;sfx.clack()}
   refresh()}});
 let held=null;
-svg.addEventListener('pointermove',e=>{if(!drag)return;if(Math.hypot(e.clientX-drag.x,e.clientY-drag.y)>6)drag.moved=true;if(drag.moved){const p=toSvg(e),a=jpos[drag.from];$('#tmpw').setAttribute('d',`M${a.x} ${a.y}L${p.x} ${p.y}`);$('#tmpw').setAttribute('stroke',color)}});
+let snap=null;
+svg.addEventListener('pointermove',e=>{if(!drag)return;if(Math.hypot(e.clientX-drag.x,e.clientY-drag.y)>6)drag.moved=true;if(drag.moved){const p=toSvg(e),a=jpos[drag.from];let best=null,bd=30;for(const k in jpos){if(k===drag.from)continue;const d=Math.hypot(jpos[k].x-p.x,jpos[k].y-p.y);if(d<bd){bd=d;best=k}}snap=best;const q=best?jpos[best]:p;$('#tmpw').setAttribute('d',`M${a.x} ${a.y}L${q.x} ${q.y}`);$('#tmpw').setAttribute('stroke',color||'#6c4cf1');
+ $('#hl').innerHTML=best?`<circle cx="${jpos[best].x}" cy="${jpos[best].y}" r="16" fill="rgba(25,195,125,.25)" stroke="#19c37d" stroke-width="3"/><text x="${jpos[best].x+20}" y="${jpos[best].y-14}" font-size="12" font-weight="900" fill="#0a7a4b" stroke="#fff" stroke-width="3" paint-order="stroke">${termName(best)}</text>`:''}});
 const endAll=e=>{
  if(held){if(held.t==='press')st.press[held.id]=false;else st.hold[held.id]=false;held=null;refresh()}
  if(!drag)return;const d=drag;drag=null;$('#tmpw').setAttribute('d','');
- const el=document.elementFromPoint(e.clientX,e.clientY),tj=el&&el.closest&&el.closest('[data-t]'),to=tj&&tj.dataset.t;
+ const el=document.elementFromPoint(e.clientX,e.clientY),tj=el&&el.closest&&el.closest('[data-t]'),to=snap||(tj&&tj.dataset.t);snap=null;$('#hl').innerHTML='';
  if(d.moved){if(to&&to!==d.from){addWire(d.from,to);armed=null}else armed=null}
  else{if(armed&&armed!==d.from){addWire(armed,d.from);armed=null}else if(armed===d.from)armed=null;else{armed=d.from;say(`Borne ${termName(d.from)} escolhido. Toque no outro borne para ligar o cabo.`)}}
  renderWires()};
 window.addEventListener('pointerup',endAll);window.addEventListener('pointercancel',endAll);
-$('#cols').innerHTML=COLORS.map(c=>`<button class="cdot${c===color?' on':''}" data-c="${c}" style="background:${c}" title="cor do cabo"></button>`).join('');
-$('#cols').addEventListener('click',e=>{const b=e.target.closest('.cdot');if(!b)return;color=b.dataset.c;document.querySelectorAll('.cdot').forEach(x=>x.classList.toggle('on',x===b))});
+$('#cols').innerHTML=`<button class="cdot on" data-c="auto" style="background:conic-gradient(#e53935 0 33%,#fdd835 0 66%,#1e88e5 0)" title="Cor automática por fase (R vermelho, S amarelo, T azul, N preto)"></button>`+COLORS.map(c=>`<button class="cdot" data-c="${c}" style="background:${c}" title="cor do cabo"></button>`).join('');
+$('#cols').addEventListener('click',e=>{const b=e.target.closest('.cdot');if(!b)return;color=b.dataset.c==='auto'?null:b.dataset.c;document.querySelectorAll('.cdot').forEach(x=>x.classList.toggle('on',x===b))});
 $('#zin').onclick=()=>setZoom(zoom+.12);$('#zout').onclick=()=>setZoom(zoom-.12);$('#zfit').onclick=fit;
 $('#snd').onclick=()=>{S.sound=!S.sound;save();$('#snd').textContent=S.sound?'🔊':'🔇';sfx.tick()};
 /* ---------- simulação ao vivo ---------- */
@@ -310,6 +377,7 @@ const FMSG={fuse:'💥 O fusível queimou: curto no comando. Remova o cabo errad
 let lastK={},flash=null;
 function refresh(){
  res=solve(comps,[...pre,...wires],st);
+ {const s=LV.sol,ok=s.filter(w=>wireSat(allW(),w[0],w[1])).length;$('#cnt').innerHTML=s.length?`🔌 Ligações certas: <b>${ok}/${s.length}</b>`:'';$('#cnt').className=s.length&&ok===s.length?'full':''}
  const msgs=[];(res.faults||[]).forEach(f=>{const k=f.split(':')[0];msgs.push(FMSG[k]);sfx.alarm()});
  for(const c of comps){const p=document.getElementById.bind(document);
   if(c.type==='Q'){const on=st.q[c.id];p(c.id+'_lev').setAttribute('transform',`rotate(${on?-26:26} 100 105)`)}
@@ -329,13 +397,24 @@ function refresh(){
  else{const m=res.motor;$('#status').className=m.state==='run'?'good':'';$('#status').textContent=m.state==='run'?(m.dir>0?'✅ Motor girando para a FRENTE (↻).':'✅ Motor girando em REVERSO (↺).'):'Arraste de um borne a outro para ligar um cabo. Toque num cabo para remover. Clique nos botões e no disjuntor para operar.'}
 }
 (function spin(){motorAng+=motorRun*motorDir*7;const f=document.getElementById('M1_fan');if(f){const j=motorRun===.25?(Math.random()*4-2):0;f.setAttribute('transform',`rotate(${motorAng+j} 120 124)`)}requestAnimationFrame(spin)})();
+const CINFO={SRC:['Fonte','Três fases R, S, T (380 V entre fases) e neutro N (220 V entre fase e neutro). O botão GERAL desarma em curto na fonte.'],
+ Q:['Disjuntor Q1','Liga e desliga o circuito e protege contra curto e sobrecarga. Bornes 1-3-5 (entrada) e 2-4-6 (saída). Clique para ligar.'],
+ FU:['Fusível F1','Protege o circuito de comando e queima em curto. Clique no fusível queimado para trocar.'],
+ K:['Contator K','Chave de potência acionada por uma bobina (A1-A2). Potência 1-3-5 / 2-4-6. Auxiliares: 13-14 (NA) e 21-22 (NF). Segure o corpo para acionar à mão.'],
+ F2:['Relé térmico F2','Protege o motor contra sobrecarga. O NF 95-96 corta a bobina; o NA 97-98 serve para sinalizar. Use SOBRECARGA para simular e REARMAR para voltar.'],
+ S0:['Botão S0 (DESLIGA)','Vermelho, contato NF nos bornes 11-12. Em série com o comando.'],
+ SB:['Botão LIGA','Contato NA nos bornes 13-14 (verde ou azul). Alguns têm também NF nos bornes 21-22.'],
+ H:['Lâmpada de sinalização','220 V: ligue entre fase e neutro (X1 e X2).'],
+ M:['Motor M1','Trifásico: U1, V1 e W1 recebem as três fases. Trocar duas fases inverte o sentido de giro.']};
+function compInfo(){const seen=new Set(),out=[];for(const c of comps){if(seen.has(c.type))continue;seen.add(c.type);const i=CINFO[c.type];if(i)out.push(`<li><b>${i[0]}:</b> ${i[1]}</li>`)}return '<ul class="ci">'+out.join('')+'</ul><p class="hint">Cores dos cabos (automáticas): R vermelho · S amarelo · T azul · N preto · comando sem fase em marrom. Cabos tracejados já vêm prontos e não podem ser removidos.</p>'}
 /* ---------- fases ---------- */
 function chips(){$('#lv').innerHTML=GAME.levels.map(l=>`<button class="chip${l.id===LV.id?' cur':''}${l.bonus?' bonus':''}${l.boss?' boss':''}" data-i="${l.id}" title="${l.name}">${l.boss?'🏆':l.id}<i>${'★'.repeat(S.stars[l.id]||0)+'☆'.repeat(3-(S.stars[l.id]||0))}</i></button>`).join('')}
 $('#lv').addEventListener('click',e=>{const b=e.target.closest('.chip');if(b&&!lock)openLevel(+b.dataset.i)});
 function openLevel(id){
  LV=GAME.levels.find(l=>l.id===id);comps=LV.comps;pre=LV.pre.map(w=>[w[0],w[1]]);wires=(S.wires[id]||[]).filter(w=>jposOK(w));hist=[];armed=null;hints=0;attempts=0;listUsed=false;lastK={};st=mkState(comps);
  $('#resbox').classList.add('hidden');$('#cheat').classList.add('hidden');
- $('#lesson').innerHTML=`<h2>${LV.boss?'🏆 ':''}Fase ${id} · ${LV.name}${LV.bonus?' (bônus)':''}</h2><p><b>Missão:</b> ${LV.goal}</p><div class="learn">💡 <b>Aprenda:</b> ${LV.learn}</div>`;
+ const sp=(typeof SCH!=='undefined')&&SCH[id];schemUsed=false;
+ $('#lesson').innerHTML=`<h2>${LV.boss?'🏆 ':''}Fase ${id} · ${LV.name}${LV.bonus?' (bônus)':''}</h2><p><b>Missão:</b> ${LV.goal}</p><div class="learn">💡 <b>Aprenda:</b> ${LV.learn}</div><details class="dt"><summary>🔎 Conheça os componentes desta fase</summary>${compInfo()}</details>`;
  $('#btest').textContent=LV.demo?'⚡ Provocar o curto':'▶ Testar';
  chips();buildBench();fit();refresh();say(`<b>Fase ${id}:</b> ${LV.goal}`);
  $('#scroll').scrollTo(0,0);window.scrollTo({top:0})}
@@ -369,9 +448,13 @@ $('#btest').onclick=async()=>{
 function showWin(stars){const i=GAME.levels.findIndex(l=>l.id===LV.id),nx=GAME.levels[i+1];
  $('#mbody').innerHTML=`<h2>${LV.boss?'🏆':'🎉'} Fase ${LV.id} concluída!</h2><div class="bigstars">${'★'.repeat(stars)+'☆'.repeat(3-stars)}</div><p>${LV.learn}</p><p style="font-size:12px;opacity:.7">3 estrelas: sem dicas e em até 3 testes · 2 estrelas: poucas dicas</p><div class="mbts"><button class="btn rst" id="m-stay">Continuar na bancada</button>${nx?'<button class="btn run" id="m-next">Próxima fase ▶</button>':''}</div>`;
  $('#modal').classList.remove('hidden');$('#m-stay').onclick=()=>$('#modal').classList.add('hidden');if(nx)$('#m-next').onclick=()=>{$('#modal').classList.add('hidden');openLevel(nx.id)}}
-$('#modal').addEventListener('click',e=>{if(e.target.id==='modal')e.target.classList.add('hidden')});
+$('#modal').addEventListener('click',e=>{if(e.target.id==='modal'){e.target.classList.add('hidden');$('#mbody').style.maxWidth=''}});
 $('#snd').textContent=S.sound?'🔊':'🔇';
 window.addEventListener('resize',()=>{});
 openLevel(GAME.levels.find(l=>!S.stars[l.id])?GAME.levels.find(l=>!S.stars[l.id]).id:1);
+
+$('#bsch').onclick=()=>{if(lock)return;const sp=SCH[LV.id];if(!sp)return;if(LV.boss&&!schemUsed){schemUsed=true;hints++}
+ $('#mbody').innerHTML=`<h2>📐 Esquema · Fase ${LV.id}</h2>${schemHTML(sp)}${LV.boss?'<p class="hint">Abrir o esquema nesta fase conta como 1 dica.</p>':''}<div class="mbts"><button class="btn run" id="m-x">Voltar à bancada</button></div>`;
+ $('#mbody').style.maxWidth='980px';$('#modal').classList.remove('hidden');$('#m-x').onclick=()=>{$('#modal').classList.add('hidden');$('#mbody').style.maxWidth=''}};
 
 </script></body></html>
