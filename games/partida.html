@@ -59,7 +59,7 @@ ul.ci{margin:8px 0;padding-left:18px;font-size:13.5px;line-height:1.45}#cnt.full
  <footer id="foot" class="card">
   <svg id="rele" viewBox="0 0 90 100"><line x1="45" y1="8" x2="45" y2="22" stroke="#2b2250" stroke-width="4"/><circle cx="45" cy="7" r="6" fill="#ff5fa2" stroke="#2b2250" stroke-width="3"/><rect x="22" y="80" width="46" height="16" rx="7" fill="#ff9f1c" stroke="#2b2250" stroke-width="4"/><rect x="3" y="38" width="8" height="22" rx="4" fill="#ffd23f" stroke="#2b2250" stroke-width="3"/><rect x="79" y="38" width="8" height="22" rx="4" fill="#ffd23f" stroke="#2b2250" stroke-width="3"/><rect x="10" y="20" width="70" height="58" rx="17" fill="#7fd8ff" stroke="#2b2250" stroke-width="4"/><rect x="18" y="29" width="54" height="36" rx="11" fill="#2b2250"/><circle class="eye" cx="35" cy="44" r="5" fill="#7cff8a"/><circle class="eye" cx="55" cy="44" r="5" fill="#7cff8a"/><path id="mouth" d="M36 54Q45 63 54 54" stroke="#7cff8a" stroke-width="3.5" fill="none" stroke-linecap="round"/><circle cx="25" cy="58" r="3" fill="#ff5fa2" opacity=".8"/><circle cx="65" cy="58" r="3" fill="#ff5fa2" opacity=".8"/></svg>
   <div id="bubble"></div>
-  <div class="btns"><button class="btn sm" id="bsch">📐 Esquema</button><button class="btn sm" id="bhint">💡 Dica</button><button class="btn sm" id="blist">📋 Lista de ligações</button><button class="btn sm" id="bundo">↶ Desfazer</button><button class="btn sm" id="bclear">🗑️ Limpar</button><button class="btn run" id="btest">▶ Testar</button></div>
+  <div class="btns"><button class="btn sm" id="btrail">📖 Trilha</button><button class="btn sm" id="bsch">📐 Esquema</button><button class="btn sm" id="bhint">💡 Dica</button><button class="btn sm" id="blist">📋 Lista de ligações</button><button class="btn sm" id="bundo">↶ Desfazer</button><button class="btn sm" id="bclear">🗑️ Limpar</button><button class="btn run" id="btest">▶ Testar</button></div>
  </footer>
 </div>
 <div id="modal" class="overlay hidden"><div class="mcard card" id="mbody"></div></div>
@@ -256,11 +256,40 @@ const SCH={
 8:{rows:[{items:_m},..._lamps],note:'Comando completo com as três lâmpadas de sinalização.'},
 9:{rows:[{items:_m},..._lamps],note:'Esquema completo da partida direta.'}};
 
+const TRAIL={
+1:[{t:'Todo circuito tem ida e volta',p:'A corrente só circula em um <b>caminho fechado</b>: sai da <b>fase</b>, passa pela carga (a lâmpada) e volta pelo <b>neutro</b>. Se o caminho estiver aberto em qualquer ponto, a lâmpada apaga. Na bancada: entre fase e neutro há <b>220 V</b>; entre duas fases há <b>380 V</b>.',fig:'phases'},
+   {t:'O disjuntor Q1 abre e fecha o caminho',p:'O <b>disjuntor</b> liga e desliga o circuito e <b>desarma sozinho</b> se houver curto-circuito. Veja o esquema do que você vai montar. Para ligar, clique na alavanca de Q1.',fig:'schem'},
+   {t:'Mão na massa',p:'Arraste um cabo de cada vez: <b>R → Q1 (1)</b>, <b>Q1 (2) → lâmpada (X1)</b> e <b>lâmpada (X2) → N</b>. Depois ligue Q1 e veja a lâmpada acender. O cabo da fase fica vermelho sozinho.'}],
+2:[{t:'Contato NA: normalmente aberto',p:'Um contato <b>NA</b> fica <b>aberto</b> em repouso (não conduz) e <b>fecha</b> quando é acionado. O botão <b>LIGA</b> é NA e usa os bornes <b>13 e 14</b>. Ao soltar, a mola reabre o contato.',fig:'contacts'},
+   {t:'Como ligar o botão',p:'O botão fica <b>em série</b> com a lâmpada: a corrente só passa enquanto você aperta. Veja o esquema.',fig:'schem'},
+   {t:'Mão na massa',p:'Monte <b>R → Q1</b>, <b>Q1 (2) → S1 (13)</b>, <b>S1 (14) → lâmpada</b> e <b>lâmpada → N</b>. Ligue Q1 e segure o botão S1 para a lâmpada acender.'}],
+3:[{t:'Contato NF: normalmente fechado',p:'Um contato <b>NF</b> <b>conduz</b> em repouso e <b>abre</b> quando é acionado. O botão <b>DESLIGA</b> é NF (vermelho) e usa os bornes <b>11 e 12</b>.',fig:'contacts'},
+   {t:'Por que o DESLIGA é NF?',p:'Com NF, se um fio <b>soltar ou romper</b>, o circuito abre e a máquina <b>para</b>. É a chamada <b>falha segura</b>. Com um botão NA, um fio solto deixaria a máquina sem como desligar.',fig:'schem'},
+   {t:'Mão na massa',p:'Monte <b>R → Q1</b>, <b>Q1 (2) → S0 (11)</b>, <b>S0 (12) → lâmpada</b> e <b>lâmpada → N</b>. A lâmpada fica acesa e apaga enquanto você aperta S0.'}],
+4:[{t:'Potência e comando',p:'A <b>potência</b> leva a energia das três fases até o motor (corrente alta). O <b>comando</b> é um circuito de baixa corrente que decide quando ligar o contator. Nesta fase você monta só a potência.'},
+   {t:'A ordem dos componentes',p:'<b>Fonte → disjuntor Q1 → contator K1 → relé térmico F2 → motor</b>. As três fases passam sempre na mesma ordem: bornes <b>1-3-5</b> são entradas e <b>2-4-6</b> são saídas.',fig:'schem'},
+   {t:'Mão na massa',p:'Faça 12 cabos: fonte → Q1 (1-3-5), Q1 (2-4-6) → K1 (1-3-5), K1 (2-4-6) → F2 (1-3-5) e F2 (2-4-6) → motor (U1-V1-W1). Para testar, ligue Q1 e <b>segure o corpo do contator K1</b>: o motor gira.'}],
+5:[{t:'A bobina do contator',p:'O contator tem uma <b>bobina</b> (bornes A1 e A2). Quando ela recebe <b>220 V</b>, o contator fecha a potência. Na bancada a bobina vai entre <b>fase (A1) e neutro (A2)</b>: entre duas fases seriam 380 V e ela queimaria.',fig:'phases'},
+   {t:'O caminho do comando',p:'Da fase de Q1 passa-se pelo <b>fusível F1</b>, pelo botão <b>S0 (NF)</b>, pelo botão <b>S1 (NA)</b> e chega na bobina. Ainda não há selo.',fig:'schem'},
+   {t:'Mão na massa',p:'A potência já vem pronta (cabos tracejados). Monte <b>Q1 (2) → F1</b>, <b>F1 → S0 (11)</b>, <b>S0 (12) → S1 (13)</b>, <b>S1 (14) → K1 (A1)</b> e <b>K1 (A2) → N</b>.'}],
+6:[{t:'O problema',p:'Com o comando da fase anterior o motor só gira <b>enquanto você segura</b> S1. Na fábrica queremos apertar uma vez e o motor continuar ligado.'},
+   {t:'O selo (autorretenção)',p:'<b>1)</b> Você aperta S1 e K1 liga. <b>2)</b> O contato auxiliar <b>13-14 de K1</b> fecha. <b>3)</b> Ele está em <b>paralelo</b> com S1, então mantém a bobina mesmo com S1 solto. <b>4)</b> S0 (NF) abre o caminho e tudo desliga.',fig:'schem'},
+   {t:'Mão na massa',p:'Acrescente só dois cabos: <b>S0 (12) → K1 (13)</b> e <b>K1 (14) → K1 (A1)</b>.'}],
+7:[{t:'Sobrecarga',p:'Quando o motor puxa corrente demais por muito tempo ele <b>esquenta</b> e pode queimar. O <b>relé térmico F2</b> detecta isso. Ele protege contra <b>sobrecarga</b>; o curto-circuito é função do disjuntor e do fusível.'},
+   {t:'O contato 95-96',p:'O térmico tem um contato <b>NF 95-96</b> ligado <b>em série com a bobina</b>. Na sobrecarga ele abre, a bobina cai e o motor para. Só volta depois do <b>rearme</b>.',fig:'schem'},
+   {t:'Mão na massa',p:'Monte <b>K1 (A2) → F2 (95)</b> e <b>F2 (96) → N</b>. Depois teste: ligue o motor, aperte <b>SOBRECARGA</b> no térmico e veja o motor parar; use <b>REARMAR</b> para voltar.'}],
+8:[{t:'Lâmpadas que informam',p:'Painéis reais mostram o estado da máquina com lâmpadas: <b>H1 verde = ligado</b>, <b>H2 vermelha = parado</b> e <b>H3 amarela = sobrecarga</b>. Todas ficam entre fase e neutro.'},
+   {t:'De onde vem cada lâmpada',p:'<b>H1</b> fica em paralelo com a bobina. <b>H2</b> usa o contato <b>NF 21-22 de K1</b> (acende quando o motor está parado). <b>H3</b> usa o contato <b>NA 97-98</b> do térmico (acende na sobrecarga).',fig:'schem'},
+   {t:'Mão na massa',p:'São 8 cabos. Comece por H1, depois H2 e por último H3, testando cada uma.'}],
+9:[{t:'Seu plano de montagem',p:'Monte nesta ordem e teste a cada etapa: <b>1)</b> potência, <b>2)</b> comando com S0 e S1, <b>3)</b> selo, <b>4)</b> térmico, <b>5)</b> lâmpadas.'},
+   {t:'Se algo não funcionar',p:'<b>K1 não fecha:</b> falta alimentar a bobina (F1, S0, S1 ou neutro). <b>K1 fecha e o motor zumbe:</b> falta uma fase na potência. <b>Só gira apertando S1:</b> falta o selo. <b>Disjuntor desarma:</b> curto, desligue e revise os cabos.'},
+   {t:'Boa sorte!',p:'Aqui não há cabos prontos. O esquema continua no botão <b>📐 Esquema</b>, mas abrir conta como 1 dica.'}]};
+
 const $=s=>document.querySelector(s);
 const KEY=GAME.key;
-let S={stars:{},wires:{},sound:true};
+let S={stars:{},wires:{},sound:true,seen:{}};
 try{S=Object.assign(S,JSON.parse(localStorage.getItem(KEY)||'{}'))}catch(e){}
-S.stars=S.stars||{};S.wires=S.wires||{};
+S.stars=S.stars||{};S.wires=S.wires||{};S.seen=S.seen||{};
 const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}};
 /* som */
 let AC=null;function beep(f,d=.1,t='sine',v=.05,dl=0){if(!S.sound)return;try{AC=AC||new(window.AudioContext||window.webkitAudioContext)();const o=AC.createOscillator(),g=AC.createGain();o.type=t;o.frequency.value=f;const T=AC.currentTime+dl;g.gain.setValueAtTime(v,T);g.gain.exponentialRampToValueAtTime(.0001,T+d);o.connect(g);g.connect(AC.destination);o.start(T);o.stop(T+d+.02)}catch(e){}}
@@ -417,7 +446,8 @@ function openLevel(id){
  $('#lesson').innerHTML=`<h2>${LV.boss?'🏆 ':''}Fase ${id} · ${LV.name}${LV.bonus?' (bônus)':''}</h2><p><b>Missão:</b> ${LV.goal}</p><div class="learn">💡 <b>Aprenda:</b> ${LV.learn}</div><details class="dt"><summary>🔎 Conheça os componentes desta fase</summary>${compInfo()}</details>`;
  $('#btest').textContent=LV.demo?'⚡ Provocar o curto':'▶ Testar';
  chips();buildBench();fit();refresh();say(`<b>Fase ${id}:</b> ${LV.goal}`);
- $('#scroll').scrollTo(0,0);window.scrollTo({top:0})}
+ $('#scroll').scrollTo(0,0);window.scrollTo({top:0});
+ if(typeof TRAIL!=='undefined'&&TRAIL[id]&&!S.seen[id])setTimeout(()=>{if(!lock)openTrail(id,0)},0)}
 function jposOK(w){return comps.some(c=>w[0].startsWith(c.id+'.'))&&comps.some(c=>w[1].startsWith(c.id+'.'))}
 function clearResult(){if(!lock)$('#resbox').classList.add('hidden');if(!$('#cheat').classList.contains('hidden'))renderCheat()}
 /* ---------- dicas, lista, desfazer, limpar ---------- */
@@ -456,5 +486,27 @@ openLevel(GAME.levels.find(l=>!S.stars[l.id])?GAME.levels.find(l=>!S.stars[l.id]
 $('#bsch').onclick=()=>{if(lock)return;const sp=SCH[LV.id];if(!sp)return;if(LV.boss&&!schemUsed){schemUsed=true;hints++}
  $('#mbody').innerHTML=`<h2>📐 Esquema · Fase ${LV.id}</h2>${schemHTML(sp)}${LV.boss?'<p class="hint">Abrir o esquema nesta fase conta como 1 dica.</p>':''}<div class="mbts"><button class="btn run" id="m-x">Voltar à bancada</button></div>`;
  $('#mbody').style.maxWidth='980px';$('#modal').classList.remove('hidden');$('#m-x').onclick=()=>{$('#modal').classList.add('hidden');$('#mbody').style.maxWidth=''}};
+
+/* ---------- trilha antes de cada fase ---------- */
+function figPhases(){const C=['#e53935','#fdd835','#1e88e5','#37474f'],N=['R','S','T','N'];let s='';
+ N.forEach((n,i)=>{const x=60+i*70;s+=`<line x1="${x}" y1="40" x2="${x}" y2="130" stroke="${INK}" stroke-width="9" stroke-linecap="round"/><line x1="${x}" y1="40" x2="${x}" y2="130" stroke="${C[i]}" stroke-width="5" stroke-linecap="round"/><text x="${x}" y="30" text-anchor="middle" font-size="14" font-weight="900" fill="${INK}">${n}</text>`});
+ s+=`<path d="M60 150V158H270V150" fill="none" stroke="#19c37d" stroke-width="3.5"/><text x="165" y="178" text-anchor="middle" font-size="12" font-weight="900" fill="#0a7a4b">fase ↔ neutro = 220 V ✔ (lâmpada e bobina)</text>`;
+ s+=`<path d="M60 190V198H130V190" fill="none" stroke="#e53935" stroke-width="3.5"/><text x="200" y="202" font-size="12" font-weight="900" fill="#c0182c">fase ↔ fase = 380 V ✘ (queimaria)</text>`;
+ return `<svg viewBox="0 0 440 215" style="width:100%;max-width:440px;height:auto;display:block;margin:6px auto">${s}</svg>`}
+function figContacts(){const g=(x,it,t1,t2,c)=>`<g transform="translate(${x},52)">${sym(it).svg}</g><text x="${x+38}" y="104" text-anchor="middle" font-size="12" font-weight="900" fill="${c}">${t1}</text><text x="${x+38}" y="120" text-anchor="middle" font-size="11" font-weight="700" fill="${INK}">${t2}</text>`;
+ return `<svg viewBox="0 0 420 140" style="width:100%;max-width:420px;height:auto;display:block;margin:6px auto">${g(30,na('NA','13-14'),'Em repouso: ABERTO','Apertou: FECHA','#0a7a4b')}${g(240,nf('NF','11-12'),'Em repouso: FECHADO','Apertou: ABRE','#c0182c')}</svg>`}
+let trStep=0;
+function openTrail(id,step){
+ const steps=TRAIL[id];if(!steps)return;trStep=step||0;const s=steps[trStep],last=trStep===steps.length-1,lv=GAME.levels.find(l=>l.id===id);
+ const fig=s.fig==='phases'?figPhases():s.fig==='contacts'?figContacts():s.fig==='schem'&&SCH[id]?`<div style="margin:6px 0">${schemHTML(SCH[id])}</div>`:'';
+ const dots=steps.map((_,i)=>`<span style="display:inline-block;width:12px;height:12px;border-radius:50%;border:2px solid ${INK};margin:0 3px;background:${i===trStep?'var(--yellow)':i<trStep?'var(--green)':'#fff'}"></span>`).join('');
+ $('#mbody').innerHTML=`<h2>📖 Trilha · Fase ${id}</h2><div>${dots}</div><h3 style="margin:8px 0 2px">${s.t}</h3><p style="text-align:left">${s.p}</p>${fig}${last?`<p style="background:#f3efff;border-radius:10px;padding:8px"><b>🎯 Missão:</b> ${lv.goal}</p>`:''}<div class="mbts">${trStep>0?'<button class="btn" id="t-prev">◀ Voltar</button>':''}<button class="btn run" id="t-next">${last?'Começar a fase 🚀':'Próximo ▶'}</button></div><p><a href="#" id="t-skip" style="font-size:12px">pular trilha</a></p>`;
+ $('#mbody').style.maxWidth='720px';$('#modal').classList.remove('hidden');
+ const end=()=>{S.seen[id]=1;save();$('#modal').classList.add('hidden')};
+ const pv=document.getElementById('t-prev');if(pv)pv.onclick=()=>openTrail(id,trStep-1);
+ $('#t-next').onclick=()=>{sfx.tick();if(last)end();else openTrail(id,trStep+1)};
+ $('#t-skip').onclick=e=>{e.preventDefault();end()}}
+new MutationObserver(()=>{if($('#modal').classList.contains('hidden'))$('#mbody').style.maxWidth=''}).observe($('#modal'),{attributes:true});
+$('#btrail').onclick=()=>{if(!lock){sfx.tick();openTrail(LV.id,0)}};
 
 </script></body></html>
