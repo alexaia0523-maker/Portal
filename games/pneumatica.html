@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Mestre da Pneumática</title>
+<style>
+:root{--ink:#2b2250;--bg1:#fff3c9;--bg2:#d9f2ff;--purple:#6c4cf1;--yellow:#ffd23f;--green:#19c37d;--orange:#ff9f1c;--red:#ff4d5e;--grey:#c3bddb}
+*{box-sizing:border-box}html,body{margin:0}
+body{font-family:"Trebuchet MS","Segoe UI",system-ui,sans-serif;color:var(--ink);background:linear-gradient(160deg,var(--bg1),var(--bg2));background-attachment:fixed}
+h1,h2,h3,p{margin:0}.hidden{display:none!important}
+.card{background:#fff;border:3px solid var(--ink);border-radius:18px;box-shadow:0 4px 0 var(--ink)}
+#app{max-width:1180px;margin:0 auto;padding:10px;display:flex;flex-direction:column;gap:10px;min-height:100dvh}
+.btn{font:inherit;font-weight:800;border:3px solid var(--ink);border-radius:14px;padding:8px 14px;background:#fff;color:var(--ink);cursor:pointer;box-shadow:0 3px 0 var(--ink);text-decoration:none;display:inline-block}
+.btn:active{transform:translateY(3px);box-shadow:none}.btn[disabled]{opacity:.45;cursor:not-allowed}
+.btn.sm{padding:4px 10px;font-size:13px;border-radius:12px}.btn.run{background:var(--green);color:#fff}.btn.rst{background:var(--yellow)}.btn.pri{background:var(--purple);color:#fff}
+.row{display:flex;align-items:center;gap:10px;flex-wrap:wrap}.sp{flex:1}
+#top{padding:8px 12px;display:flex;flex-direction:column;gap:8px}.logo{font-weight:900;font-size:18px;color:var(--purple)}
+#lv{display:flex;gap:6px;flex-wrap:wrap}
+.chip{width:46px;height:46px;border-radius:12px;border:3px solid var(--ink);background:#fff;font:inherit;font-weight:900;font-size:15px;cursor:pointer;padding:0;color:var(--ink);line-height:1}
+.chip i{display:block;font-style:normal;font-size:8px;color:var(--orange);letter-spacing:-1px;margin-top:1px}
+.chip.cur{background:var(--yellow)}.chip.bonus{border-color:var(--purple)}.chip.boss{background:#ffe1ea}
+#lesson{padding:10px 14px}#lesson h2{font-size:18px}#lesson p{font-size:14px;line-height:1.45;margin-top:4px}
+.learn{background:#f3efff;border-radius:10px;padding:6px 10px;margin-top:6px;font-size:13.5px}
+#benchbox{padding:8px;display:flex;flex-direction:column;gap:6px}
+#tools{padding:2px 6px}.cdot{width:26px;height:26px;border-radius:50%;border:3px solid var(--ink);cursor:pointer;padding:0}.cdot.on{outline:3px solid var(--purple);outline-offset:2px}
+#scroll{overflow:auto;border:3px dashed var(--grey);border-radius:12px;background:repeating-linear-gradient(0deg,#eef4f8,#eef4f8 22px,#e6eef4 22px,#e6eef4 23px);max-height:66vh;touch-action:pan-x pan-y}
+#bench{display:block;user-select:none;-webkit-user-select:none}
+#status{min-height:36px;padding:6px 10px;border-radius:10px;background:#f3efff;font-weight:800;font-size:14px;border:2px solid var(--ink)}
+#status.bad{background:#ffdde1}#status.good{background:#d6f7e7}
+#resbox{padding:10px 14px}#resbox ul{list-style:none;padding:0;margin:6px 0}
+#resbox li{padding:6px 10px;border-radius:10px;margin-bottom:4px;font-weight:700;font-size:14px;background:#f3efff}#resbox li.ok{background:#d6f7e7}#resbox li.bad{background:#ffdde1}#resbox li small{display:block;font-weight:600}
+#cheat{padding:10px 14px}#cheat ul{list-style:none;padding:0;margin:6px 0;columns:2;column-gap:14px;font-size:13px;font-weight:700}
+#cheat li{padding:3px 6px;break-inside:avoid}#cheat li.ok{color:#0a7a4b}#cheat li.ok::before{content:"✔ "}#cheat li:not(.ok)::before{content:"○ "}
+#foot{display:flex;align-items:center;gap:12px;padding:8px 12px;position:sticky;bottom:8px;z-index:20;flex-wrap:wrap}
+#rele{width:56px;height:62px;flex:none;animation:bob 2.4s ease-in-out infinite}
+#bubble{flex:1;min-width:180px;position:relative;background:#f3efff;border:3px solid var(--ink);border-radius:16px;padding:8px 12px;font-size:14px;line-height:1.3;min-height:46px;display:flex;align-items:center}
+#bubble::before{content:"";position:absolute;left:-12px;top:50%;margin-top:-8px;border:8px solid transparent;border-right-color:var(--ink);border-left:0}
+.btns{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+@keyframes bob{50%{transform:translateY(-4px)}}@keyframes blink{0%,92%,100%{transform:scaleY(1)}96%{transform:scaleY(.1)}}
+.eye{transform-origin:center;transform-box:fill-box;animation:blink 4s infinite}
+.overlay{position:fixed;inset:0;background:rgba(43,34,80,.55);display:grid;place-items:center;z-index:50;padding:12px}
+.mcard{max-width:520px;width:100%;padding:18px;max-height:92vh;overflow:auto;text-align:center}.mcard h2{font-size:22px;margin-bottom:8px}.mcard p{margin:6px 0;font-size:14px;line-height:1.4}
+.bigstars{font-size:46px;color:var(--orange);letter-spacing:4px}.mbts{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:10px}
+@keyframes pulse{50%{r:20;opacity:.5}}.blink{animation:pulse .6s infinite}
+details.dt{margin-top:8px;border:2px solid var(--grey);border-radius:12px;padding:6px 10px;background:#fcfbff}details.dt summary{cursor:pointer;font-weight:900;font-size:14px}details.dt svg{margin-top:8px}
+ul.ci{margin:8px 0;padding-left:18px;font-size:13.5px;line-height:1.45}#cnt.full{color:#0a7a4b}
+.wg:hover .wo{stroke-width:10}.wg:hover .wi{stroke-width:6}.wg.lk:hover .wo{stroke-width:6}
+@media(min-width:701px){#app{padding-bottom:84px}}
+@media(max-width:700px){#foot{position:static}#scroll{max-height:78vh}.btns .btn{padding:6px 8px;font-size:12px}.logo{font-size:15px}#cheat ul{columns:1}#rele{width:42px;height:46px}.btns{width:100%;justify-content:center}}
+
+.hose{fill:none;stroke-linecap:round;pointer-events:none}.hosehit{fill:none;stroke:transparent;stroke-width:16;cursor:pointer}
+.flowan{stroke-dasharray:9 7;animation:fl .5s linear infinite}@keyframes fl{to{stroke-dashoffset:-16}}
+.pt{cursor:crosshair}.vbtn{cursor:pointer}
+#pbar{font-weight:900;font-size:14px;padding:3px 10px;border:2px solid var(--ink);border-radius:10px;background:#fff}
+@keyframes ring{50%{r:16;opacity:.4}}.ring{animation:ring .7s infinite}
+</style></head><body>
+<div id="app">
+ <header id="top" class="card"><div class="row"><div class="logo">Mestre da Pneumática</div><a class="btn sm" href="../index.html">🏠 Portal</a><span class="sp"></span><button class="btn sm" id="snd">🔊</button></div><nav id="lv"></nav></header>
+ <section id="lesson" class="card"></section>
+ <section id="benchbox" class="card">
+  <div id="tools" class="row"><button class="btn pri sm" id="bpump">▶ Ligar</button><span id="pbar">0 bar</span><span id="cnt" style="font-weight:800;font-size:13px"></span><span class="sp"></span><span style="font-size:12px;opacity:.75">Toque numa porta e depois em outra (ou arraste) para ligar uma mangueira. Toque na mangueira para tirar.</span></div>
+  <div id="scroll"><svg id="bench" xmlns="http://www.w3.org/2000/svg"></svg></div>
+  <div id="status">Monte o circuito e ligue a fonte.</div>
+ </section>
+ <section id="resbox" class="card hidden"></section>
+ <footer id="foot" class="card">
+  <svg id="rele" viewBox="0 0 90 100"><line x1="45" y1="8" x2="45" y2="22" stroke="#2b2250" stroke-width="4"/><circle cx="45" cy="7" r="6" fill="#ff5fa2" stroke="#2b2250" stroke-width="3"/><rect x="22" y="80" width="46" height="16" rx="7" fill="#ff9f1c" stroke="#2b2250" stroke-width="4"/><rect x="3" y="38" width="8" height="22" rx="4" fill="#ffd23f" stroke="#2b2250" stroke-width="3"/><rect x="79" y="38" width="8" height="22" rx="4" fill="#ffd23f" stroke="#2b2250" stroke-width="3"/><rect x="10" y="20" width="70" height="58" rx="17" fill="#7fd8ff" stroke="#2b2250" stroke-width="4"/><rect x="18" y="29" width="54" height="36" rx="11" fill="#2b2250"/><circle class="eye" cx="35" cy="44" r="5" fill="#7cff8a"/><circle class="eye" cx="55" cy="44" r="5" fill="#7cff8a"/><path id="mouth" d="M36 54Q45 63 54 54" stroke="#7cff8a" stroke-width="3.5" fill="none" stroke-linecap="round"/><circle cx="25" cy="58" r="3" fill="#ff5fa2" opacity=".8"/><circle cx="65" cy="58" r="3" fill="#ff5fa2" opacity=".8"/></svg>
+  <div id="bubble"></div>
+  <div class="btns"><button class="btn sm" id="btrail">📖 Trilha</button><button class="btn sm" id="bsch">📐 Esquema</button><button class="btn sm" id="bcomp">🧩 Componentes</button><button class="btn sm" id="bhint">💡 Dica</button><button class="btn sm" id="bundo">↶ Desfazer</button><button class="btn sm" id="bclear">🗑️ Limpar</button><button class="btn run" id="btest">▶ Testar</button></div>
+ </footer>
+</div>
+<div id="modal" class="overlay hidden"><div class="mcard card" id="mbody"></div></div>
+<script>
+/*PURE_START*/
+const SPD={pneu:0.5,hid:0.25},SLOW=0.22;
+/* port: [x,y,dx,dy,flags]  flags: 'x'=escape (nao liga mangueira) */
+function defs(mode){
+ const R=mode==='pneu'?'x':'';
+ return {
+ SRC:{w:130,h:76,ports:{P:[130,38,1,0]}},
+ TANK:{w:110,h:62,ports:{T:[55,0,0,-1,'e']}},
+ V32:{w:90,h:60,sq:2,ports:{2:[45,0,0,-1],1:[68,60,0,1],3:[22,60,0,1,R?'xe':'']}},
+ V52:{w:130,h:60,sq:2,ports:{4:[35,0,0,-1],2:[95,0,0,-1],5:[18,60,0,1,'xe'],1:[65,60,0,1],3:[112,60,0,1,'xe'],14:[0,30,-1,0],12:[130,30,1,0]}},
+ V42:{w:130,h:60,sq:2,ports:{A:[35,0,0,-1],B:[95,0,0,-1],P:[45,60,0,1],T:[85,60,0,1]}},
+ V43:{w:150,h:60,sq:3,ports:{A:[40,0,0,-1],B:[110,0,0,-1],P:[55,60,0,1],T:[95,60,0,1]}},
+ CYL1:{w:230,h:50,ports:{A:[34,0,0,-1]}},
+ CYL2:{w:230,h:50,ports:{A:[34,0,0,-1],B:[150,0,0,-1]}},
+ FC:{w:90,h:44,ports:{IN:[0,22,-1,0],OUT:[90,22,1,0]}},
+ REL:{w:76,h:64,ports:{P:[38,0,0,-1],T:[38,64,0,1]}},
+ MAN:{w:50,h:50,ports:{P:[25,50,0,1]}}};}
+function portDefs(c,mode){return defs(mode)[c.type].ports}
+function nodeOf(c,p){return c.id+'.'+p}
+/* arestas internas por estado */
+function inner(c){const s=c.s||0;
+ switch(c.type){
+  case 'V32':{const n=!!c.no;return (s^(n?1:0))?[['1','2']]:[['2','3']]}
+  case 'V52':return s?[['1','4'],['2','3']]:[['1','2'],['4','5']];
+  case 'V42':return s?[['P','A'],['B','T']]:[['P','B'],['A','T']];
+  case 'V43':return s===1?[['P','A'],['B','T']]:s===2?[['P','B'],['A','T']]:[];
+ }return[]}
+function newSim(level,wires,mode){
+ const sim={mode,level,comps:{},wires:[...(level.pre||[]),...wires],pump:false,fault:null,msgs:[],t:0,
+  cyl:{},press:new Set(),fast:new Set(),exh:new Set(),hasRelief:false,moving:false,leak:false,stall:false};
+ level.comps.forEach(c=>{sim.comps[c.id]=Object.assign({s:0},c);if(c.type==='CYL1'||c.type==='CYL2')sim.cyl[c.id]={pos:0,dir:0,slowSeen:false,reached:false,back:false}});
+ sim.D=defs(mode);return sim}
+function evalNet(sim){
+ const adj=new Map(),radj=new Map(),add=(m,a,b,thr)=>{if(!m.has(a))m.set(a,[]);m.get(a).push({to:b,thr})};
+ const edge=(a,b,thr)=>{add(adj,a,b,thr);add(radj,b,a,thr)};
+ const exhN=[];let src=null;
+ for(const id in sim.comps){const c=sim.comps[id],pd=sim.D[c.type].ports;
+  for(const p in pd){const fl=pd[p][4]||'';if(fl.includes('e'))exhN.push(nodeOf(c,p));}
+  if(c.type==='SRC')src=nodeOf(c,'P');
+  for(const [a,b] of inner(c)){edge(nodeOf(c,a),nodeOf(c,b));edge(nodeOf(c,b),nodeOf(c,a))}
+  if(c.type==='FC'){edge(nodeOf(c,'IN'),nodeOf(c,'OUT'),true);edge(nodeOf(c,'OUT'),nodeOf(c,'IN'))}}
+ for(const [a,b] of sim.wires){edge(a,b);edge(b,a)}
+ const bfs=(starts,m,skip)=>{const seen=new Set(starts),q=[...starts];while(q.length){const n=q.shift();for(const e of (m.get(n)||[])){if(skip&&e.thr)continue;if(!seen.has(e.to)){seen.add(e.to);q.push(e.to)}}}return seen};
+ sim.press=sim.pump&&src?bfs([src],adj,false):new Set();
+ sim.fast=sim.pump&&src?bfs([src],adj,true):new Set();
+ sim.exh=bfs(exhN,radj,false);
+ sim.src=src;
+ sim.leak=sim.pump&&[...sim.press].some(n=>exhN.includes(n));
+ sim.hasRelief=false;
+ for(const id in sim.comps){const c=sim.comps[id];if(c.type==='REL'&&sim.press.has(nodeOf(c,'P'))&&sim.exh.has(nodeOf(c,'T')))sim.hasRelief=true}
+ sim.netCount=sim.press.size}
+function step(sim,dt){
+ // pilotos (memoria): precisa de alguns ciclos
+ for(let k=0;k<3;k++){evalNet(sim);let ch=false;
+  for(const id in sim.comps){const c=sim.comps[id];
+   if(c.act==='roller'){const cy=sim.cyl[c.cyl];const on=c.at===1?cy.pos>=0.97:cy.pos<=0.03;if(c.s!==(on?1:0)){c.s=on?1:0;ch=true}}
+   if(c.act==='pilot'){const a=sim.press.has(nodeOf(c,'14')),b=sim.press.has(nodeOf(c,'12'));
+    if(a&&!b&&c.s!==1){c.s=1;ch=true}else if(b&&!a&&c.s!==0){c.s=0;ch=true}}}
+  if(!ch)break}
+ sim.msgs=[];sim.moving=false;sim.stall=false;
+ const spd=SPD[sim.mode];
+ for(const id in sim.cyl){const c=sim.comps[id],y=sim.cyl[id],A=nodeOf(c,'A'),B=nodeOf(c,'B');
+  const pA=sim.press.has(A),pB=c.type==='CYL2'&&sim.press.has(B),eA=sim.exh.has(A),eB=c.type==='CYL2'&&sim.exh.has(B);
+  let dir=0,f=1;
+  if(c.type==='CYL1'){if(pA){dir=1;f=sim.fast.has(A)?1:SLOW}else if(eA&&!pA){dir=-1}}
+  else{if(pA&&!pB){if(eB){dir=1;f=sim.fast.has(A)?1:SLOW}else sim.msgs.push(`${c.label||id}: a câmara da frente não tem por onde ${sim.mode==='hid'?'o óleo voltar (ligue a saída T ao tanque)':'o ar sair'}.`)}
+   else if(pB&&!pA){if(eA){dir=-1;f=sim.fast.has(B)?1:SLOW}else sim.msgs.push(`${c.label||id}: a câmara de trás não tem por onde ${sim.mode==='hid'?'o óleo voltar (ligue a saída T ao tanque)':'o ar sair'}.`)}}
+  if(dir>0&&y.pos>=1)sim.stall=true;if(dir<0&&y.pos<=0&&c.type==='CYL2')sim.stall=true;
+  y.dir=dir;
+  if(dir&&!((dir>0&&y.pos>=1)||(dir<0&&y.pos<=0))){sim.moving=true;if(f<1)y.slowSeen=true;y.pos=Math.max(0,Math.min(1,y.pos+dir*spd*f*dt))}
+  if(y.pos>=0.97)y.reached=true;if(y.reached&&y.pos<=0.03)y.back=true}
+ // pressao / falhas
+ const flow=sim.moving||sim.leak;
+ if(sim.mode==='hid'&&sim.pump&&!sim.fault){
+  if(sim.leak){sim.fault='leak'}
+  else if(!sim.hasRelief&&!flow&&sim.netCount>1){sim.fault='burst';sim.pump=false;sim.press=new Set();sim.fast=new Set()}}
+ if(sim.mode==='pneu'&&sim.leak&&sim.pump)sim.msgs.push('Ar escapando direto pelo escape: a fonte está ligada ao escape.');
+ sim.bar=!sim.pump?0:sim.mode==='pneu'?6:(sim.hasRelief&&!sim.moving&&sim.netCount>1?150:40);
+ sim.t+=dt}
+function setS(sim,id,s){sim.comps[id].s=s}
+/* roteiro de teste: steps = [['on'],['press','V1'],['rel','V1'],['set','V1',1],['wait',3]] */
+function runScript(level,wires,steps,mode){
+ const sim=newSim(level,wires,mode),dt=0.05;
+ const run=t=>{for(let i=0;i<Math.round(t/dt);i++)step(sim,dt)};
+ step(sim,0);
+ for(const s of steps){const k=s[0];
+  if(k==='on'){sim.pump=true}else if(k==='off'){sim.pump=false}
+  else if(k==='press')sim.comps[s[1]].s=1;else if(k==='rel')sim.comps[s[1]].s=0;
+  else if(k==='set')sim.comps[s[1]].s=s[2];else if(k==='wait')run(s[1])}
+ return sim}
+function posKind(p){return p>=0.97?'out':p<=0.03?'in':'mid'}
+function checkEx(sim,ex){const out=[];
+ for(const k in ex){const v=ex[k];
+  if(k==='fault'){if((sim.fault||'none')!==v)out.push(`falha: ${sim.fault||'nenhuma'}`)}
+  else if(k==='slow'){if(!sim.cyl[v].slowSeen)out.push(`${v} avançou rápido demais`)}
+  else if(k==='reached'){if(!sim.cyl[v].reached)out.push(`${v} nunca chegou ao fim do curso`)}
+  else if(k==='back'){if(!sim.cyl[v].back)out.push(`${v} não voltou ao início`)}
+  else if(sim.cyl[k]){const p=posKind(sim.cyl[k].pos);if(p!==v)out.push(`${k} ficou ${p==='out'?'avançado':p==='in'?'recuado':'no meio'}, esperado ${v==='out'?'avançado':v==='in'?'recuado':'no meio'}`)}}
+ return out}
+/*PURE_END*/
+
+const GAME={id:'pneu',mode:'pneu',key:'fabricaRele_pneu_v1',title:'Mestre da Pneumática',pump:'Ligar o compressor',levels:[
+{id:1,name:'Cilindro de simples ação',goal:'Ligue o compressor a uma válvula 3/2 e a válvula ao cilindro: ao apertar o botão o cilindro avança, ao soltar a mola faz ele voltar.',
+ learn:'Válvula 3/2 = 3 vias (1 pressão, 2 saída, 3 escape) e 2 posições. Cilindro de simples ação tem um só ar e uma mola de retorno.',tip:'1 = pressão (do compressor), 2 = utilização (vai ao cilindro), 3 = escape (já sai para o ar sozinho).',
+ comps:[{id:'S',type:'SRC',x:20,y:130,label:'Compressor'},{id:'V1',type:'V32',x:330,y:90,act:'push',label:'V1 · 3/2 botão'},{id:'C1',type:'CYL1',x:510,y:230,label:'C1'}],
+ sol:[['S.P','V1.1'],['V1.2','C1.A']],
+ tests:[{n:'Sem apertar: cilindro recuado',st:[['on'],['wait',2]],ex:{C1:'in'}},{n:'Apertando V1: cilindro avança',st:[['on'],['press','V1'],['wait',3.5]],ex:{C1:'out'}},{n:'Soltando V1: a mola faz voltar',st:[['on'],['press','V1'],['wait',3.5],['rel','V1'],['wait',3.5]],ex:{C1:'in'}}]},
+{id:2,name:'Dupla ação com válvula 5/2',goal:'Comande um cilindro de dupla ação (ar nos dois lados) com uma válvula 5/2 de alavanca.',
+ learn:'Válvula 5/2: 5 vias e 2 posições. A via 4 leva ar à câmara de trás (avança) e a via 2 à da frente (recua). 3 e 5 são os escapes.',tip:'1 = pressão; 4 → entrada de trás (A) do cilindro; 2 → entrada da frente (B).',
+ comps:[{id:'S',type:'SRC',x:20,y:130,label:'Compressor'},{id:'V1',type:'V52',x:300,y:90,act:'lever',label:'V1 · 5/2 alavanca'},{id:'C1',type:'CYL2',x:510,y:240,label:'C1'}],
+ sol:[['S.P','V1.1'],['V1.4','C1.A'],['V1.2','C1.B']],
+ tests:[{n:'Alavanca em 0: cilindro recuado',st:[['on'],['wait',3]],ex:{C1:'in'}},{n:'Alavanca em 1: cilindro avança',st:[['on'],['set','V1',1],['wait',3.5]],ex:{C1:'out'}},{n:'Voltando a alavanca: recua',st:[['on'],['set','V1',1],['wait',3.5],['set','V1',0],['wait',3.5]],ex:{C1:'in'}}]},
+{id:3,name:'Controle de velocidade',goal:'Coloque uma válvula reguladora de fluxo (com retenção) na entrada de trás para o cilindro avançar devagar e voltar rápido.',
+ learn:'A válvula reguladora estrangula o ar em um sentido (seta) e deixa passar livre no outro. Assim controlamos só a velocidade de avanço.',tip:'V1.4 → entrada IN do regulador, saída OUT → câmara A. O estrangulamento age de IN para OUT.',
+ comps:[{id:'S',type:'SRC',x:20,y:130,label:'Compressor'},{id:'V1',type:'V52',x:290,y:80,act:'lever',label:'V1 · 5/2 alavanca'},{id:'F1',type:'FC',x:380,y:240,label:'F1 · regulador'},{id:'C1',type:'CYL2',x:560,y:240,label:'C1'}],
+ sol:[['S.P','V1.1'],['V1.4','F1.IN'],['F1.OUT','C1.A'],['V1.2','C1.B']],
+ tests:[{n:'Avança devagar (regulador na entrada A)',st:[['on'],['set','V1',1],['wait',12]],ex:{C1:'out',slow:'C1'}},{n:'Recua normalmente',st:[['on'],['set','V1',1],['wait',12],['set','V1',0],['wait',3]],ex:{C1:'in'}}]},
+{id:4,name:'Comando bimanual (E)',goal:'Faça o cilindro de simples ação só avançar com DUAS válvulas apertadas ao mesmo tempo, ligadas em série (as duas mãos longe da prensa).',
+ learn:'Duas válvulas em série funcionam como a função lógica E: só passa ar se as duas estiverem acionadas. É o comando bimanual de segurança.',tip:'Compressor → V1.1; V1.2 → V2.1; V2.2 → cilindro. Use o 🔒 para travar um botão apertado.',
+ comps:[{id:'S',type:'SRC',x:20,y:130,label:'Compressor'},{id:'V1',type:'V32',x:280,y:90,act:'push',label:'V1 · botão esq.'},{id:'V2',type:'V32',x:560,y:90,act:'push',label:'V2 · botão dir.'},{id:'C1',type:'CYL1',x:600,y:260,label:'C1'}],
+ sol:[['S.P','V1.1'],['V1.2','V2.1'],['V2.2','C1.A']],
+ tests:[{n:'Só V1 apertada: não avança',st:[['on'],['press','V1'],['wait',3.5]],ex:{C1:'in'}},{n:'Só V2 apertada: não avança',st:[['on'],['press','V2'],['wait',3.5]],ex:{C1:'in'}},{n:'V1 e V2 juntas: avança',st:[['on'],['press','V1'],['press','V2'],['wait',3.5]],ex:{C1:'out'}}]},
+{id:5,name:'Memória: 5/2 de duplo piloto',goal:'Use dois botões 3/2 para pilotar uma válvula 5/2: um pulso em S1 faz o cilindro avançar e ele FICA avançado até um pulso em S2.',
+ learn:'Na válvula de duplo piloto o sinal de ar nos pilotos 14 e 12 muda a posição e ela ”lembra”, mesmo com o botão solto. É a memória pneumática.',tip:'S1.2 → piloto 14 (avança); S2.2 → piloto 12 (recua). Os três (V1, S1, S2) recebem pressão do compressor na via 1.',
+ comps:[{id:'S',type:'SRC',x:10,y:150,label:'Compressor'},{id:'S1',type:'V32',x:210,y:20,act:'push',label:'S1 · avança'},{id:'S2',type:'V32',x:660,y:20,act:'push',label:'S2 · recua'},{id:'V1',type:'V52',x:370,y:150,act:'pilot',label:'V1 · 5/2 duplo piloto'},{id:'C1',type:'CYL2',x:490,y:290,label:'C1'}],
+ sol:[['S.P','V1.1'],['S.P','S1.1'],['S.P','S2.1'],['V1.4','C1.A'],['V1.2','C1.B'],['S1.2','V1.14'],['S2.2','V1.12']],
+ tests:[{n:'Pulso em S1: avança e fica avançado',st:[['on'],['press','S1'],['wait',.3],['rel','S1'],['wait',4]],ex:{C1:'out'}},{n:'Pulso em S2: recua e fica recuado',st:[['on'],['press','S1'],['wait',.3],['rel','S1'],['wait',4],['press','S2'],['wait',.3],['rel','S2'],['wait',4]],ex:{C1:'in'}},{n:'Sem pulsos: parado em repouso',st:[['on'],['wait',2]],ex:{C1:'in'}}]},
+{id:6,name:'Ciclo automático com fim de curso',goal:'Um pulso em S1 faz o cilindro avançar e, ao chegar ao fim, a válvula de rolete B1 faz ele voltar sozinho.',boss:1,
+ learn:'O fim de curso (rolete) é uma 3/2 acionada pelo próprio cilindro. Ele manda o sinal de ar que reverte a 5/2 e fecha o ciclo A+ A−, sem ninguém apertar nada.',tip:'B1 fica no fim do avanço: B1.1 recebe pressão e B1.2 vai para o piloto 12 da V1.',
+ comps:[{id:'S',type:'SRC',x:10,y:150,label:'Compressor'},{id:'S1',type:'V32',x:210,y:20,act:'push',label:'S1 · partida'},{id:'B1',type:'V32',x:660,y:20,act:'roller',cyl:'C1',at:1,label:'B1 · fim de curso'},{id:'V1',type:'V52',x:370,y:150,act:'pilot',label:'V1 · 5/2 duplo piloto'},{id:'C1',type:'CYL2',x:490,y:290,label:'C1'}],
+ sol:[['S.P','V1.1'],['S.P','S1.1'],['S.P','B1.1'],['V1.4','C1.A'],['V1.2','C1.B'],['S1.2','V1.14'],['B1.2','V1.12']],
+ tests:[{n:'Sem partida: cilindro parado',st:[['on'],['wait',2]],ex:{C1:'in',reached:undefined}},{n:'Pulso em S1: vai ao fim e volta sozinho',st:[['on'],['press','S1'],['wait',.3],['rel','S1'],['wait',8]],ex:{C1:'in',reached:'C1',back:'C1'}}]}
+]};
+
+const TRAIL={
+1:[{t:'O ar comprimido faz força',p:'O <b>compressor</b> aperta o ar e o envia por mangueiras. Um <b>cilindro</b> transforma essa pressão em <b>movimento em linha reta</b>: o ar empurra o êmbolo e a haste avança. É assim que funcionam prensas, portas de ônibus e máquinas de embalagem.',fig:'CYL1'},
+   {t:'A válvula 3/2 liga e desliga o ar',p:'<b>3 vias</b>: 1 (pressão, vem do compressor), 2 (utilização, vai ao cilindro) e 3 (escape, solta o ar para fora). <b>2 posições</b>: repouso (2 ligado ao 3, o cilindro esvazia) e acionada (1 ligado ao 2, o cilindro enche). Ao soltar o botão, a <b>mola</b> da válvula volta à posição de repouso.',fig:'V32'},
+   {t:'Mão na massa',p:'Ligue <b>compressor → via 1 da V1</b> e <b>via 2 da V1 → porta A do cilindro</b>. Depois ligue o compressor e aperte o botão de V1 para ver o cilindro avançar.',fig:'schem'}],
+2:[{t:'Por que dupla ação?',p:'No cilindro de <b>simples ação</b> só a mola faz o retorno, com pouca força e curso curto. No de <b>dupla ação</b> o ar empurra <b>nos dois sentidos</b>: avança com ar atrás (porta A) e recua com ar na frente (porta B).',fig:'CYL2'},
+   {t:'Válvula 5/2: dois caminhos ao mesmo tempo',p:'Na 5/2, quando o ar entra por uma câmara, a outra precisa <b>escapar</b>. <b>Posição 0:</b> 1→2 (ar na frente) e 4→5 (ar de trás escapa): o cilindro recua. <b>Posição 1:</b> 1→4 (ar atrás) e 2→3 (ar da frente escapa): o cilindro avança.',fig:'V52'},
+   {t:'Mão na massa',p:'Ligue <b>compressor → 1</b>, <b>4 → A</b> (trás) e <b>2 → B</b> (frente). Alterne a alavanca de V1 para avançar e recuar.',fig:'schem'}],
+3:[{t:'Velocidade = vazão',p:'A velocidade do cilindro depende de <b>quanto ar chega por segundo</b>. Para ajustar, usa-se a <b>válvula reguladora de fluxo</b>: ela estrangula a passagem do ar.',fig:'FC'},
+   {t:'Estrangula num sentido, livre no outro',p:'A reguladora tem uma <b>retenção</b> em paralelo com o estrangulador. De <b>IN para OUT</b> o ar passa pelo orifício (devagar). No sentido contrário passa livre pela retenção. Assim avançamos devagar e <b>recuamos rápido</b>.'},
+   {t:'Mão na massa',p:'Intercale o regulador entre a via 4 e a porta A: <b>4 → IN</b> e <b>OUT → A</b>. Ligue a via 2 direto à porta B.',fig:'schem'}],
+4:[{t:'Segurança nas máquinas',p:'Prensas e guilhotinas não podem avançar com a mão do operador no meio. O <b>comando bimanual</b> exige que <b>as duas mãos</b> estejam em dois botões, longe da zona de perigo.'},
+   {t:'A lógica E em série',p:'Duas válvulas <b>em série</b>: o ar só chega ao cilindro se <b>V1 E V2</b> estiverem acionadas. Soltou uma, o ar escapa e o cilindro volta. É a função lógica <b>E</b> (AND).',fig:'schem'},
+   {t:'Mão na massa',p:'<b>Compressor → V1 (1)</b>, <b>V1 (2) → V2 (1)</b> e <b>V2 (2) → cilindro</b>. Use o cadeado 🔒 para manter um dos botões apertado enquanto aperta o outro.'}],
+5:[{t:'Pneumática com memória',p:'Se a válvula 5/2 for acionada por <b>ar nos pilotos</b> (portas 14 e 12), ela <b>fica na última posição</b> mesmo depois que o sinal some. Isso é uma <b>memória</b>, como um biestável.',fig:'V52'},
+   {t:'Como funciona o duplo piloto',p:'Um pulso de ar em <b>14</b> manda a válvula para a posição de avanço. Um pulso em <b>12</b> manda para a posição de recuo. Os pulsos vêm de dois botões 3/2 (S1 e S2) ligados à pressão.',fig:'schem'},
+   {t:'Mão na massa',p:'São 7 mangueiras: a pressão vai a V1, S1 e S2; V1 (4 e 2) vão ao cilindro; S1 (2) vai ao piloto 14 e S2 (2) ao piloto 12. Dê só um <b>toque rápido</b> nos botões.'}],
+6:[{t:'Ciclo automático',p:'Em máquinas reais o cilindro volta <b>sozinho</b> ao chegar ao fim. Para isso ele aciona uma válvula 3/2 de <b>rolete</b> (fim de curso) posicionada no fim do avanço.',fig:'V32'},
+   {t:'A sequência A+ / A−',p:'<b>1)</b> Pulso em S1 → piloto 14 → o cilindro avança (A+). <b>2)</b> No fim, o êmbolo pisa o rolete B1. <b>3)</b> B1 manda ar ao piloto 12. <b>4)</b> A 5/2 inverte e o cilindro recua (A−). O ciclo termina sozinho.',fig:'schem'},
+   {t:'Mão na massa',p:'Monte as 7 mangueiras como na fase anterior, mas <b>B1 substitui o botão S2</b>: a saída de B1 vai ao piloto 12. Sem esquema pronto — se precisar, o botão 📐 conta como dica.'}]};
+
+const $=s=>document.querySelector(s);const INK='#2b2250';
+const KEY=GAME.key,HID=GAME.mode==='hid';
+let S={stars:{},wires:{},sound:true,seen:{}};
+try{S=Object.assign(S,JSON.parse(localStorage.getItem(KEY)||'{}'))}catch(e){}
+S.stars=S.stars||{};S.wires=S.wires||{};S.seen=S.seen||{};
+const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}};
+let AC=null;function beep(f,d=.1,t='sine',v=.05,dl=0){if(!S.sound)return;try{AC=AC||new(window.AudioContext||window.webkitAudioContext)();const o=AC.createOscillator(),g=AC.createGain();o.type=t;o.frequency.value=f;const T=AC.currentTime+dl;g.gain.setValueAtTime(v,T);g.gain.exponentialRampToValueAtTime(.0001,T+d);o.connect(g);g.connect(AC.destination);o.start(T);o.stop(T+d+.02)}catch(e){}}
+const sfx={plug(){beep(500,.05,'square',.03);beep(760,.06,'square',.03,.05)},unplug(){beep(300,.07,'square',.03)},clack(){beep(140,.05,'square',.07)},ok(){beep(660,.1,'triangle');beep(880,.15,'triangle',.06,.1)},bad(){beep(200,.25,'sawtooth',.04)},alarm(){[880,660,880,660].forEach((f,i)=>beep(f,.1,'square',.05,i*.12))},win(){[523,659,784,1046].forEach((f,i)=>beep(f,.18,'triangle',.07,i*.12))},tick(){beep(900,.03,'square',.025)}};
+function say(t,mood){$('#bubble').innerHTML='<span>'+t+'</span>';$('#mouth').setAttribute('d',{bad:'M36 60Q45 51 54 60',think:'M38 57H52'}[mood]||'M36 54Q45 63 54 54')}
+const COL=HID?'#f08a00':'#1e88e5',COLL=HID?'#ffd9a0':'#bfe0ff';
+const CINFO={
+ SRC:HID?['Bomba + motor','Fornece óleo sob pressão. Porta P = saída de pressão.']:['Compressor','Fornece ar comprimido (6 bar). Porta P = saída de pressão.'],
+ TANK:['Tanque (reservatório)','Guarda o óleo. Todo óleo que volta das válvulas precisa chegar aqui pela porta T.'],
+ V32:['Válvula 3/2','3 vias, 2 posições. 1 = pressão, 2 = saída para o atuador, 3 = escape (sai sozinho para o ar). O botão aciona, a mola faz voltar.'],
+ V52:['Válvula 5/2','5 vias, 2 posições. 1 = pressão, 4 = câmara de trás do cilindro (avança), 2 = câmara da frente (recua), 3 e 5 = escapes. Portas 14 e 12 = pilotos de ar.'],
+ V42:['Válvula 4/2','4 vias, 2 posições. P = pressão, T = tanque, A = câmara de trás (avança), B = câmara da frente (recua).'],
+ V43:['Válvula 4/3 centro fechado','4 vias, 3 posições. ◀ avança, ● todas as vias bloqueadas (cilindro trava), ▶ recua.'],
+ CYL1:['Cilindro de simples ação','Ar entra só pela porta A e empurra o êmbolo. A mola faz o retorno.'],
+ CYL2:['Cilindro de dupla ação',HID?'Óleo nos dois lados. A = câmara de trás (avança). B = câmara da frente (recua).':'Ar nos dois lados. A = câmara de trás (avança). B = câmara da frente (recua).'],
+ FC:['Válvula reguladora de fluxo','Estrangula a passagem no sentido IN → OUT (a seta). No sentido contrário passa livre pela retenção.'],
+ REL:['Válvula de alívio','Protege o sistema: se a pressão passar do limite, abre e devolve o óleo ao tanque. P = pressão, T = tanque.'],
+ MAN:['Manômetro','Mostra a pressão da linha onde está ligado.']};
+let LV=null,sim=null,lock=false,dirty=true,hints=0,attempts=0,tipShown=false,hl=null,sel=null,drag=null,latch={},pressed=null,hintUsedSch=false;
+const WR=()=>S.wires[LV.id]||(S.wires[LV.id]=[]);
+function geom(c){return sim.D[c.type]}
+function portPos(n){const [id,p]=n.split('.');const c=sim.comps[id],d=sim.D[c.type].ports[p];return{x:c.x+d[0],y:c.y+d[1],dx:d[2],dy:d[3]}}
+/* ---------- desenho ---------- */
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;')}
+function drawComp(c,sm,st){const D=sm.D[c.type],w=D.w,h=D.h;let g='';const pr=n=>st&&sm.press.has(c.id+'.'+n);
+ const T=(x,y,t,sz=11,col=INK,a='middle',wt=800)=>`<text x="${x}" y="${y}" text-anchor="${a}" font-size="${sz}" font-weight="${wt}" fill="${col}" stroke="#eef4f8" stroke-width="4" paint-order="stroke" stroke-linejoin="round">${esc(t)}</text>`;
+ if(c.type==='SRC'){g+=`<rect x="0" y="0" width="${w-26}" height="${h}" rx="10" fill="#fff" stroke="${INK}" stroke-width="3"/><circle cx="46" cy="${h/2}" r="22" fill="${COLL}" stroke="${INK}" stroke-width="3"/>`+(HID?T(46,h/2+5,'M',15)+`<path d="M70 ${h/2}h18m-6-6 6 6-6 6" stroke="${INK}" stroke-width="3" fill="none"/>`:T(46,h/2+5,'~',22)+`<path d="M70 ${h/2}h18m-6-6 6 6-6 6" stroke="${INK}" stroke-width="3" fill="none"/>`)+`<line x1="${w-26}" y1="${h/2}" x2="${w}" y2="${h/2}" stroke="${INK}" stroke-width="4"/>`}
+ else if(c.type==='TANK'){g+=`<path d="M0 0V${h}H${w}V0" fill="${COLL}" stroke="${INK}" stroke-width="3"/>`+T(w/2,h/2+12,'~ ~ ~',16,COL)+`<line x1="${w/2}" y1="0" x2="${w/2}" y2="-4" stroke="${INK}" stroke-width="3"/>`}
+ else if(/^V4?[235]{1,2}$/.test(c.type)&&D.sq){const n=D.sq,sw=w/n,act=c.type==='V43'?[1,0,2][c.s||0]:c.s||0;
+  for(let i=0;i<n;i++)g+=`<rect x="${i*sw}" y="0" width="${sw}" height="${h}" fill="${i===act?'#fff7d1':'#fff'}" stroke="${INK}" stroke-width="${i===act?3.5:2}"/>`;
+  const ctr=(p)=>{const d=D.ports[p];return [d[0],d[1]]};
+  for(const [a,b] of inner(c)){const A=ctr(a),B=ctr(b),on=st&&sm.press.has(c.id+'.'+a)&&sm.press.has(c.id+'.'+b);
+   const f=(P)=>[P[0],P[1]===0?10:P[1]===h?h-10:P[1]];const PA=f(A),PB=f(B);
+   g+=`<line x1="${PA[0]}" y1="${PA[1]}" x2="${PB[0]}" y2="${PB[1]}" stroke="${on?COL:INK}" stroke-width="${on?4:2.5}" ${on?'':'opacity=".55"'}/>`}
+  if(c.type==='V43'&&!(c.s)){g+=`<path d="M${w/2-12} 20h24M${w/2-12} 40h24" stroke="${INK}" stroke-width="3"/>`}}
+ else if(c.type==='CYL1'||c.type==='CYL2'){const y=sm.cyl[c.id]||{pos:0};const px=22+y.pos*120,top=0;const rodEnd=px+160,bodyR=168;
+  const ca=st&&sm.press.has(c.id+'.A'),cb=c.type==='CYL2'&&st&&sm.press.has(c.id+'.B');
+  g+=`<rect x="12" y="0" width="${px-12}" height="${h}" fill="${ca?COLL:'#fff'}"/><rect x="${px+8}" y="0" width="${bodyR-px-8}" height="${h}" fill="${cb?COLL:'#fff'}"/>`;
+  if(c.type==='CYL1'){const sx=px+8,ex=bodyR-4,k=8,seg=(ex-sx)/k;let d=`M${sx} ${h/2}`;for(let i=0;i<k;i++)d+=`L${sx+seg*(i+.5)} ${h/2+(i%2?-9:9)}`;d+=`L${ex} ${h/2}`;g+=`<path d="${d}" fill="none" stroke="${INK}" stroke-width="2"/>`}
+  g+=`<rect x="12" y="0" width="${bodyR-12}" height="${h}" rx="4" fill="none" stroke="${INK}" stroke-width="3.5"/><rect x="${px}" y="3" width="8" height="${h-6}" fill="${INK}"/><line x1="${px+8}" y1="${h/2}" x2="${rodEnd}" y2="${h/2}" stroke="#888" stroke-width="9"/><line x1="${bodyR}" y1="${h/2}" x2="${rodEnd}" y2="${h/2}" stroke="#bbb" stroke-width="6"/><rect x="${rodEnd}" y="${h/2-16}" width="14" height="32" fill="#7a6bd6" stroke="${INK}" stroke-width="3"/>`}
+ else if(c.type==='FC'){const on=st&&sm.press.has(c.id+'.IN');g+=`<rect x="0" y="0" width="${w}" height="${h}" rx="8" fill="#fff" stroke="${INK}" stroke-width="3"/><line x1="0" y1="22" x2="${w}" y2="22" stroke="${on?COL:INK}" stroke-width="3"/><path d="M34 6v10M34 38V28M50 6v10M50 38V28" stroke="${INK}" stroke-width="4"/><path d="M12 36l66-28" stroke="${INK}" stroke-width="2" />`+T(8,13,'IN',9,INK,'start')+T(w-8,13,'OUT',9,INK,'end')}
+ else if(c.type==='REL'){const on=st&&sm.hasRelief&&sm.stall&&sm.pump;g+=`<rect x="0" y="0" width="${w}" height="${h}" rx="8" fill="${on?'#ffe3d0':'#fff'}" stroke="${INK}" stroke-width="3"/><path d="M${w/2} 8v14l-9 5 18 7-18 7 9 5v9" fill="none" stroke="${INK}" stroke-width="2.5"/><path d="M${w/2-18} 18 ${w/2-18} 46 ${w/2-10} 46" fill="none" stroke="${INK}" stroke-width="2"/>`+(on?T(w/2,h+14,'ABRIU!',10,'#c0182c'):'')}
+ else if(c.type==='MAN'){const b=st?sm.bar:0,ang=-130+Math.min(1,b/(HID?160:8))*260;g+=`<circle cx="25" cy="25" r="23" fill="#fff" stroke="${INK}" stroke-width="3"/><line x1="25" y1="25" x2="${25+16*Math.sin(ang*Math.PI/180)}" y2="${25-16*Math.cos(ang*Math.PI/180)}" stroke="#d6243a" stroke-width="3"/>`+T(25,41,Math.round(b),9,INK)}
+ // portas
+ for(const p in D.ports){const d=D.ports[p],fl=d[4]||'',vent=fl.includes('x');
+  if(vent){g+=`<path d="M${d[0]-6} ${d[1]+4}l6 -9 6 9z" fill="#fff" stroke="${INK}" stroke-width="2" transform="rotate(0)"/>`}
+  else{const hot=hl&&hl.includes(c.id+'.'+p);g+=`<circle class="pt${hot?' ring':''}" data-t="${c.id}.${p}" cx="${d[0]}" cy="${d[1]}" r="${hot?13:9}" fill="${sel===c.id+'.'+p?'#ffd23f':hot?'#fff3a0':'#fff'}" stroke="${hot?'#d6243a':INK}" stroke-width="3"/>`;
+   const lx=d[0]+d[2]*(-0)+(d[2]?d[2]*16:0),ly=d[1]+(d[3]?d[3]*16:0)+4;
+   if(!/^[SCT]/.test(c.id)||c.type.startsWith('V')||c.type==='CYL1'||c.type==='CYL2'||c.type==='FC'||c.type==='REL'||c.type==='MAN'){if(!(c.type==='SRC'||c.type==='TANK'))g+=T(d[0]+(d[2]?d[2]*17:12),d[1]+(d[3]===-1?-14:d[3]===1?20:4),p,10,'#5b4fa8',d[2]?(d[2]>0?'start':'end'):'start',900)}}}
+ // rotulo
+ const lab=c.label||c.id;const ly=c.type.startsWith('CYL')?h+18:h+18;g+=T(w/2+(c.type.startsWith('CYL')?60:0),ly+(c.type==='REL'?10:0),lab,11,INK);
+ // atuadores
+ const bt=(x,y,ww,t,fill,attr)=>`<g class="vbtn" ${attr}><rect x="${x}" y="${y}" width="${ww}" height="28" rx="8" fill="${fill}" stroke="${INK}" stroke-width="3"/><text x="${x+ww/2}" y="${y+19}" text-anchor="middle" font-size="12" font-weight="900" fill="${INK}" pointer-events="none">${t}</text></g>`;
+ if(c.act==='push'){g+=bt(-90,h/2-14,54,'⬇ '+c.id,(c.s?'#ffd23f':'#fff'),`data-b="${c.id}:push"`)+bt(-32,h/2-14,28,latch[c.id]?'🔒':'🔓',latch[c.id]?'#d6f7e7':'#fff',`data-b="${c.id}:lock"`)}
+ if(c.act==='lever')g+=bt(-90,h/2-14,84,c.s?'1 ▣ ligada':'0 ▢ repouso',c.s?'#ffd23f':'#fff',`data-b="${c.id}:lever"`);
+ if(c.act==='lever3'){[['◀',1],['●',0],['▶',2]].forEach(([t,v],i)=>g+=bt(-100+i*34,h/2-14,30,t,(c.s||0)===v?'#ffd23f':'#fff',`data-b="${c.id}:l3:${v}"`))}
+ if(c.act==='roller')g+=`<g><circle cx="-14" cy="${h/2}" r="9" fill="#ddd" stroke="${INK}" stroke-width="3"/><path d="M-5 ${h/2}H0" stroke="${INK}" stroke-width="3"/>`+T(-50,h/2+4,'rolete',10,INK)+`</g>`;
+ if(c.act==='pilot'){g+=T(w/2,h/2+4,'duplo piloto',9,'#7a6bd6')}
+ return `<g transform="translate(${c.x},${c.y})">${g}</g>`}
+function hosePath(a,b){const A=portPos(a),B=portPos(b),dist=Math.hypot(A.x-B.x,A.y-B.y),k=Math.min(90,dist/2+24);
+ return `M${A.x} ${A.y}C${A.x+A.dx*k} ${A.y+A.dy*k} ${B.x+B.dx*k} ${B.y+B.dy*k} ${B.x} ${B.y}`}
+function renderScene(level,wires,sm,opts={}){
+ let W=0,H=0;for(const id in sm.comps){const c=sm.comps[id],D=sm.D[c.type];W=Math.max(W,c.x+D.w+(c.type.startsWith('CYL')?60:0));H=Math.max(H,c.y+D.h+34)}
+ W+=70;H+=20;let s='',hs='';
+ const press=sm.press;
+ const all=[...(level.pre||[]).map(w=>({w,lk:true})),...wires.map(w=>({w,lk:false}))];
+ all.forEach((o,i)=>{const [a,b]=o.w,on=press.has(a)&&press.has(b);const d=hosePath(a,b);
+  hs+=`<path d="${d}" class="hose" stroke="${INK}" stroke-width="${o.lk?7:9}" opacity="${o.lk?.45:1}"/><path d="${d}" class="hose${on?' flowan':''}" stroke="${on?COL:(o.lk?'#c9c4e6':'#8d8aa0')}" stroke-width="${o.lk?3.5:5}"/>`;
+  if(!opts.static&&!o.lk)hs+=`<path d="${d}" class="hosehit" data-w="${i-(level.pre||[]).length}"/>`});
+ for(const id in sm.comps)s+=drawComp(sm.comps[id],sm,sm.pump||opts.show);
+ const tmp=drag&&drag.to?`<line x1="${drag.fx}" y1="${drag.fy}" x2="${drag.to.x}" y2="${drag.to.y}" stroke="#6c4cf1" stroke-width="4" stroke-dasharray="6 6"/>`:'';
+ return {W,H,svg:hs+s+tmp}}
+function drawBench(){const r=renderScene(LV,WR(),sim);const svg=$('#bench');svg.setAttribute('width',r.W);svg.setAttribute('height',r.H);svg.setAttribute('viewBox',`0 0 ${r.W} ${r.H}`);svg.innerHTML=r.svg;
+ $('#pbar').textContent=(sim.pump?Math.round(sim.bar):0)+' bar';$('#pbar').style.background=sim.pump&&sim.bar>=(HID?140:7)?'#ffe3d0':'#fff';
+ $('#bpump').textContent=sim.pump?'⏹ Desligar':'▶ '+GAME.pump;
+ const need=LV.sol.length,have=LV.sol.filter(w=>hasW(w)).length;$('#cnt').textContent='Mangueiras: '+WR().length+(LV.boss?'':' / '+need);$('#cnt').className=WR().length>=need?'full':''}
+function hasW(w){return WR().some(x=>(x[0]===w[0]&&x[1]===w[1])||(x[0]===w[1]&&x[1]===w[0]))||(LV.pre||[]).some(x=>(x[0]===w[0]&&x[1]===w[1])||(x[0]===w[1]&&x[1]===w[0]))}
+function schemHTML(level,wires){const sm=newSim(level,wires||level.sol,GAME.mode);sm.pump=true;
+ for(const id in sm.comps)if(sm.comps[id].act==='roller')sm.comps[id].cyl=sm.comps[id].cyl;
+ step(sm,0);const r=renderScene(level,wires||level.sol,sm,{static:true,show:false});
+ return `<div style="overflow:auto;max-width:100%"><svg viewBox="0 0 ${r.W} ${r.H}" style="width:100%;max-width:${r.W}px;height:auto;background:#eef4f8;border-radius:10px">${r.svg}</svg></div>`}
+function figComp(type){const lvl={comps:[{id:'X',type,x:90,y:20,label:CINFO[type][0],act:type==='V43'?'':''}]};const sm=newSim(lvl,[],GAME.mode);const D=sm.D[type];if(!sm.comps.X)return'';
+ const c=sm.comps.X;c.x=30;c.y=14;const W=D.w+(type.startsWith('CYL')?150:60),H=D.h+44;return `<svg viewBox="0 0 ${W} ${H}" style="width:100%;max-width:${Math.round(W*1.5)}px;height:auto;display:block;margin:6px auto">${drawComp(c,sm,false)}</svg>`}
+/* ---------- interacao ---------- */
+function setStatus(t,cls){const s=$('#status');s.textContent=t;s.className=cls||''}
+function addWire(a,b){if(a===b)return;const ca=a.split('.')[0],cb=b.split('.')[0];if(ca===cb&&false)return;
+ if(hasW([a,b])){setStatus('Essas duas portas já estão ligadas.','bad');return}
+ WR().push([a,b]);sim.wires=[...(LV.pre||[]),...WR()];save();sfx.plug();hl=null;dirty=true;
+ setStatus(`Mangueira ligada: ${a} ↔ ${b}`);}
+function evPt(e){const svg=$('#bench'),r=svg.getBoundingClientRect(),vb=svg.viewBox.baseVal;return{x:(e.clientX-r.left)*vb.width/r.width,y:(e.clientY-r.top)*vb.height/r.height}}
+$('#bench').addEventListener('pointerdown',e=>{if(lock)return;
+ const b=e.target.closest('[data-b]');
+ if(b){const [id,k,v]=b.dataset.b.split(':'),c=sim.comps[id];
+  if(k==='push'){pressed=id;c.s=1;sfx.clack()}
+  else if(k==='lock'){latch[id]=!latch[id];if(!latch[id]&&pressed!==id)c.s=0;if(latch[id])c.s=1;sfx.tick()}
+  else if(k==='lever'){c.s=c.s?0:1;sfx.clack()}
+  else if(k==='l3'){c.s=+v;sfx.clack()}
+  dirty=true;e.preventDefault();return}
+ const w=e.target.closest('[data-w]');
+ if(w){WR().splice(+w.dataset.w,1);sim.wires=[...(LV.pre||[]),...WR()];save();sfx.unplug();dirty=true;return}
+ const p=e.target.closest('[data-t]');
+ if(p){const t=p.dataset.t,pp=portPos(t);drag={from:t,fx:pp.x,fy:pp.y,moved:false,to:null};e.preventDefault()}});
+window.addEventListener('pointermove',e=>{if(!drag)return;const pt=evPt(e);if(Math.hypot(pt.x-drag.fx,pt.y-drag.fy)>10){drag.moved=true;drag.to=pt;dirty=true}});
+window.addEventListener('pointerup',e=>{
+ if(pressed){const c=sim.comps[pressed];if(!latch[pressed])c.s=0;pressed=null;dirty=true}
+ if(!drag)return;const d=drag;drag=null;dirty=true;
+ const el=document.elementFromPoint(e.clientX,e.clientY),tp=el&&el.closest&&el.closest('[data-t]');
+ if(d.moved){if(tp&&tp.dataset.t!==d.from)addWire(d.from,tp.dataset.t);sel=null}
+ else{if(sel&&sel!==d.from){addWire(sel,d.from);sel=null}else if(sel===d.from)sel=null;else{sel=d.from;setStatus('Agora toque na porta de destino.')}}});
+$('#bpump').onclick=()=>{if(lock)return;if(sim.fault){sim.fault=null;sim.pump=true}else sim.pump=!sim.pump;sfx.tick();dirty=true;if(sim.pump)say('Fonte ligada! Acione as válvulas e veja o que acontece.');else say('Fonte desligada.')};
+$('#bundo').onclick=()=>{if(lock||!WR().length)return;WR().pop();sim.wires=[...(LV.pre||[]),...WR()];save();sfx.unplug();dirty=true};
+$('#bclear').onclick=()=>{if(lock||!WR().length)return;S.wires[LV.id]=[];sim.wires=[...(LV.pre||[])];save();sfx.unplug();dirty=true};
+/* ---------- loop ---------- */
+let last=performance.now(),prevFault=null;
+function loop(now){const dt=Math.min(.05,(now-last)/1000);last=now;
+ if(sim&&!document.hidden){const before=JSON.stringify([sim.pump,Object.values(sim.cyl).map(c=>c.pos.toFixed(3)),Object.values(sim.comps).map(c=>c.s)]);
+  step(sim,dt);const after=JSON.stringify([sim.pump,Object.values(sim.cyl).map(c=>c.pos.toFixed(3)),Object.values(sim.comps).map(c=>c.s)]);
+  if(before!==after||dirty||sim.pump){drawBench();dirty=false}
+  if(sim.fault&&sim.fault!==prevFault){prevFault=sim.fault;
+   if(sim.fault==='burst'){sfx.alarm();setStatus('💥 A mangueira estourou! A bomba empurra o óleo e ele não tem saída. Falta a válvula de alívio ligando a linha de pressão ao tanque.','bad');say('Estourou! Toda hidráulica precisa de válvula de alívio.','bad')}
+   else if(sim.fault==='leak'){sfx.bad();setStatus('⚠ A bomba está ligada direto no tanque: o óleo volta sem pressão.','bad');say('A bomba está ligada direto ao tanque, sem passar pelo alívio nem pelas válvulas.','bad')}}
+  if(!sim.fault&&prevFault){prevFault=null}
+  if(!sim.fault&&sim.msgs.length&&sim.pump)setStatus('⚠ '+sim.msgs[0],'bad')}
+ requestAnimationFrame(loop)}
+/* ---------- fases ---------- */
+function stars(id){const n=S.stars[id]||0;return n?'★'.repeat(n)+'☆'.repeat(3-n):'☆☆☆'}
+function drawNav(){$('#lv').innerHTML=`<div id="lvr" style="display:flex;gap:6px;flex-wrap:wrap">${GAME.levels.map(l=>`<button class="chip${l.id===LV.id?' cur':''}${l.boss?' boss':''}" data-l="${l.id}">${l.id}<i>${stars(l.id)}</i></button>`).join('')}</div>`;
+ document.querySelectorAll('#lv .chip').forEach(b=>b.onclick=()=>{if(!lock){sfx.tick();openLevel(+b.dataset.l)}})}
+function openLevel(id){LV=GAME.levels.find(l=>l.id===id);hints=0;attempts=0;tipShown=false;hl=null;sel=null;latch={};hintUsedSch=false;
+ sim=newSim(LV,WR(),GAME.mode);sim.wires=[...(LV.pre||[]),...WR()];
+ drawNav();$('#lesson').innerHTML=`<h2>${LV.boss?'🏆 ':''}Fase ${LV.id} · ${LV.name}</h2><p>${LV.goal}</p><div class="learn">💡 ${LV.learn}</div>`;
+ $('#resbox').classList.add('hidden');setStatus('Monte o circuito, ligue a fonte e teste manualmente. Depois aperte ▶ Testar.');
+ say(LV.boss?'Fase final! Monte tudo sozinho. Confie no que aprendeu.':'Vamos lá! Leia a trilha e depois monte as mangueiras.');
+ dirty=true;drawBench();$('#scroll').scrollTo(0,0);
+ if(typeof TRAIL!=='undefined'&&TRAIL[id]&&!S.seen[id])setTimeout(()=>{if(!lock)openTrail(id,0)},0)}
+function showModal(h,w){$('#mbody').innerHTML=h;$('#mbody').style.maxWidth=w||'';$('#modal').classList.remove('hidden')}
+function hideModal(){$('#modal').classList.add('hidden');$('#mbody').style.maxWidth=''}
+$('#modal').addEventListener('click',e=>{if(e.target.id==='modal')hideModal()});
+$('#snd').textContent=S.sound?'🔊':'🔇';$('#snd').onclick=()=>{S.sound=!S.sound;$('#snd').textContent=S.sound?'🔊':'🔇';save()};
+/* trilha */
+let trStep=0;
+function openTrail(id,step){const steps=TRAIL[id];if(!steps)return;trStep=step||0;const s=steps[trStep],last=trStep===steps.length-1,lv=GAME.levels.find(l=>l.id===id);
+ const fig=!s.fig?'':s.fig==='schem'?schemHTML(lv):figComp(s.fig);
+ const dots=steps.map((_,i)=>`<span style="display:inline-block;width:12px;height:12px;border-radius:50%;border:2px solid ${INK};margin:0 3px;background:${i===trStep?'var(--yellow)':i<trStep?'var(--green)':'#fff'}"></span>`).join('');
+ showModal(`<h2>📖 Trilha · Fase ${id}</h2><div>${dots}</div><h3 style="margin:8px 0 2px">${s.t}</h3><p style="text-align:left">${s.p}</p>${fig}${last?`<p style="background:#f3efff;border-radius:10px;padding:8px"><b>🎯 Missão:</b> ${lv.goal}</p>`:''}<div class="mbts">${trStep>0?'<button class="btn" id="t-prev">◀ Voltar</button>':''}<button class="btn run" id="t-next">${last?'Começar a fase 🚀':'Próximo ▶'}</button></div><p><a href="#" id="t-skip" style="font-size:12px">pular trilha</a></p>`,'760px');
+ const end=()=>{S.seen[id]=1;save();hideModal()};
+ const pv=document.getElementById('t-prev');if(pv)pv.onclick=()=>openTrail(id,trStep-1);
+ $('#t-next').onclick=()=>{sfx.tick();if(last)end();else openTrail(id,trStep+1)};
+ $('#t-skip').onclick=e=>{e.preventDefault();end()}}
+$('#btrail').onclick=()=>{if(!lock){sfx.tick();openTrail(LV.id,0)}};
+$('#bsch').onclick=()=>{if(lock)return;if(LV.boss&&!hintUsedSch){hintUsedSch=true;hints++}
+ showModal(`<h2>📐 Esquema · Fase ${LV.id}</h2>${schemHTML(LV)}${LV.boss?'<p class="hint" style="font-size:12px">Abrir o esquema nesta fase conta como 1 dica.</p>':''}<div class="mbts"><button class="btn run" id="m-x">Voltar à montagem</button></div>`,'980px');$('#m-x').onclick=hideModal};
+$('#bcomp').onclick=()=>{if(lock)return;const seen=[...new Set(LV.comps.map(c=>c.type))];
+ showModal(`<h2>🧩 Componentes desta fase</h2><div style="text-align:left">${seen.map(t=>`<div style="margin:8px 0;padding:8px;border:2px solid var(--grey);border-radius:12px"><b>${CINFO[t][0]}</b><p style="margin:2px 0">${CINFO[t][1]}</p>${figComp(t)}</div>`).join('')}</div><div class="mbts"><button class="btn run" id="m-x">Fechar</button></div>`,'640px');$('#m-x').onclick=hideModal};
+$('#bhint').onclick=()=>{if(lock)return;hints++;sfx.tick();
+ if(!tipShown){tipShown=true;say('💡 '+LV.tip);setStatus('💡 '+LV.tip);return}
+ const w=LV.sol.find(x=>!hasW(x));if(!w){say('Todas as mangueiras certas já estão aí! Se não funcionar, teste a fonte e as válvulas manualmente.');return}
+ hl=[w[0],w[1]];dirty=true;setStatus(`💡 Falta ligar: ${w[0]} ↔ ${w[1]} (portas piscando)`);say(`Falta uma mangueira entre ${w[0]} e ${w[1]}.`);
+ setTimeout(()=>{hl=null;dirty=true},6000)};
+/* testar */
+$('#btest').onclick=()=>{if(lock)return;attempts++;const res=LV.tests.map(t=>{const ex=Object.fromEntries(Object.entries(t.ex).filter(e=>e[1]!==undefined));const sm=runScript(LV,WR(),t.st,GAME.mode);const bad=checkEx(sm,ex);if(sm.fault==='burst'&&!bad.length&&ex.fault!=='none'){}return{n:t.n,ok:!bad.length,bad}});
+ const okAll=res.every(r=>r.ok);const rb=$('#resbox');rb.classList.remove('hidden');
+ rb.innerHTML=`<h3>Resultado do teste ${okAll?'✅':''}</h3><ul>${res.map(r=>`<li class="${r.ok?'ok':'bad'}">${r.ok?'✔':'✘'} ${r.n}${r.ok?'':`<small>${r.bad.join(' · ')}</small>`}</li>`).join('')}</ul>`;
+ rb.scrollIntoView({behavior:'smooth',block:'nearest'});
+ if(okAll){const st=hints===0&&attempts<=3?3:hints<=2?2:1;S.stars[LV.id]=Math.max(S.stars[LV.id]||0,st);save();drawNav();sfx.win();say('Fase concluída! Você montou o circuito certinho.');showWin(st)}
+ else{sfx.bad();say('Ainda não passou em todos os testes. Veja o que falhou e ajuste as mangueiras.','bad')}};
+function showWin(stars){const i=GAME.levels.findIndex(l=>l.id===LV.id),nx=GAME.levels[i+1];
+ showModal(`<h2>${LV.boss?'🏆':'🎉'} Fase ${LV.id} concluída!</h2><div class="bigstars">${'★'.repeat(stars)+'☆'.repeat(3-stars)}</div><p>${LV.learn}</p><p style="font-size:12px;opacity:.7">3 estrelas: sem dicas e em até 3 testes · 2 estrelas: até 2 dicas</p><div class="mbts"><button class="btn" id="m-stay">Ficar na fase</button>${nx?'<button class="btn run" id="m-next">Próxima fase ▶</button>':'<span>🏁 Você terminou o jogo!</span>'}</div>`);
+ $('#m-stay').onclick=hideModal;if(nx)$('#m-next').onclick=()=>{hideModal();openLevel(nx.id)}}
+const first=GAME.levels.find(l=>!S.stars[l.id]);
+openLevel(first?first.id:1);requestAnimationFrame(loop);
+
+</script></body></html>

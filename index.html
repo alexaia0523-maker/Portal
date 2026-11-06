@@ -154,6 +154,26 @@ footer a{font-weight:700}
     <div class="prog"><span class="stars" data-stars>☆☆☆</span><div class="bar"><i data-bar></i></div><span class="go">Montar ▶</span></div>
    </div>
   </a>
+  <a class="card" href="games/pneumatica.html" data-game="pneumatica">
+   <div class="thumb t7">💨</div>
+   <div class="body">
+    <span class="tag">Jogo 7 · Pneumática</span>
+    <h2>Mestre da Pneumática</h2>
+    <p>Monte circuitos de ar comprimido: cilindros, válvulas 3/2 e 5/2, regulagem de velocidade, memória e ciclo automático.</p>
+    <ul><li>Comando bimanual (função E)</li><li>Duplo piloto e fim de curso</li><li>6 fases com trilha em cada uma</li></ul>
+    <div class="prog"><span class="stars" data-stars>☆☆☆</span><div class="bar"><i data-bar></i></div><span class="go">Montar ▶</span></div>
+   </div>
+  </a>
+  <a class="card" href="games/hidraulica.html" data-game="hidraulica">
+   <div class="thumb t7">🛢️</div>
+   <div class="body">
+    <span class="tag">Jogo 8 · Hidráulica</span>
+    <h2>Mestre da Hidráulica</h2>
+    <p>Monte circuitos com bomba, tanque, válvula de alívio, 4/2 e 4/3, regulador de fluxo e cilindros.</p>
+    <ul><li>Estoure (de mentirinha) uma mangueira sem alívio</li><li>4/3 centro fechado: trava hidráulica</li><li>6 fases com trilha em cada uma</li></ul>
+    <div class="prog"><span class="stars" data-stars>☆☆☆</span><div class="bar"><i data-bar></i></div><span class="go">Montar ▶</span></div>
+   </div>
+  </a>
  </main>
 
  <footer>
@@ -168,7 +188,7 @@ const REPO_URL='';
 if(REPO_URL){const a=document.getElementById('repo');a.href=REPO_URL;document.getElementById('repo-wrap').hidden=false}
 
 /* Lê o progresso salvo por cada jogo (mesmo domínio no GitHub Pages) */
-const GAMES={ladder:{key:'fabricaRele_v1',total:13},ligacoes:{key:'fabricaRele_fiacao_v1',total:8},sensores:{key:'fabricaRele_sensores_v1',total:8},ihm:{key:'fabricaRele_ihm_v1',total:8},partida:{key:'fabricaRele_partida_v1',total:9},reversao:{key:'fabricaRele_reversao_v1',total:8}};
+const GAMES={ladder:{key:'fabricaRele_v1',total:13},ligacoes:{key:'fabricaRele_fiacao_v1',total:8},sensores:{key:'fabricaRele_sensores_v1',total:8},ihm:{key:'fabricaRele_ihm_v1',total:8},partida:{key:'fabricaRele_partida_v1',total:9},reversao:{key:'fabricaRele_reversao_v1',total:8},pneumatica:{key:'fabricaRele_pneu_v1',total:6},hidraulica:{key:'fabricaRele_hid_v1',total:6}};
 function refresh(){
  let totalStars=0,totalMax=0;
  for(const [id,g] of Object.entries(GAMES)){
