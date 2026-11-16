@@ -258,6 +258,7 @@ function portPos(n){const [id,p]=n.split('.');const c=sim.comps[id],d=sim.D[c.ty
 function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;')}
 function drawComp(c,sm,st){const D=sm.D[c.type],w=D.w,h=D.h;let g='';const pr=n=>st&&sm.press.has(c.id+'.'+n);
  const T=(x,y,t,sz=11,col=INK,a='middle',wt=800)=>`<text x="${x}" y="${y}" text-anchor="${a}" font-size="${sz}" font-weight="${wt}" fill="${col}" stroke="#eef4f8" stroke-width="4" paint-order="stroke" stroke-linejoin="round">${esc(t)}</text>`;
+ const PL=(x,y,t,sz=11,col=INK,a='middle',wt=800)=>{const w=String(t).length*sz*.62+10,x0=a==='start'?x-4:a==='end'?x-w+4:x-w/2;return `<rect x="${x0}" y="${y-sz-1}" width="${w}" height="${sz+6}" rx="6" fill="#fff" fill-opacity=".93" stroke="#cfc9ea" stroke-width="1.2"/><text x="${x}" y="${y}" text-anchor="${a}" font-size="${sz}" font-weight="${wt}" fill="${col}">${esc(t)}</text>`};
  if(c.type==='SRC'){g+=`<rect x="0" y="0" width="${w-26}" height="${h}" rx="10" fill="#fff" stroke="${INK}" stroke-width="3"/><circle cx="46" cy="${h/2}" r="22" fill="${COLL}" stroke="${INK}" stroke-width="3"/>`+(HID?T(46,h/2+5,'M',15)+`<path d="M70 ${h/2}h18m-6-6 6 6-6 6" stroke="${INK}" stroke-width="3" fill="none"/>`:T(46,h/2+5,'~',22)+`<path d="M70 ${h/2}h18m-6-6 6 6-6 6" stroke="${INK}" stroke-width="3" fill="none"/>`)+`<line x1="${w-26}" y1="${h/2}" x2="${w}" y2="${h/2}" stroke="${INK}" stroke-width="4"/>`}
  else if(c.type==='TANK'){g+=`<path d="M0 0V${h}H${w}V0" fill="${COLL}" stroke="${INK}" stroke-width="3"/>`+T(w/2,h/2+12,'~ ~ ~',16,COL)+`<line x1="${w/2}" y1="0" x2="${w/2}" y2="-4" stroke="${INK}" stroke-width="3"/>`}
  else if(/^V4?[235]{1,2}$/.test(c.type)&&D.sq){const n=D.sq,sw=w/n,act=c.type==='V43'?[1,0,2][c.s||0]:c.s||0;
@@ -273,16 +274,17 @@ function drawComp(c,sm,st){const D=sm.D[c.type],w=D.w,h=D.h;let g='';const pr=n=
   if(c.type==='CYL1'){const sx=px+8,ex=bodyR-4,k=8,seg=(ex-sx)/k;let d=`M${sx} ${h/2}`;for(let i=0;i<k;i++)d+=`L${sx+seg*(i+.5)} ${h/2+(i%2?-9:9)}`;d+=`L${ex} ${h/2}`;g+=`<path d="${d}" fill="none" stroke="${INK}" stroke-width="2"/>`}
   g+=`<rect x="12" y="0" width="${bodyR-12}" height="${h}" rx="4" fill="none" stroke="${INK}" stroke-width="3.5"/><rect x="${px}" y="3" width="8" height="${h-6}" fill="${INK}"/><line x1="${px+8}" y1="${h/2}" x2="${rodEnd}" y2="${h/2}" stroke="#888" stroke-width="9"/><line x1="${bodyR}" y1="${h/2}" x2="${rodEnd}" y2="${h/2}" stroke="#bbb" stroke-width="6"/><rect x="${rodEnd}" y="${h/2-16}" width="14" height="32" fill="#7a6bd6" stroke="${INK}" stroke-width="3"/>`}
  else if(c.type==='FC'){const on=st&&sm.press.has(c.id+'.IN');g+=`<rect x="0" y="0" width="${w}" height="${h}" rx="8" fill="#fff" stroke="${INK}" stroke-width="3"/><line x1="0" y1="22" x2="${w}" y2="22" stroke="${on?COL:INK}" stroke-width="3"/><path d="M34 6v10M34 38V28M50 6v10M50 38V28" stroke="${INK}" stroke-width="4"/><path d="M12 36l66-28" stroke="${INK}" stroke-width="2" />`+T(8,13,'IN',9,INK,'start')+T(w-8,13,'OUT',9,INK,'end')}
- else if(c.type==='REL'){const on=st&&sm.hasRelief&&sm.stall&&sm.pump;g+=`<rect x="0" y="0" width="${w}" height="${h}" rx="8" fill="${on?'#ffe3d0':'#fff'}" stroke="${INK}" stroke-width="3"/><path d="M${w/2} 8v14l-9 5 18 7-18 7 9 5v9" fill="none" stroke="${INK}" stroke-width="2.5"/><path d="M${w/2-18} 18 ${w/2-18} 46 ${w/2-10} 46" fill="none" stroke="${INK}" stroke-width="2"/>`+(on?T(w/2,h+14,'ABRIU!',10,'#c0182c'):'')}
- else if(c.type==='MAN'){const b=st?sm.bar:0,ang=-130+Math.min(1,b/(HID?160:8))*260;g+=`<circle cx="25" cy="25" r="23" fill="#fff" stroke="${INK}" stroke-width="3"/><line x1="25" y1="25" x2="${25+16*Math.sin(ang*Math.PI/180)}" y2="${25-16*Math.cos(ang*Math.PI/180)}" stroke="#d6243a" stroke-width="3"/>`+T(25,41,Math.round(b),9,INK)}
+ else if(c.type==='REL'){const on=st&&sm.hasRelief&&sm.stall&&sm.pump;g+=`<rect x="0" y="0" width="${w}" height="${h}" rx="8" fill="${on?'#ffe3d0':'#fff'}" stroke="${INK}" stroke-width="3"/><path d="M${w/2} 8v14l-9 5 18 7-18 7 9 5v9" fill="none" stroke="${INK}" stroke-width="2.5"/><path d="M${w/2-18} 18 ${w/2-18} 46 ${w/2-10} 46" fill="none" stroke="${INK}" stroke-width="2"/>`+(on?T(w/2,h+16,'ABRIU!',10,'#c0182c'):'')}
+ else if(c.type==='MAN'){const b=st?sm.bar:0,ang=-130+Math.min(1,b/(HID?160:8))*260;g+=`<circle cx="25" cy="25" r="23" fill="#fff" stroke="${INK}" stroke-width="3"/><line x1="25" y1="25" x2="${25+16*Math.sin(ang*Math.PI/180)}" y2="${25-16*Math.cos(ang*Math.PI/180)}" stroke="#d6243a" stroke-width="3"/>`+T(25,34,Math.round(b),9,INK)}
  // portas
  for(const p in D.ports){const d=D.ports[p],fl=d[4]||'',vent=fl.includes('x');
   if(vent){g+=`<path d="M${d[0]-6} ${d[1]+4}l6 -9 6 9z" fill="#fff" stroke="${INK}" stroke-width="2" transform="rotate(0)"/>`}
   else{const hot=hl&&hl.includes(c.id+'.'+p);g+=`<circle class="pt${hot?' ring':''}" data-t="${c.id}.${p}" cx="${d[0]}" cy="${d[1]}" r="${hot?13:9}" fill="${sel===c.id+'.'+p?'#ffd23f':hot?'#fff3a0':'#fff'}" stroke="${hot?'#d6243a':INK}" stroke-width="3"/>`;
-   const lx=d[0]+d[2]*(-0)+(d[2]?d[2]*16:0),ly=d[1]+(d[3]?d[3]*16:0)+4;
-   if(!/^[SCT]/.test(c.id)||c.type.startsWith('V')||c.type==='CYL1'||c.type==='CYL2'||c.type==='FC'||c.type==='REL'||c.type==='MAN'){if(!(c.type==='SRC'||c.type==='TANK'))g+=T(d[0]+(d[2]?d[2]*17:12),d[1]+(d[3]===-1?-14:d[3]===1?20:4),p,10,'#5b4fa8',d[2]?(d[2]>0?'start':'end'):'start',900)}}}
+   if(!(c.type==='SRC'||c.type==='TANK')){let lx,ly,an='start';
+    if(d[3]){lx=d[0]+12;ly=d[1]+(d[3]===-1?-8:18)}else{lx=d[0]+d[2]*15;ly=d[1]-12;an='middle'}
+        g+=PL(lx,ly,p,10,'#5b4fa8',an,900)}}}
  // rotulo
- const lab=c.label||c.id;const ly=c.type.startsWith('CYL')?h+18:h+18;g+=T(w/2+(c.type.startsWith('CYL')?60:0),ly+(c.type==='REL'?10:0),lab,11,INK);
+ const lab=c.label||c.id,botp=/^(V|MAN)/.test(c.type);g+=c.type==='REL'?PL(w+10,h/2+4,lab,11,INK,'start'):PL(w/2+(c.type.startsWith('CYL')?60:0),botp?h+42:h+22,lab,11,INK);
  // atuadores
  const bt=(x,y,ww,t,fill,attr)=>`<g class="vbtn" ${attr}><rect x="${x}" y="${y}" width="${ww}" height="28" rx="8" fill="${fill}" stroke="${INK}" stroke-width="3"/><text x="${x+ww/2}" y="${y+19}" text-anchor="middle" font-size="12" font-weight="900" fill="${INK}" pointer-events="none">${t}</text></g>`;
  if(c.act==='push'){g+=bt(-90,h/2-14,54,'⬇ '+c.id,(c.s?'#ffd23f':'#fff'),`data-b="${c.id}:push"`)+bt(-32,h/2-14,28,latch[c.id]?'🔒':'🔓',latch[c.id]?'#d6f7e7':'#fff',`data-b="${c.id}:lock"`)}
@@ -294,7 +296,7 @@ function drawComp(c,sm,st){const D=sm.D[c.type],w=D.w,h=D.h;let g='';const pr=n=
 function hosePath(a,b){const A=portPos(a),B=portPos(b),dist=Math.hypot(A.x-B.x,A.y-B.y),k=Math.min(90,dist/2+24);
  return `M${A.x} ${A.y}C${A.x+A.dx*k} ${A.y+A.dy*k} ${B.x+B.dx*k} ${B.y+B.dy*k} ${B.x} ${B.y}`}
 function renderScene(level,wires,sm,opts={}){
- let W=0,H=0;for(const id in sm.comps){const c=sm.comps[id],D=sm.D[c.type];W=Math.max(W,c.x+D.w+(c.type.startsWith('CYL')?60:0));H=Math.max(H,c.y+D.h+34)}
+ let W=0,H=0;for(const id in sm.comps){const c=sm.comps[id],D=sm.D[c.type];W=Math.max(W,c.x+D.w+(c.type.startsWith('CYL')?60:0));H=Math.max(H,c.y+D.h+62)}
  W+=70;H+=20;let s='',hs='';
  const press=sm.press;
  const all=[...(level.pre||[]).map(w=>({w,lk:true})),...wires.map(w=>({w,lk:false}))];
