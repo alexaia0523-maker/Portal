@@ -116,7 +116,18 @@ function checkEx(ex,st,r){
  if(ex.q)for(const k in ex.q)if(!!st.q[k]!==ex.q[k])return false;
  if(ex.fault&&!(r.faults||[]).some(f=>f.indexOf(ex.fault)===0))return false;
  return true}
+function neutralFaults(comps,wires){
+ const uf=UF();wires.forEach(w=>uf.union(w[0],w[1]));const used=new Set();wires.forEach(w=>{used.add(w[0]);used.add(w[1])});
+ const hasN=comps.some(c=>c.type==='SRC'),nr=hasN?uf.find('SRC.N'):null,out=[];
+ if(!hasN)return out;
+ comps.forEach(c=>{const t=c.type==='K'?['A1','A2']:c.type==='H'?['X1','X2']:null;if(!t)return;
+  const a=c.id+'.'+t[0],b=c.id+'.'+t[1];
+  if(used.has(a)&&used.has(b)&&uf.find(a)!==nr&&uf.find(b)!==nr)out.push(c.id)});
+ return out}
+const NEUTRO_MSG='⛔ NEUTRO SECCIONADO! Um dos terminais da bobina/lâmpada não chega direto ao neutro N. Nunca coloque botão, contato, fusível ou térmico no neutro: só a FASE pode ser seccionada. Ligue o terminal A2 (ou X2) direto ao N.';
 function runTests(level,wires){
+ const nfl=neutralFaults(level.comps,[...(level.pre||[]),...wires]);
+ if(nfl.length)return level.tests.map(t=>({name:t.name,ok:false,msg:NEUTRO_MSG+' ('+nfl.join(', ')+')'}));
  return level.tests.map(t=>{const st=mkState(level.comps);let r=solve(level.comps,wires,st),fail=null;
   const faultsAll=[];
   for(const s of t.steps){applyStep(st,s);r=solve(level.comps,wires,st);(r.faults||[]).forEach(f=>faultsAll.push(f));
@@ -171,7 +182,8 @@ const PWm=[['F2.2','M1.U'],['F2.4','M1.V'],['F2.6','M1.W']];
 const PW=[...PWs,...PWk1,...PWm];
 const CT_BASE=[['Q1.2','FU1.1'],['FU1.2','S0.11'],['S0.12','S1.13'],['S1.14','K1.A1']];
 const CT_SEAL=[['S0.12','K1.13'],['K1.14','K1.A1']];
-const CT_TERM=[['K1.A2','F2.95'],['F2.96','SRC.N']];
+const CT_B7=[['Q1.2','FU1.1'],['S0.12','S1.13'],['S1.14','K1.A1'],['K1.A2','SRC.N']];
+const CT_TERM=[['FU1.2','F2.95'],['F2.96','S0.11']];
 const LAMPS=[['K1.A1','H1.X1'],['H1.X2','SRC.N'],['FU1.2','K1.21'],['K1.22','H2.X1'],['H2.X2','SRC.N'],['FU1.2','F2.97'],['F2.98','H3.X1'],['H3.X2','SRC.N']];
 const cSRC={id:'SRC',type:'SRC'},cQ={id:'Q1',type:'Q'},cFU={id:'FU1',type:'FU'},cK={id:'K1',type:'K'},cF2={id:'F2',type:'F2'},cS0={id:'S0',type:'S0'},cS1={id:'S1',type:'SB',nf:false,color:'#19c37d',label:'S1 · LIGA'},cM={id:'M1',type:'M'};
 const cH1={id:'H1',type:'H',color:'#19c37d',label:'H1 · LIGADO'},cH2={id:'H2',type:'H',color:'#ff4d5e',label:'H2 · PARADO'},cH3={id:'H3',type:'H',color:'#ffc400',label:'H3 · SOBRECARGA'};
@@ -224,10 +236,10 @@ const GAME={id:'partida',title:'Bancada do Relê · Partida Direta',key:'fabrica
  tests:[{name:'Liga e solta: motor continua',steps:[q_('Q1',true),P_('S1'),R_('S1'),E_({M:'run',on:{K1:true}},'O selo não segurou o motor. Ligue K1 13-14 em paralelo com S1.')]},
   {name:'S0 desliga',steps:[q_('Q1',true),P_('S1'),R_('S1'),P_('S0'),R_('S0'),E_({M:'off'},'S0 deveria desligar o motor.')]},
   {name:'Pode ligar de novo',steps:[q_('Q1',true),P_('S1'),R_('S1'),P_('S0'),R_('S0'),P_('S1'),R_('S1'),E_({M:'run'},'Depois de desligar, S1 deve ligar de novo.')]}]},
-{id:7,name:'Proteção térmica',goal:'Coloque o contato NF 95-96 do relé térmico F2 em série com a bobina. Depois force uma sobrecarga.',
- learn:'Na sobrecarga o relé térmico abre 95-96, a bobina cai e o motor para. Ele precisa ser rearmado à mão (botão REARMAR).',
- tip:'Bobina A2 → F2 (95); F2 (96) → neutro N.',
- comps:[cSRC,cQ,cFU,cS0,cS1,cK,cF2,cM],pre:[...PW,...CT_BASE,...CT_SEAL],sol:CT_TERM,
+{id:7,name:'Proteção térmica',goal:'Coloque o contato NF 95-96 do relé térmico F2 em série no comando, do lado da FASE (nunca no neutro). Depois force uma sobrecarga.',
+ learn:'Na sobrecarga o relé térmico abre 95-96, o comando cai e o motor para. Regra de ouro: só a FASE é seccionada; o neutro vai direto à bobina e nunca passa por contato, botão, fusível ou térmico.',
+ tip:'F1 (saída) → F2 (95); F2 (96) → S0 (11). A bobina A2 já está ligada direto ao neutro: não mexa nela.',
+ comps:[cSRC,cQ,cFU,cS0,cS1,cK,cF2,cM],pre:[...PW,...CT_B7,...CT_SEAL],sol:CT_TERM,
  tests:[{name:'Funciona normal',steps:[q_('Q1',true),P_('S1'),R_('S1'),E_({M:'run'},'O motor deveria ligar e selar.')]},
   {name:'Sobrecarga desliga o motor',steps:[q_('Q1',true),P_('S1'),R_('S1'),TR('F2'),E_({M:'off',on:{K1:false}},'O térmico deve cortar a bobina (95-96 em série).')]},
   {name:'Não religa sem rearmar',steps:[q_('Q1',true),TR('F2'),P_('S1'),R_('S1'),E_({M:'off'},'Com o térmico desarmado o motor não pode ligar.')]},
@@ -235,15 +247,15 @@ const GAME={id:'partida',title:'Bancada do Relê · Partida Direta',key:'fabrica
 {id:8,name:'Sinalização',goal:'Instale as lâmpadas: H1 verde (ligado), H2 vermelha (parado) e H3 amarela (sobrecarga).',
  learn:'H1 vai em paralelo com a bobina. H2 usa o contato NF 21-22 de K1 (acende quando parado). H3 usa o contato NA 97-98 do térmico.',
  tip:'Cada lâmpada: um fio na fase (A1 / F1 saída), outro no neutro. H2 passa por K1 21-22; H3 passa por F2 97-98.',
- comps:[cSRC,cQ,cFU,cS0,cS1,cK,cF2,cM,cH1,cH2,cH3],pre:[...PW,...CT_BASE,...CT_SEAL,...CT_TERM],sol:LAMPS,tests:FULLTESTS},
+ comps:[cSRC,cQ,cFU,cS0,cS1,cK,cF2,cM,cH1,cH2,cH3],pre:[...PW,...CT_B7,...CT_SEAL,...CT_TERM],sol:LAMPS,tests:FULLTESTS},
 {id:9,name:'Desafio final: monte tudo',goal:'Monte do zero a partida direta completa: potência, comando com selo, térmico e sinalização.',
  learn:'Parabéns! Você montou uma partida direta com proteção e sinalização, como em um painel real.',
  tip:'Faça em ordem: 1) potência, 2) comando, 3) selo, 4) térmico, 5) lâmpadas. Use a Lista de ligações se precisar.',
- comps:[cSRC,cQ,cFU,cS0,cS1,cK,cF2,cM,cH1,cH2,cH3],pre:[],sol:[...PW,...CT_BASE,['K1.A2','F2.95'],['F2.96','SRC.N'],...CT_SEAL,...LAMPS],tests:FULLTESTS,boss:true}
+ comps:[cSRC,cQ,cFU,cS0,cS1,cK,cF2,cM,cH1,cH2,cH3],pre:[],sol:[...PW,...CT_B7,...CT_TERM,...CT_SEAL,...LAMPS],tests:FULLTESTS,boss:true}
 ]};
 /*LV_END*/
 
-const _m=[sw('Q1'),fu('F1'),nf('S0','11-12'),{par:[[na('S1','13-14')],[na('K1','13-14')]]},coil('K1'),nf('F2','95-96')];
+const _m=[sw('Q1'),fu('F1'),nf('F2','95-96'),nf('S0','11-12'),{par:[[na('S1','13-14')],[na('K1','13-14')]]},coil('K1')];
 const _lamps=[{items:[lamp('H1','#19c37d')],note:'H1 (verde): em paralelo com a bobina, no borne A1 de K1'},{items:[nf('K1','21-22'),lamp('H2','#ff4d5e')],note:'H2 (vermelha): sai do fusível F1 e passa pelo NF 21-22 de K1'},{items:[na('F2','97-98'),lamp('H3','#ffc400')],note:'H3 (amarela): sai do fusível F1 e passa pelo NA 97-98 do térmico'}];
 const SCH={
 1:{rows:[{items:[sw('Q1'),lamp('H1','#19c37d')]}],note:'Fase R → disjuntor Q1 → lâmpada H1 → neutro N'},
@@ -252,7 +264,7 @@ const SCH={
 4:{power:'direct',note:'Potência: as três fases passam por Q1, K1 e F2 até o motor, sempre na mesma ordem (1→1, 3→3, 5→5).'},
 5:{rows:[{items:[sw('Q1'),fu('F1'),nf('S0','11-12'),na('S1','13-14'),coil('K1')]}],note:'Comando: fase → F1 → S0 (NF) → S1 (NA) → bobina K1 → neutro. Ainda sem selo.'},
 6:{rows:[{items:[sw('Q1'),fu('F1'),nf('S0','11-12'),{par:[[na('S1','13-14')],[na('K1','13-14')]]},coil('K1')]}],note:'O contato 13-14 de K1 (selo) fica em paralelo com S1 e mantém a bobina ligada.'},
-7:{rows:[{items:[sw('Q1'),fu('F1'),nf('S0','11-12'),{par:[[na('S1','13-14')],[na('K1','13-14')]]},coil('K1'),nf('F2','95-96')]}],note:'O NF 95-96 do relé térmico fica em série: na sobrecarga ele abre e desliga a bobina.'},
+7:{rows:[{items:[sw('Q1'),fu('F1'),nf('F2','95-96'),nf('S0','11-12'),{par:[[na('S1','13-14')],[na('K1','13-14')]]},coil('K1')]}],note:'O NF 95-96 do relé térmico fica em série no comando, do lado da FASE: na sobrecarga ele abre e desliga a bobina. O neutro vai direto à bobina.'},
 8:{rows:[{items:_m},..._lamps],note:'Comando completo com as três lâmpadas de sinalização.'},
 9:{rows:[{items:_m},..._lamps],note:'Esquema completo da partida direta.'}};
 
@@ -276,8 +288,8 @@ const TRAIL={
    {t:'O selo (autorretenção)',p:'<b>1)</b> Você aperta S1 e K1 liga. <b>2)</b> O contato auxiliar <b>13-14 de K1</b> fecha. <b>3)</b> Ele está em <b>paralelo</b> com S1, então mantém a bobina mesmo com S1 solto. <b>4)</b> S0 (NF) abre o caminho e tudo desliga.',fig:'schem'},
    {t:'Mão na massa',p:'Acrescente só dois cabos: <b>S0 (12) → K1 (13)</b> e <b>K1 (14) → K1 (A1)</b>.'}],
 7:[{t:'Sobrecarga',p:'Quando o motor puxa corrente demais por muito tempo ele <b>esquenta</b> e pode queimar. O <b>relé térmico F2</b> detecta isso. Ele protege contra <b>sobrecarga</b>; o curto-circuito é função do disjuntor e do fusível.'},
-   {t:'O contato 95-96',p:'O térmico tem um contato <b>NF 95-96</b> ligado <b>em série com a bobina</b>. Na sobrecarga ele abre, a bobina cai e o motor para. Só volta depois do <b>rearme</b>.',fig:'schem'},
-   {t:'Mão na massa',p:'Monte <b>K1 (A2) → F2 (95)</b> e <b>F2 (96) → N</b>. Depois teste: ligue o motor, aperte <b>SOBRECARGA</b> no térmico e veja o motor parar; use <b>REARMAR</b> para voltar.'}],
+   {t:'O contato 95-96',p:'O térmico tem um contato <b>NF 95-96</b> ligado <b>em série no comando, do lado da fase</b>. Na sobrecarga ele abre, a bobina cai e o motor para. Só volta depois do <b>rearme</b>. <b>Regra de ouro:</b> só a FASE é seccionada; o <b>neutro</b> vai direto à bobina e nunca passa por contato, botão, fusível ou térmico.',fig:'schem'},
+   {t:'Mão na massa',p:'Monte <b>F1 (saída) → F2 (95)</b> e <b>F2 (96) → S0 (11)</b>. A bobina continua com A2 direto no neutro. Depois teste: ligue o motor, aperte <b>SOBRECARGA</b> no térmico e veja o motor parar; use <b>REARMAR</b> para voltar.'}],
 8:[{t:'Lâmpadas que informam',p:'Painéis reais mostram o estado da máquina com lâmpadas: <b>H1 verde = ligado</b>, <b>H2 vermelha = parado</b> e <b>H3 amarela = sobrecarga</b>. Todas ficam entre fase e neutro.'},
    {t:'De onde vem cada lâmpada',p:'<b>H1</b> fica em paralelo com a bobina. <b>H2</b> usa o contato <b>NF 21-22 de K1</b> (acende quando o motor está parado). <b>H3</b> usa o contato <b>NA 97-98</b> do térmico (acende na sobrecarga).',fig:'schem'},
    {t:'Mão na massa',p:'São 8 cabos. Comece por H1, depois H2 e por último H3, testando cada uma.'}],
@@ -407,7 +419,8 @@ let lastK={},flash=null;
 function refresh(){
  res=solve(comps,[...pre,...wires],st);
  {const s=LV.sol,ok=s.filter(w=>wireSat(allW(),w[0],w[1])).length;$('#cnt').innerHTML=s.length?`🔌 Ligações certas: <b>${ok}/${s.length}</b>`:'';$('#cnt').className=s.length&&ok===s.length?'full':''}
- const msgs=[];(res.faults||[]).forEach(f=>{const k=f.split(':')[0];msgs.push(FMSG[k]);sfx.alarm()});
+ const msgs=[];{const nfl=neutralFaults(comps,allW());if(nfl.length){msgs.push(NEUTRO_MSG+' ('+nfl.join(', ')+')')}}
+ (res.faults||[]).forEach(f=>{const k=f.split(':')[0];msgs.push(FMSG[k]);sfx.alarm()});
  for(const c of comps){const p=document.getElementById.bind(document);
   if(c.type==='Q'){const on=st.q[c.id];p(c.id+'_lev').setAttribute('transform',`rotate(${on?-26:26} 100 105)`)}
   else if(c.type==='FU'){p(c.id+'_x').setAttribute('display',st.blown[c.id]?'':'none');p(c.id+'_link').setAttribute('stroke',st.blown[c.id]?'#ff4d5e':INK)}
@@ -430,7 +443,7 @@ const CINFO={SRC:['Fonte','Três fases R, S, T (380 V entre fases) e neutro N (2
  Q:['Disjuntor Q1','Liga e desliga o circuito e protege contra curto e sobrecarga. Bornes 1-3-5 (entrada) e 2-4-6 (saída). Clique para ligar.'],
  FU:['Fusível F1','Protege o circuito de comando e queima em curto. Clique no fusível queimado para trocar.'],
  K:['Contator K','Chave de potência acionada por uma bobina (A1-A2). Potência 1-3-5 / 2-4-6. Auxiliares: 13-14 (NA) e 21-22 (NF). Segure o corpo para acionar à mão.'],
- F2:['Relé térmico F2','Protege o motor contra sobrecarga. O NF 95-96 corta a bobina; o NA 97-98 serve para sinalizar. Use SOBRECARGA para simular e REARMAR para voltar.'],
+ F2:['Relé térmico F2','Protege o motor contra sobrecarga. O NF 95-96 fica em série no comando, do lado da FASE (nunca no neutro), e corta a bobina; o NA 97-98 serve para sinalizar. Use SOBRECARGA para simular e REARMAR para voltar.'],
  S0:['Botão S0 (DESLIGA)','Vermelho, contato NF nos bornes 11-12. Em série com o comando.'],
  SB:['Botão LIGA','Contato NA nos bornes 13-14 (verde ou azul). Alguns têm também NF nos bornes 21-22.'],
  H:['Lâmpada de sinalização','220 V: ligue entre fase e neutro (X1 e X2).'],
