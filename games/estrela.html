@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Bancada do Relê · Partida Estrela-Triângulo</title>
+<style>
+:root{--ink:#2b2250;--bg1:#fff3c9;--bg2:#d9f2ff;--purple:#6c4cf1;--yellow:#ffd23f;--green:#19c37d;--orange:#ff9f1c;--red:#ff4d5e;--grey:#c3bddb}
+*{box-sizing:border-box}html,body{margin:0}
+body{font-family:"Trebuchet MS","Segoe UI",system-ui,sans-serif;color:var(--ink);background:linear-gradient(160deg,var(--bg1),var(--bg2));background-attachment:fixed}
+h1,h2,h3,p{margin:0}.hidden{display:none!important}
+.card{background:#fff;border:3px solid var(--ink);border-radius:18px;box-shadow:0 4px 0 var(--ink)}
+#app{max-width:1180px;margin:0 auto;padding:10px;display:flex;flex-direction:column;gap:10px;min-height:100dvh}
+.btn{font:inherit;font-weight:800;border:3px solid var(--ink);border-radius:14px;padding:8px 14px;background:#fff;color:var(--ink);cursor:pointer;box-shadow:0 3px 0 var(--ink);text-decoration:none;display:inline-block}
+.btn:active{transform:translateY(3px);box-shadow:none}.btn[disabled]{opacity:.45;cursor:not-allowed}
+.btn.sm{padding:4px 10px;font-size:13px;border-radius:12px}.btn.run{background:var(--green);color:#fff}.btn.rst{background:var(--yellow)}.btn.pri{background:var(--purple);color:#fff}
+.row{display:flex;align-items:center;gap:10px;flex-wrap:wrap}.sp{flex:1}
+#top{padding:8px 12px;display:flex;flex-direction:column;gap:8px}.logo{font-weight:900;font-size:18px;color:var(--purple)}
+#lv{display:flex;gap:6px;flex-wrap:wrap}
+.chip{width:46px;height:46px;border-radius:12px;border:3px solid var(--ink);background:#fff;font:inherit;font-weight:900;font-size:15px;cursor:pointer;padding:0;color:var(--ink);line-height:1}
+.chip i{display:block;font-style:normal;font-size:8px;color:var(--orange);letter-spacing:-1px;margin-top:1px}
+.chip.cur{background:var(--yellow)}.chip.bonus{border-color:var(--purple)}.chip.boss{background:#ffe1ea}
+#lesson{padding:10px 14px}#lesson h2{font-size:18px}#lesson p{font-size:14px;line-height:1.45;margin-top:4px}
+.learn{background:#f3efff;border-radius:10px;padding:6px 10px;margin-top:6px;font-size:13.5px}
+#benchbox{padding:8px;display:flex;flex-direction:column;gap:6px}
+#tools{padding:2px 6px}.cdot{width:26px;height:26px;border-radius:50%;border:3px solid var(--ink);cursor:pointer;padding:0}.cdot.on{outline:3px solid var(--purple);outline-offset:2px}
+#scroll{overflow:auto;border:3px dashed var(--grey);border-radius:12px;background:repeating-linear-gradient(0deg,#eef4f8,#eef4f8 22px,#e6eef4 22px,#e6eef4 23px);max-height:66vh;touch-action:pan-x pan-y}
+#bench{display:block;user-select:none;-webkit-user-select:none}
+#status{min-height:36px;padding:6px 10px;border-radius:10px;background:#f3efff;font-weight:800;font-size:14px;border:2px solid var(--ink)}
+#status.bad{background:#ffdde1}#status.good{background:#d6f7e7}
+#resbox{padding:10px 14px}#resbox ul{list-style:none;padding:0;margin:6px 0}
+#resbox li{padding:6px 10px;border-radius:10px;margin-bottom:4px;font-weight:700;font-size:14px;background:#f3efff}#resbox li.ok{background:#d6f7e7}#resbox li.bad{background:#ffdde1}#resbox li small{display:block;font-weight:600}
+#cheat{padding:10px 14px}#cheat ul{list-style:none;padding:0;margin:6px 0;columns:2;column-gap:14px;font-size:13px;font-weight:700}
+#cheat li{padding:3px 6px;break-inside:avoid}#cheat li.ok{color:#0a7a4b}#cheat li.ok::before{content:"✔ "}#cheat li:not(.ok)::before{content:"○ "}
+#foot{display:flex;align-items:center;gap:12px;padding:8px 12px;position:sticky;bottom:8px;z-index:20;flex-wrap:wrap}
+#rele{width:56px;height:62px;flex:none;animation:bob 2.4s ease-in-out infinite}
+#bubble{flex:1;min-width:180px;position:relative;background:#f3efff;border:3px solid var(--ink);border-radius:16px;padding:8px 12px;font-size:14px;line-height:1.3;min-height:46px;display:flex;align-items:center}
+#bubble::before{content:"";position:absolute;left:-12px;top:50%;margin-top:-8px;border:8px solid transparent;border-right-color:var(--ink);border-left:0}
+.btns{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+@keyframes bob{50%{transform:translateY(-4px)}}@keyframes blink{0%,92%,100%{transform:scaleY(1)}96%{transform:scaleY(.1)}}
+.eye{transform-origin:center;transform-box:fill-box;animation:blink 4s infinite}
+.overlay{position:fixed;inset:0;background:rgba(43,34,80,.55);display:grid;place-items:center;z-index:50;padding:12px}
+.mcard{max-width:520px;width:100%;padding:18px;max-height:92vh;overflow:auto;text-align:center}.mcard h2{font-size:22px;margin-bottom:8px}.mcard p{margin:6px 0;font-size:14px;line-height:1.4}
+.bigstars{font-size:46px;color:var(--orange);letter-spacing:4px}.mbts{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:10px}
+@keyframes pulse{50%{r:20;opacity:.5}}.blink{animation:pulse .6s infinite}
+details.dt{margin-top:8px;border:2px solid var(--grey);border-radius:12px;padding:6px 10px;background:#fcfbff}details.dt summary{cursor:pointer;font-weight:900;font-size:14px}details.dt svg{margin-top:8px}
+ul.ci{margin:8px 0;padding-left:18px;font-size:13.5px;line-height:1.45}#cnt.full{color:#0a7a4b}
+.wg:hover .wo{stroke-width:10}.wg:hover .wi{stroke-width:6}.wg.lk:hover .wo{stroke-width:6}
+@media(min-width:701px){#app{padding-bottom:84px}}
+@media(max-width:700px){#foot{position:static}#scroll{max-height:78vh}.btns .btn{padding:6px 8px;font-size:12px}.logo{font-size:15px}#cheat ul{columns:1}#rele{width:42px;height:46px}.btns{width:100%;justify-content:center}}
+</style></head><body>
+<div id="app">
+ <header id="top" class="card"><div class="row"><div class="logo">Bancada do Relê · Partida Estrela-Triângulo</div><a class="btn sm" href="../index.html">🏠 Portal</a><span class="sp"></span><button class="btn sm" id="snd">🔊</button></div><nav id="lv"></nav></header>
+ <section id="lesson" class="card"></section>
+ <section id="benchbox" class="card">
+  <div id="tools" class="row"><span style="font-weight:800;font-size:13px">Cor do cabo:</span><span id="cols" class="row" style="gap:6px"></span><span id="cnt" style="font-weight:800;font-size:13px"></span><span class="sp"></span><button class="btn sm" id="zout">➖</button><button class="btn sm" id="zfit">Ajustar</button><button class="btn sm" id="zin">➕</button></div>
+  <div id="scroll"><svg id="bench" xmlns="http://www.w3.org/2000/svg"></svg></div>
+  <div id="status">Arraste de um borne a outro para ligar um cabo. Toque num cabo para remover.</div>
+ </section>
+ <section id="resbox" class="card hidden"></section>
+ <section id="cheat" class="card hidden"></section>
+ <footer id="foot" class="card">
+  <svg id="rele" viewBox="0 0 90 100"><line x1="45" y1="8" x2="45" y2="22" stroke="#2b2250" stroke-width="4"/><circle cx="45" cy="7" r="6" fill="#ff5fa2" stroke="#2b2250" stroke-width="3"/><rect x="22" y="80" width="46" height="16" rx="7" fill="#ff9f1c" stroke="#2b2250" stroke-width="4"/><rect x="3" y="38" width="8" height="22" rx="4" fill="#ffd23f" stroke="#2b2250" stroke-width="3"/><rect x="79" y="38" width="8" height="22" rx="4" fill="#ffd23f" stroke="#2b2250" stroke-width="3"/><rect x="10" y="20" width="70" height="58" rx="17" fill="#7fd8ff" stroke="#2b2250" stroke-width="4"/><rect x="18" y="29" width="54" height="36" rx="11" fill="#2b2250"/><circle class="eye" cx="35" cy="44" r="5" fill="#7cff8a"/><circle class="eye" cx="55" cy="44" r="5" fill="#7cff8a"/><path id="mouth" d="M36 54Q45 63 54 54" stroke="#7cff8a" stroke-width="3.5" fill="none" stroke-linecap="round"/><circle cx="25" cy="58" r="3" fill="#ff5fa2" opacity=".8"/><circle cx="65" cy="58" r="3" fill="#ff5fa2" opacity=".8"/></svg>
+  <div id="bubble"></div>
+  <div class="btns"><button class="btn sm" id="btrail">📖 Trilha</button><button class="btn sm" id="bsch">📐 Esquema</button><button class="btn sm" id="bhint">💡 Dica</button><button class="btn sm" id="blist">📋 Lista de ligações</button><button class="btn sm" id="bundo">↶ Desfazer</button><button class="btn sm" id="bclear">🗑️ Limpar</button><button class="btn run" id="btest">▶ Testar</button></div>
+ </footer>
+</div>
+<div id="modal" class="overlay hidden"><div class="mcard card" id="mbody"></div></div>
+<script>
+/*PURE_START*/
+function UF(){const p=new Map();const f=x=>{if(!p.has(x))p.set(x,x);let r=x;while(p.get(r)!==r)r=p.get(r);let c=x;while(p.get(c)!==r){const n=p.get(c);p.set(c,r);c=n}return r};return{find:f,union:(a,b)=>{const ra=f(a),rb=f(b);if(ra!==rb)p.set(ra,rb)}}}
+function mkState(comps){const st={master:true,q:{},k:{},press:{},hold:{},trip:{},blown:{},dn:{},dnReq:{}};comps.forEach(c=>{if(c.type==='Q')st.q[c.id]=false;if(c.type==='K')st.k[c.id]=false;if(c.type==='FU')st.blown[c.id]=false;if(c.type==='F2')st.trip[c.id]=false;if(c.type==='D')st.dn[c.id]=false});return st}
+function edgesOf(comps,st,skipFU){const E=[];const add=(id,a,b)=>E.push([id+'.'+a,id+'.'+b]);
+ for(const c of comps){const id=c.id;
+  if(c.type==='Q'){if(st.q[id]){add(id,1,2);add(id,3,4);add(id,5,6)}}
+  else if(c.type==='FU'){if(!st.blown[id]&&!skipFU)add(id,1,2)}
+  else if(c.type==='K'){const on=!!st.k[id];if(on){add(id,1,2);add(id,3,4);add(id,5,6)}for(const a of(c.aux||[]))if((a[0]==='NA')===on)add(id,a[1],a[2])}
+  else if(c.type==='D'){if(!st.dn[id])add(id,15,16)}
+  else if(c.type==='F2'){add(id,1,2);add(id,3,4);add(id,5,6);if(st.trip[id])add(id,97,98);else add(id,95,96)}
+  else if(c.type==='S0'){if(!st.press[id])add(id,11,12)}
+  else if(c.type==='SB'){if(st.press[id])add(id,13,14);else if(c.nf)add(id,21,22)}}
+ return E}
+const PHZ={R:[220,0],S:[-110,-190.526],T:[-110,190.526],N:[0,0]};
+const cmul=(a,b)=>[a[0]*b[0]-a[1]*b[1],a[0]*b[1]+a[1]*b[0]],cdiv=(a,b)=>{const d=b[0]*b[0]+b[1]*b[1];return[(a[0]*b[0]+a[1]*b[1])/d,(a[1]*b[0]-a[0]*b[1])/d]},csub=(a,b)=>[a[0]-b[0],a[1]-b[1]];
+function motorEval(c,uf,lab){
+ const T=['U1','V1','W1','U2','V2','W2'],root=n=>uf.find(c.id+'.'+n);
+ const labs=T.map(n=>lab[root(n)]||null);
+ if(labs.includes('N'))return{state:'bad',dir:0,id:c.id};
+ const W=[['U1','U2'],['V1','V2'],['W1','W2']].map(w=>[root(w[0]),root(w[1])]);
+ const pot=new Map();T.forEach(n=>{const l=lab[root(n)];if(l)pot.set(root(n),PHZ[l])});
+ const unk=[];W.forEach(w=>w.forEach(r=>{if(!pot.has(r)&&!unk.includes(r))unk.push(r)}));
+ const n=unk.length;
+ if(n){const A=unk.map(()=>new Array(n).fill(0).map(()=>[0,0])),B=unk.map(()=>[0,0]);
+  W.forEach(w=>{if(w[0]===w[1])return;[[w[0],w[1]],[w[1],w[0]]].forEach(([a,b])=>{const i=unk.indexOf(a);if(i<0)return;A[i][i][0]+=1;const j=unk.indexOf(b);if(j>=0)A[i][j][0]-=1;else{const p=pot.get(b);B[i][0]+=p[0];B[i][1]+=p[1]}})});
+  for(let i=0;i<n;i++){let p=i;for(let r=i+1;r<n;r++)if(Math.hypot(...A[r][i])>Math.hypot(...A[p][i]))p=r;[A[i],A[p]]=[A[p],A[i]];[B[i],B[p]]=[B[p],B[i]];
+   if(Math.hypot(...A[i][i])<1e-9)continue;
+   for(let r=0;r<n;r++){if(r===i)continue;const f=cdiv(A[r][i],A[i][i]);for(let k=i;k<n;k++){const t=cmul(f,A[i][k]);A[r][k]=csub(A[r][k],t)}const t=cmul(f,B[i]);B[r]=csub(B[r],t)}}
+  unk.forEach((r,i)=>pot.set(r,Math.hypot(...A[i][i])<1e-9?[0,0]:cdiv(B[i],A[i][i])))}
+ const vw=W.map(w=>w[0]===w[1]?[0,0]:csub(pot.get(w[0]),pot.get(w[1]))),m=vw.map(v=>Math.hypot(v[0],v[1]));
+ if(m.every(x=>x<20))return{state:'off',dir:0,id:c.id};
+ const eq=v=>m.every(x=>Math.abs(x-v)<28);
+ if(eq(220)||eq(381)){let a=Math.atan2(vw[1][1],vw[1][0])-Math.atan2(vw[0][1],vw[0][0]);while(a>Math.PI)a-=2*Math.PI;while(a<=-Math.PI)a+=2*Math.PI;
+  return{state:'run',dir:a<0?1:-1,cfg:eq(220)?'Y':'D',id:c.id}}
+ return{state:'phase',dir:0,id:c.id}}
+function evalOnce(comps,wires,st,skipFU){
+ const uf=UF();for(const w of wires)uf.union(w[0],w[1]);for(const e of edgesOf(comps,st,skipFU))uf.union(e[0],e[1]);
+ const lab={},shorts=new Set();const src=comps.find(c=>c.type==='SRC');
+ if(src&&st.master)for(const n of ['R','S','T','N']){const rt=uf.find(src.id+'.'+n);if(lab[rt]&&lab[rt]!==n)shorts.add(rt);else lab[rt]=n}
+ const L=t=>lab[uf.find(t)]||null;
+ const volt=(a,b)=>{const ra=uf.find(a),rb=uf.find(b);if(ra===rb||shorts.has(ra)||shorts.has(rb))return 0;const la=lab[ra],lb=lab[rb];if(!la||!lb)return 0;return(la==='N'||lb==='N')?220:380};
+ const loads={};
+ for(const c of comps){if(c.type==='K'||c.type==='D')loads[c.id]=volt(c.id+'.A1',c.id+'.A2');if(c.type==='H')loads[c.id]=volt(c.id+'.X1',c.id+'.X2')}
+ let motor={state:'off',dir:0};
+ for(const c of comps){if(c.type!=='M')continue;motor=motorEval(c,uf,lab)}
+ return{root:uf.find,shorts:[...shorts],loads,motor,L}}
+function solve(comps,wires,st){
+ const faults=[];let r;
+ for(let it=0;it<80;it++){
+  r=evalOnce(comps,wires,st,false);
+  if(r.shorts.length){
+   const r2=evalOnce(comps,wires,st,true);let did=false;
+   if(!r2.shorts.length)comps.forEach(c=>{if(c.type==='FU'&&!st.blown[c.id]&&r.shorts.includes(r.root(c.id+'.1'))){st.blown[c.id]=true;faults.push('fuse:'+c.id);did=true}});
+   if(!did)comps.forEach(c=>{if(c.type==='Q'&&st.q[c.id]&&[1,2,3,4,5,6].some(p=>r.shorts.includes(r.root(c.id+'.'+p)))){st.q[c.id]=false;faults.push('trip:'+c.id);did=true}});
+   if(!did){st.master=false;faults.push('master')}
+   continue}
+  let ch=false;
+  for(const c of comps){if(c.type!=='K')continue;const on=r.loads[c.id]===220||!!st.hold[c.id];if(on!==!!st.k[c.id]){st.k[c.id]=on;ch=true}}
+  if(!ch)for(const c of comps){if(c.type!=='D')continue;const on=r.loads[c.id]===220;
+   if(!on){if(st.dn[c.id]){st.dn[c.id]=false;ch=true;break}}
+   else if(st.dnReq[c.id]&&!st.dn[c.id]){st.dn[c.id]=true;ch=true;break}}
+  if(!ch){st.dnReq={};r.faults=faults;return r}}
+ st.dnReq={};r.faults=faults;r.osc=true;return r}
+function applyStep(st,s){if(s.q)st.q[s.q[0]]=s.q[1];if(s.p)st.press[s.p]=true;if(s.r)st.press[s.r]=false;if(s.h)st.hold[s.h]=true;if(s.u)st.hold[s.u]=false;if(s.trip)st.trip[s.trip]=true;if(s.reset)st.trip[s.reset]=false;if(s.master)st.master=true;if(s.fuse)st.blown[s.fuse]=false;if(s.w)st.dnReq[s.w]=true}
+function isOn(id,st,r){if(id in st.k)return!!st.k[id];return r.loads[id]===220}
+function checkEx(ex,st,r){
+ if(ex.M&&r.motor.state!==ex.M)return false;
+ if(ex.cfg&&r.motor.cfg!==ex.cfg)return false;
+ if(ex.dir!==undefined&&r.motor.dir!==ex.dir)return false;
+ if(ex.on)for(const k in ex.on)if(isOn(k,st,r)!==ex.on[k])return false;
+ if(ex.q)for(const k in ex.q)if(!!st.q[k]!==ex.q[k])return false;
+ if(ex.fault&&!(r.faults||[]).some(f=>f.indexOf(ex.fault)===0))return false;
+ return true}
+function neutralFaults(comps,wires){
+ const uf=UF();wires.forEach(w=>uf.union(w[0],w[1]));const used=new Set();wires.forEach(w=>{used.add(w[0]);used.add(w[1])});
+ const hasN=comps.some(c=>c.type==='SRC'),nr=hasN?uf.find('SRC.N'):null,out=[];
+ if(!hasN)return out;
+ comps.forEach(c=>{const t=(c.type==='K'||c.type==='D')?['A1','A2']:c.type==='H'?['X1','X2']:null;if(!t)return;
+  const a=c.id+'.'+t[0],b=c.id+'.'+t[1];
+  if(used.has(a)&&used.has(b)&&uf.find(a)!==nr&&uf.find(b)!==nr)out.push(c.id)});
+ return out}
+const NEUTRO_MSG='⛔ NEUTRO SECCIONADO! Um dos terminais da bobina/lâmpada não chega direto ao neutro N. Nunca coloque botão, contato, fusível ou térmico no neutro: só a FASE pode ser seccionada. Ligue o terminal A2 (ou X2) direto ao N.';
+function runTests(level,wires){
+ const nfl=neutralFaults(level.comps,[...(level.pre||[]),...wires]);
+ if(nfl.length)return level.tests.map(t=>({name:t.name,ok:false,msg:NEUTRO_MSG+' ('+nfl.join(', ')+')'}));
+ return level.tests.map(t=>{const st=mkState(level.comps);let r=solve(level.comps,wires,st),fail=null;
+  const faultsAll=[];
+  for(const s of t.steps){applyStep(st,s);r=solve(level.comps,wires,st);(r.faults||[]).forEach(f=>faultsAll.push(f));
+   if(s.ex){r.faults=faultsAll.slice();if(!checkEx(s.ex,st,r)){fail=s.msg||'Algo não saiu como esperado.';break}}}
+  return{name:t.name,ok:!fail,msg:fail}})}
+function wireSat(wires,a,b){const uf=UF();wires.forEach(w=>uf.union(w[0],w[1]));return uf.find(a)===uf.find(b)}
+/*PURE_END*/
+
+/*SCH_START*/
+const I_='#2b2250';
+const na=(l,p)=>({t:'NA',l,p}),nf=(l,p)=>({t:'NF',l,p}),fu=l=>({t:'FU',l}),sw=l=>({t:'SW',l}),coil=l=>({t:'COIL',l}),lamp=(l,c)=>({t:'LAMP',l,c});
+function sym(it){const w=76,cx=38;const tx=(y,t,sz)=>`<text x="${cx}" y="${y}" text-anchor="middle" font-size="${sz||11}" font-weight="800" fill="${I_}">${t}</text>`;
+ let s=`<line x1="0" y1="0" x2="${w}" y2="0" stroke="${I_}" stroke-width="2.5"/>`;
+ if(it.t==='NA'||it.t==='NF'||it.t==='SW'){s+=`<rect x="${cx-12}" y="-13" width="24" height="26" fill="#fff"/><line x1="${cx-9}" y1="-13" x2="${cx-9}" y2="13" stroke="${I_}" stroke-width="3"/><line x1="${cx+9}" y1="-13" x2="${cx+9}" y2="13" stroke="${I_}" stroke-width="3"/>`;
+  if(it.t==='NF')s+=`<line x1="${cx-15}" y1="14" x2="${cx+15}" y2="-14" stroke="#c0182c" stroke-width="2.5"/>`;
+  s+=tx(-22,it.l)+(it.p?tx(31,it.p,9):'')}
+ else if(it.t==='FU')s+=`<rect x="${cx-16}" y="-8" width="32" height="16" fill="#fff" stroke="${I_}" stroke-width="3"/><line x1="${cx-16}" y1="0" x2="${cx+16}" y2="0" stroke="${I_}" stroke-width="2"/>`+tx(-16,it.l);
+ else if(it.t==='COIL')s+=`<circle cx="${cx}" cy="0" r="17" fill="#ffe6f1" stroke="${I_}" stroke-width="3"/>`+tx(4,it.l)+tx(32,'A1-A2',9);
+ else if(it.t==='LAMP')s+=`<circle cx="${cx}" cy="0" r="16" fill="${it.c||'#fff'}" stroke="${I_}" stroke-width="3"/><line x1="${cx-11}" y1="-11" x2="${cx+11}" y2="11" stroke="${I_}" stroke-width="2.5"/><line x1="${cx+11}" y1="-11" x2="${cx-11}" y2="11" stroke="${I_}" stroke-width="2.5"/>`+tx(-24,it.l);
+ return{w,top:34,bot:36,svg:s}}
+function series(items){let x=0,top=0,bot=0,svg='';for(const it of items){const n=it.par?par(it.par):sym(it);svg+=`<g transform="translate(${x},0)">${n.svg}</g>`;x+=n.w;top=Math.max(top,n.top);bot=Math.max(bot,n.bot)}return{w:x,top,bot,svg}}
+function par(br){const bs=br.map(series);const w=Math.max(...bs.map(b=>b.w))+20;let y=0,svg='',prev=0,ys=[];
+ bs.forEach((b,i)=>{if(i>0)y+=prev+b.top+8;ys.push(y);svg+=`<g transform="translate(10,${y})">${b.svg}</g><line x1="0" y1="${y}" x2="10" y2="${y}" stroke="${I_}" stroke-width="2.5"/><line x1="${10+b.w}" y1="${y}" x2="${w}" y2="${y}" stroke="${I_}" stroke-width="2.5"/>`;prev=b.bot});
+ svg+=`<line x1="1" y1="0" x2="1" y2="${y}" stroke="${I_}" stroke-width="2.5"/><line x1="${w-1}" y1="0" x2="${w-1}" y2="${y}" stroke="${I_}" stroke-width="2.5"/>`;
+ return{w,top:bs[0].top,bot:y+prev,svg}}
+function ladderSVG(rows){const ns=rows.map(r=>series(r.items));const W=Math.max(...ns.map(n=>n.w))+110;let y=ns[0].top+14,out='',ys=[];
+ rows.forEach((r,i)=>{ys.push(y);const n=ns[i];out+=`<line x1="14" y1="${y}" x2="34" y2="${y}" stroke="${I_}" stroke-width="2.5"/><g transform="translate(34,${y})">${n.svg}</g><line x1="${34+n.w}" y1="${y}" x2="${W-40}" y2="${y}" stroke="${I_}" stroke-width="2.5"/>`;
+  if(r.note)out+=`<text x="38" y="${y+n.bot+14}" font-size="10.5" font-weight="700" fill="#5b5470">${r.note}</text>`;
+  const nx=ns[i+1];y+=n.bot+(r.note?22:6)+(nx?nx.top:0)+10});
+ const H=y+8;out=`<line x1="14" y1="14" x2="14" y2="${ys[ys.length-1]}" stroke="#e53935" stroke-width="5"/><line x1="${W-40}" y1="14" x2="${W-40}" y2="${ys[ys.length-1]}" stroke="#4fc3f7" stroke-width="5"/><text x="14" y="10" text-anchor="middle" font-size="11" font-weight="900" fill="#e53935">FASE</text><text x="${W-40}" y="10" text-anchor="middle" font-size="11" font-weight="900" fill="#4fc3f7">NEUTRO</text>`+out;
+ return `<svg viewBox="0 0 ${W} ${H}" style="width:100%;max-width:${W}px;height:auto;display:block;margin:0 auto">${out}</svg>`}
+/* potência: o={k1,k2,k3} */
+function powerSVG(o){const S=1.5,X=x=>(x*S).toFixed(1),Y=y=>((440-y)*S).toFixed(1),C=['#e53935','#fdd835','#212121'];let s='';
+ const ln=(x1,y1,x2,y2,c,w)=>`<line x1="${X(x1)}" y1="${Y(y1)}" x2="${X(x2)}" y2="${Y(y2)}" stroke="${c||I_}" stroke-width="${w||2.4}" stroke-linecap="round"/>`;
+ const pl=(pts,c)=>{const d=pts.map((p,i)=>(i?'L':'M')+X(p[0])+' '+Y(p[1])).join('');return `<path d="${d}" fill="none" stroke="${I_}" stroke-width="5.4" stroke-linejoin="round" stroke-linecap="round"/><path d="${d}" fill="none" stroke="${c}" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>`};
+ const dot=(x,y,c)=>`<circle cx="${X(x)}" cy="${Y(y)}" r="4" fill="${c}" stroke="${I_}" stroke-width="1.5"/>`;
+ const tx=(x,y,t,sz,c,a)=>`<text x="${X(x)}" y="${Y(y)}" font-size="${sz||11}" font-weight="900" fill="${c||I_}" text-anchor="${a||'middle'}">${t}</text>`;
+ const pole=(x,yt,yb,n1,n2)=>{const m=(yt+yb)/2;return ln(x,yt,x,m+7,I_,2.4)+ln(x,m+7,x+6,m-7,I_,2.4)+ln(x,m-9,x,yb,I_,2.4)+(n1?tx(x-8,yt-9,n1,8,'#5b5470','end')+tx(x-8,yb+4,n2,8,'#5b5470','end'):'')};
+ const box=(x,y,w,h,f)=>`<rect x="${X(x)}" y="${Y(y+h)}" width="${w*S}" height="${h*S}" rx="8" fill="${f||'none'}" stroke="${I_}" stroke-width="2"/>`;
+ const names=['L1','L2','L3'];
+ [100,120,140].forEach((x,i)=>{s+=tx(x,430,names[i],11,C[i]==='#fdd835'?'#a68a00':C[i]);s+=ln(x,424,x,392,C[i],3)+pole(x,392,362)+ln(x,362,x,298,C[i],3)});
+ s+=box(86,358,68,40,'rgba(255,255,255,.4)')+tx(70,372,'Q1',12,I_,'end')+tx(70,362,'disjuntor-motor',8,'#5b5470','end');
+ if(o.k2)[[100,346,250],[120,334,270],[140,322,290]].forEach(([x0,y,x1],i)=>{s+=pl([[x0,y],[x1,y],[x1,298]],C[i])+dot(x0,y,C[i])});
+ [100,120,140].forEach((x,i)=>{s+=pole(x,298,262,2*i+1,2*i+2)+ln(x,262,x,246,C[i],3)});
+ s+=tx(70,274,'K1',12,I_,'end')+tx(70,264,'principal',8,'#5b5470','end');
+ s+=box(86,220,68,26,'#fff3c4');[100,120,140].forEach((x,i)=>{s+=ln(x,246,x,243,C[i],3)+ln(x,225,x,222,C[i],3)});s+=tx(80,232,'F2',12,I_,'end')+tx(80,222,'térmico In/√3',8,'#c0182c','end');
+ s+=box(170,40,190,68,'#f1ecff')+`<circle cx="${X(265)}" cy="${Y(70)}" r="${24*S}" fill="#fff" stroke="${I_}" stroke-width="2"/>`+tx(265,73,'M1',13)+tx(265,62,'3~',10);
+ const term={U1:190,V1:215,W1:240,W2:290,U2:315,V2:340};
+ for(const k in term){s+=`<circle cx="${X(term[k])}" cy="${Y(108)}" r="5" fill="#fff" stroke="${I_}" stroke-width="2"/>`+tx(term[k],116,k,9)}
+ s+=pl([[100,222],[100,165],[190,165],[190,108]],C[0])+pl([[120,222],[120,180],[215,180],[215,108]],C[1])+pl([[140,222],[140,195],[240,195],[240,108]],C[2]);
+ if(o.k2){[250,270,290].forEach((x,i)=>{s+=pole(x,298,262,2*i+1,2*i+2)});s+=tx(224,274,'K2',12,I_,'end')+tx(224,264,'triângulo',8,'#5b5470','end');
+  s+=pl([[250,262],[250,150],[290,150],[290,108]],C[0])+pl([[270,262],[270,164],[315,164],[315,108]],C[1])+pl([[290,262],[290,178],[340,178],[340,108]],C[2])}
+ if(o.k3){[400,420,440].forEach((x,i)=>{s+=pole(x,298,262,2*i+1,2*i+2)});s+=pl([[400,298],[400,306],[440,306],[440,298]],'#8d6e63')+ln(420,306,420,298,'#8d6e63',3)+tx(420,318,'ponte de estrela (isolada)',9,'#c0182c');
+  s+=tx(374,274,'K3',12,I_,'end')+tx(374,264,'estrela',8,'#5b5470','end');
+  s+=pl([[400,262],[400,130],[290,130]],C[0])+dot(290,130,C[0])+pl([[420,262],[420,140],[315,140]],C[1])+dot(315,140,C[1])+pl([[440,262],[440,150],[340,150]],C[2])+dot(340,150,C[2])}
+ s+=tx(12,92,'Estados:',10,I_,'start')+tx(12,80,'PARADO: nenhum',9,I_,'start')+(o.k3?tx(12,68,'ESTRELA: K1 + K3',9,'#c0182c','start'):'')+(o.k2?tx(12,56,'TRIÂNGULO: K1 + K2',9,'#0a7a4b','start'):'');
+ if(o.k2&&o.k3)s+=tx(250,10,'K2 e K3 NUNCA juntos: curto-circuito!',11,'#c0182c');
+ return `<svg viewBox="0 0 ${(470*S).toFixed(0)} ${(440*S).toFixed(0)}" style="width:100%;max-width:640px;height:auto;display:block;margin:0 auto">${s}</svg>`}
+/* enrolamentos Y / Δ */
+function figWind(kind){
+ const W=(cx,cy,r,inv)=>{};
+ const lbl=(x,y,t,c,a,sz)=>`<text x="${x}" y="${y}" text-anchor="${a||'middle'}" font-size="${sz||13}" font-weight="900" fill="${c||I_}">${t}</text>`;
+ const coilL=(x1,y1,x2,y2,t,c)=>`<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${I_}" stroke-width="9" stroke-linecap="round"/><line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${c}" stroke-width="5" stroke-linecap="round"/>`;
+ const star=(ox)=>{const cx=ox+110,cy=120,P=[[cx,30],[ox+25,185],[ox+195,185]],n=['U','V','W'],C=['#e53935','#fdd835','#212121'];let s='';
+  P.forEach((p,i)=>{s+=coilL(cx,cy,p[0],p[1],'',C[i])+`<circle cx="${p[0]}" cy="${p[1]}" r="7" fill="#fff" stroke="${I_}" stroke-width="3"/>`});
+  s+=`<circle cx="${cx}" cy="${cy}" r="8" fill="#ffd23f" stroke="${I_}" stroke-width="3"/>`+lbl(cx+14,22,'U1 · L1','#c0182c','start',12)+lbl(ox+6,205,'V1 · L2','#a68a00','start',12)+lbl(ox+120,205,'W1 · L3',I_,'start',12)+lbl(cx,cy+30,'U2 V2 W2','#c0182c','middle',11)+lbl(cx,cy+43,'unidos','#c0182c','middle',11);
+  return s+lbl(cx,245,'ESTRELA (Y): 220 V','#0a7a4b','middle',14)+lbl(cx,262,'corrente e torque: 1/3','#5b5470','middle',11)};
+ const tri=(ox)=>{const A=[ox+110,30],B=[ox+25,185],Cc=[ox+195,185],C=['#e53935','#fdd835','#212121'];let s='';
+  s+=coilL(A[0],A[1],B[0],B[1],'',C[0])+coilL(B[0],B[1],Cc[0],Cc[1],'',C[1])+coilL(Cc[0],Cc[1],A[0],A[1],'',C[2]);
+  [A,B,Cc].forEach(p=>{s+=`<circle cx="${p[0]}" cy="${p[1]}" r="7" fill="#fff" stroke="${I_}" stroke-width="3"/>`});
+  s+=lbl(A[0]+14,22,'L1 → U1 + W2','#c0182c','start',12)+lbl(ox-12,205,'L2 → V1 + U2','#a68a00','start',12)+lbl(ox+112,205,'L3 → W1 + V2',I_,'start',12);
+  return s+lbl(A[0],245,'TRIÂNGULO (Δ): 380 V','#0a7a4b','middle',14)+lbl(A[0],262,'plena tensão: torque normal','#5b5470','middle',11)};
+ const w=kind==='both'?680:340,body=kind==='Y'?star(0):kind==='D'?tri(0):star(0)+tri(350);
+ return `<svg viewBox="0 0 ${w} 275" style="width:100%;max-width:${w}px;height:auto;display:block;margin:6px auto">${body}</svg>`}
+function schemHTML(sp){if(!sp)return'';return (sp.wind?figWind(sp.wind):'')+(sp.power?powerSVG(sp.power):'')+(sp.rows?ladderSVG(sp.rows):'')+(sp.note?`<p class="hint" style="margin-top:6px;text-align:center">${sp.note}</p>`:'')}
+/*SCH_END*/
+
+const F21=()=>fu('F21'),F2n=()=>nf('F2','95-96'),S0n=()=>nf('S0','11-12');
+const _k1=[F21(),F2n(),S0n(),{par:[[na('S1','13-14')],[na('K1','13-14')],[na('K3','13-14')]]},coil('K1')];
+const _d1=[F21(),F2n(),S0n(),{par:[[na('S1','13-14')],[na('K1','13-14')],[na('K3','13-14')]]},nf('K2','11-12'),coil('D1')];
+const _k3=[F21(),F2n(),S0n(),{par:[[na('S1','13-14')],[na('K1','13-14')],[na('K3','13-14')]]},nf('K2','11-12'),nf('D1','15-16'),coil('K3')];
+const _k2=[F21(),F2n(),S0n(),na('K1','23-24'),nf('K3','21-22'),coil('K2')];
+const _lamps=[{items:[F21(),F2n(),nf('K1','31-32'),lamp('H1','#2a8de0')],note:'H1 (parado): NF 31-32 de K1, depois do térmico'},{items:[lamp('H2','#ffc400')],note:'H2 (estrela): em paralelo com a bobina de K3'},{items:[lamp('H3','#19c37d')],note:'H3 (triângulo): em paralelo com a bobina de K2'},{items:[F21(),na('F2','97-98'),lamp('H4','#ff4d5e')],note:'H4 (falha): sai do fusível F21 e passa pelo NA 97-98 do térmico'}];
+const SCH={
+1:{wind:'Y',note:'Estrela: U2, V2 e W2 unidos. Cada enrolamento fica com 220 V.'},
+2:{wind:'D',note:'Triângulo: U1-W2 em L1, V1-U2 em L2, W1-V2 em L3. Cada enrolamento fica com 380 V.'},
+3:{power:{},note:'K1 liga a rede ao motor. O térmico F2 vem entre K1 e o motor. (Aqui o motor usa uma estrela provisória.)'},
+4:{power:{k3:1},note:'K3 une W2, U2 e V2 (ponto de estrela isolado). K1 + K3 = estrela.'},
+5:{power:{k2:1,k3:1},note:'K2 aplica L1, L2 e L3 em W2, U2 e V2. K1 + K2 = triângulo. K2 + K3 = curto!'},
+6:{rows:[{items:[F21(),F2n(),S0n(),{par:[[na('S1','13-14')],[na('K1','13-14')]]},coil('K1')]}],note:'Comando de K1: S1 liga, o selo 13-14 mantém, S0 desliga. O térmico 95-96 fica em série, na fase.'},
+7:{rows:[{items:_k1},{items:_d1},{items:_k3}],note:'K1, D1 e K3 ligam juntos (estrela). O NF 11-12 de K2 e o NF 15-16 de D1 ficam em série com K3.'},
+8:{rows:[{items:_k1},{items:_d1},{items:_k3},{items:_k2}],note:'K2 só liga com K1 ligado (23-24) e K3 desligado (NF 21-22): intertravamento.'},
+9:{rows:[{items:_k1},{items:_d1},{items:_k3},{items:_k2},..._lamps],note:'Comando completo com sinalização.'},
+10:{power:{k2:1,k3:1},rows:[{items:_k1},{items:_d1},{items:_k3},{items:_k2},..._lamps],note:'Esquema completo da partida estrela-triângulo.'}};
+
+/*LV_START*/
+const q_=(id,v)=>({q:[id,v]}),P_=id=>({p:id}),R_=id=>({r:id}),H_=id=>({h:id}),U_=id=>({u:id}),TR=id=>({trip:id}),RS=id=>({reset:id}),W_=id=>({w:id}),E_=(ex,msg)=>({ex,msg});
+const PWs=[['SRC.R','Q1.1'],['SRC.S','Q1.3'],['SRC.T','Q1.5']];
+const PWk1=[['Q1.2','K1.1'],['Q1.4','K1.3'],['Q1.6','K1.5'],['K1.2','F2.1'],['K1.4','F2.3'],['K1.6','F2.5']];
+const PWm=[['F2.2','M1.U1'],['F2.4','M1.V1'],['F2.6','M1.W1']];
+const PWk2=[['Q1.2','K2.1'],['Q1.4','K2.3'],['Q1.6','K2.5'],['K2.2','M1.W2'],['K2.4','M1.U2'],['K2.6','M1.V2']];
+const PWk3=[['K3.1','M1.W2'],['K3.3','M1.U2'],['K3.5','M1.V2'],['K3.2','K3.4'],['K3.4','K3.6']];
+const QM=[['Q1.2','M1.U1'],['Q1.4','M1.V1'],['Q1.6','M1.W1']];
+const STARTMP=[['M1.U2','M1.V2'],['M1.V2','M1.W2']];
+const DELTA=[['Q1.2','M1.W2'],['Q1.4','M1.U2'],['Q1.6','M1.V2']];
+const CT1=[['Q1.2','FU1.1'],['FU1.2','F2.95'],['F2.96','S0.11'],['K1.A2','SRC.N']];
+const CTN=[['K2.A2','SRC.N'],['K3.A2','SRC.N'],['D1.A2','SRC.N']];
+const CMD1=[['S0.12','S1.13'],['S0.12','K1.13'],['S1.14','K1.A1'],['K1.14','K1.A1']];
+const CMD2=[['K1.A1','K2.11'],['K2.12','D1.A1'],['K2.12','D1.15'],['D1.16','K3.A1'],['S0.12','K3.13'],['K3.14','K1.A1']];
+const CMD3=[['S0.12','K1.23'],['K1.24','K3.21'],['K3.22','K2.A1']];
+const LAMPS=[['F2.96','K1.31'],['K1.32','H1.X1'],['H1.X2','SRC.N'],['K3.A1','H2.X1'],['H2.X2','SRC.N'],['K2.A1','H3.X1'],['H3.X2','SRC.N'],['FU1.2','F2.97'],['F2.98','H4.X1'],['H4.X2','SRC.N']];
+const KAUX={K1:[['NA',13,14],['NA',23,24],['NF',31,32]],K2:[['NF',11,12]],K3:[['NA',13,14],['NF',21,22]]};
+const cSRC={id:'SRC',type:'SRC'},cQ={id:'Q1',type:'Q'},cFU={id:'FU1',type:'FU'},cF2={id:'F2',type:'F2'},cS0={id:'S0',type:'S0'},cM={id:'M1',type:'M'},cD1={id:'D1',type:'D'};
+const cK1={id:'K1',type:'K',label:'K1 · PRINCIPAL',aux:KAUX.K1},cK2={id:'K2',type:'K',label:'K2 · TRIÂNGULO',aux:KAUX.K2},cK3={id:'K3',type:'K',label:'K3 · ESTRELA',aux:KAUX.K3};
+const cS1={id:'S1',type:'SB',color:'#19c37d',label:'S1 · LIGA'};
+const cH1={id:'H1',type:'H',color:'#2a8de0',label:'H1 · PARADO'},cH2={id:'H2',type:'H',color:'#ffc400',label:'H2 · ESTRELA'},cH3={id:'H3',type:'H',color:'#19c37d',label:'H3 · TRIÂNGULO'},cH4={id:'H4',type:'H',color:'#ff4d5e',label:'H4 · FALHA'};
+const CORE=[cSRC,cQ,cFU,cS0,cS1,cK1,cK2,cK3,cD1,cF2,cM];
+const ALLC=[...CORE,cH1,cH2,cH3,cH4];
+const T_POT=[
+ {name:'K1 + K3: estrela',steps:[q_('Q1',true),H_('K1'),H_('K3'),E_({M:'run',cfg:'Y'},'K1 + K3 deveriam ligar o motor em ESTRELA (220 V por enrolamento).')]},
+ {name:'K1 + K2: triângulo',steps:[q_('Q1',true),H_('K1'),H_('K2'),E_({M:'run',cfg:'D'},'K1 + K2 deveriam ligar o motor em TRIÂNGULO (U1-W2, V1-U2, W1-V2).')]},
+ {name:'K2 + K3 juntos = curto',steps:[q_('Q1',true),H_('K2'),H_('K3'),E_({q:{Q1:false}},'K2 e K3 juntos deveriam causar curto-circuito e desarmar Q1.')]}];
+const T_SEQ=[
+ {name:'S1: parte em estrela',steps:[q_('Q1',true),P_('S1'),R_('S1'),E_({M:'run',cfg:'Y',on:{K1:true,K3:true,K2:false,D1:true}},'S1 deve ligar K1, K3 e o temporizador D1: motor em ESTRELA.')]},
+ {name:'Passou o tempo: troca para triângulo',steps:[q_('Q1',true),P_('S1'),R_('S1'),W_('D1'),E_({M:'run',cfg:'D',on:{K1:true,K2:true,K3:false,D1:false},q:{Q1:true}},'Depois do tempo K3 desliga e K2 liga: TRIÂNGULO, sem curto. D1 volta a repouso (NF 11-12 de K2 abriu).')]},
+ {name:'S0 desliga',steps:[q_('Q1',true),P_('S1'),R_('S1'),W_('D1'),P_('S0'),R_('S0'),E_({M:'off',on:{K1:false,K2:false,K3:false}},'S0 deve desligar tudo.')]},
+ {name:'Sobrecarga em triângulo',steps:[q_('Q1',true),P_('S1'),R_('S1'),W_('D1'),TR('F2'),E_({M:'off',on:{K1:false,K2:false}},'O térmico deve desligar tudo.'),RS('F2'),P_('S1'),R_('S1'),E_({M:'run',cfg:'Y'},'Depois de rearmar, a partida recomeça em estrela.')]}];
+const T_LAMP=[
+ {name:'Parado: H1 acesa',steps:[q_('Q1',true),E_({on:{H1:true,H2:false,H3:false,H4:false}},'Parado: só H1 acende (NF 31-32 de K1).')]},
+ {name:'Estrela: H2 acesa',steps:[q_('Q1',true),P_('S1'),R_('S1'),E_({M:'run',cfg:'Y',on:{H1:false,H2:true,H3:false,H4:false}},'Em estrela só H2 acende (em paralelo com K3).')]},
+ {name:'Triângulo: H3 acesa',steps:[q_('Q1',true),P_('S1'),R_('S1'),W_('D1'),E_({M:'run',cfg:'D',on:{H1:false,H2:false,H3:true,H4:false}},'Em triângulo só H3 acende (em paralelo com K2).')]},
+ {name:'Falha: H4 acesa',steps:[q_('Q1',true),P_('S1'),R_('S1'),W_('D1'),TR('F2'),E_({M:'off',on:{H4:true,H1:false,H2:false,H3:false}},'Na sobrecarga o motor para e só H4 acende (NA 97-98 do térmico).'),RS('F2'),E_({on:{H1:true,H4:false}},'Rearmado: volta a H1 (parado).')]}];
+const GAME={id:'estrela',title:'Bancada do Relê · Partida Estrela-Triângulo',key:'fabricaRele_estrela_v1',levels:[
+{id:1,name:'Motor em estrela (à mão)',goal:'Ligue o motor em ESTRELA: una os fins U2, V2 e W2. Depois ligue Q1.',
+ learn:'Em estrela os três fins (U2, V2, W2) se encontram num ponto. Cada enrolamento recebe 380/√3 = 220 V: a corrente e o torque caem a 1/3.',
+ tip:'Cabo de U2 para V2 e de V2 para W2. As fases já chegam em U1, V1 e W1.',
+ comps:[cSRC,cQ,cM],pre:[...PWs,...QM],sol:STARTMP,
+ tests:[{name:'Estrela: 220 V por enrolamento',steps:[q_('Q1',true),E_({M:'run',cfg:'Y'},'Una U2-V2-W2 para fechar a estrela.')]},
+  {name:'Disjuntor desligado: motor parado',steps:[E_({M:'off'},'Sem Q1 ligado o motor deve ficar parado.')]}]},
+{id:2,name:'Motor em triângulo (à mão)',goal:'Ligue o motor em TRIÂNGULO: cada fase vai a DOIS bornes (U1 e W2, V1 e U2, W1 e V2).',
+ learn:'Em triângulo cada enrolamento fica entre duas fases e recebe 380 V (plena tensão): torque e corrente normais. É a ligação de trabalho.',
+ tip:'Q1 (2) → U1 e W2. Q1 (4) → V1 e U2. Q1 (6) → W1 e V2.',
+ comps:[cSRC,cQ,cM],pre:[...PWs],sol:[...QM,...DELTA],
+ tests:[{name:'Triângulo: 380 V por enrolamento',steps:[q_('Q1',true),E_({M:'run',cfg:'D'},'Ligue Q1(2)→U1 e W2, Q1(4)→V1 e U2, Q1(6)→W1 e V2.')]}]},
+{id:3,name:'Potência de K1 e relé térmico',goal:'Monte a potência: Q1 → K1 → F2 (térmico) → motor. A ponte de estrela é provisória.',
+ learn:'K1 é o contator principal: leva a rede ao motor. O relé térmico F2 fica entre K1 e o motor, então mede a corrente de enrolamento: ajuste In/√3.',
+ tip:'Q1 (2-4-6) → K1 (1-3-5); K1 (2-4-6) → F2 (1-3-5); F2 (2-4-6) → U1, V1, W1.',
+ comps:[cSRC,cQ,cK1,cF2,cM],pre:[...PWs,...STARTMP],sol:[...PWk1,...PWm],
+ tests:[{name:'K1 liga o motor (estrela provisória)',steps:[q_('Q1',true),H_('K1'),E_({M:'run',cfg:'Y'},'K1 deveria levar as 3 fases ao motor.')]},
+  {name:'Soltou K1: motor para',steps:[q_('Q1',true),H_('K1'),U_('K1'),E_({M:'off'},'Ao soltar K1 o motor deve parar.')]}]},
+{id:4,name:'K3: contator de estrela',goal:'Monte K3: ele fecha a estrela unindo W2, U2 e V2. (A ponte provisória foi removida.)',
+ learn:'K3 une os fins dos enrolamentos num ponto de estrela, isolado: ele NÃO vai ao neutro.',
+ tip:'K3 (1)→W2, (3)→U2, (5)→V2. Ponte: K3 (2)→(4) e (4)→(6).',
+ comps:[cSRC,cQ,cK1,cK3,cF2,cM],pre:[...PWs,...PWk1,...PWm],sol:PWk3,
+ tests:[{name:'K1 + K3: estrela',steps:[q_('Q1',true),H_('K1'),H_('K3'),E_({M:'run',cfg:'Y'},'K1 + K3 deveriam ligar em ESTRELA.')]},
+  {name:'Só K3: nada acontece',steps:[q_('Q1',true),H_('K3'),E_({M:'off'},'K3 sozinho não energiza o motor.')]}]},
+{id:5,name:'K2: contator de triângulo',goal:'Monte K2: ele aplica L1, L2 e L3 nos fins W2, U2 e V2 para fechar o triângulo.',
+ learn:'K1 + K2 = triângulo. Mas K2 e K3 NUNCA juntos: K3 une W2-U2-V2 e K2 aplica as três fases neles. É curto-circuito!',
+ tip:'Q1 (2-4-6) → K2 (1-3-5). K2 (2)→W2, K2 (4)→U2, K2 (6)→V2.',
+ comps:[cSRC,cQ,cK1,cK2,cK3,cF2,cM],pre:[...PWs,...PWk1,...PWm,...PWk3],sol:PWk2,tests:T_POT},
+{id:6,name:'Comando de K1 com selo',goal:'Ligue o comando de K1: S1 liga com selo e S0 desliga. O térmico fica em série.',
+ learn:'O comando é 220 V (fase-neutro). A fase sai do fusível F21, passa pelo NF 95-96 do térmico e por S0. A bobina vai direto ao neutro: o neutro nunca é seccionado.',
+ tip:'S0 (12) → S1 (13) e K1 (13). S1 (14) e K1 (14) → K1 A1.',
+ comps:[cSRC,cQ,cFU,cS0,cS1,cK1,cF2,cM],pre:[...PWs,...PWk1,...PWm,...STARTMP,...CT1],sol:CMD1,
+ tests:[{name:'S1 liga e sela',steps:[q_('Q1',true),P_('S1'),R_('S1'),E_({M:'run',on:{K1:true}},'S1 deve ligar K1 e o selo 13-14 mantém.')]},
+  {name:'S0 desliga',steps:[q_('Q1',true),P_('S1'),R_('S1'),P_('S0'),R_('S0'),E_({M:'off',on:{K1:false}},'S0 deve desligar.')]},
+  {name:'Sobrecarga desliga',steps:[q_('Q1',true),P_('S1'),R_('S1'),TR('F2'),E_({M:'off',on:{K1:false}},'O NF 95-96 do térmico deve cortar K1.')]}]},
+{id:7,name:'Temporizador D1 e estrela',goal:'Ligue K3 e o temporizador D1: ao apertar S1, K1, K3 e D1 ligam juntos (estrela). Quando D1 conta o tempo, K3 desliga.',
+ learn:'D1 é um relé de retardo na energização. Passado o tempo, o NF 15-16 abre e desliga K3: fim da estrela. O NF 11-12 de K2 impede a estrela com K2 ligado.',
+ tip:'K1 A1 → K2 (11). K2 (12) → D1 A1 e D1 (15). D1 (16) → K3 A1. S0 (12) → K3 (13). K3 (14) → K1 A1.',
+ comps:[cSRC,cQ,cFU,cS0,cS1,cK1,cK2,cK3,cD1,cF2,cM],pre:[...PWs,...PWk1,...PWm,...PWk2,...PWk3,...CT1,...CTN,...CMD1],sol:CMD2,
+ tests:[{name:'S1: K1 + K3 + D1 ligam (estrela)',steps:[q_('Q1',true),P_('S1'),R_('S1'),E_({M:'run',cfg:'Y',on:{K1:true,K3:true,D1:true,K2:false}},'S1 deve ligar K1, K3 e D1: estrela.')]},
+  {name:'D1 contou: K3 desliga',steps:[q_('Q1',true),P_('S1'),R_('S1'),W_('D1'),E_({M:'off',on:{K3:false,K1:true}},'Depois do tempo o NF 15-16 abre e K3 desliga. (K2 ainda não está ligado, o motor para.)')]},
+  {name:'S0 desliga',steps:[q_('Q1',true),P_('S1'),R_('S1'),P_('S0'),R_('S0'),E_({M:'off',on:{K1:false,K3:false,D1:false}},'S0 deve desligar tudo.')]}]},
+{id:8,name:'K2 e intertravamento',goal:'Faça K2 ligar só depois de K3 desligar, e só com K1 ligado.',
+ learn:'K3 NF 21-22 em série com K2 e K2 NF 11-12 em série com K3: um bloqueia o outro. K1 NA 23-24 libera K2 só com K1 ligado.',
+ tip:'S0 (12) → K1 (23). K1 (24) → K3 (21). K3 (22) → K2 A1.',
+ comps:CORE,pre:[...PWs,...PWk1,...PWm,...PWk2,...PWk3,...CT1,...CTN,...CMD1,...CMD2],sol:CMD3,tests:T_SEQ},
+{id:9,name:'Sinalização',goal:'Instale as lâmpadas: H1 parado, H2 estrela, H3 triângulo e H4 falha.',
+ learn:'H2 e H3 ficam em paralelo com as bobinas de K3 e K2. H1 usa o NF 31-32 de K1. H4 usa o NA 97-98 do térmico. Todas entre fase e neutro.',
+ tip:'F2 (96) → K1 (31); K1 (32) → H1. K3 A1 → H2. K2 A1 → H3. F21 (2) → F2 (97); F2 (98) → H4. Todos os X2 no neutro.',
+ comps:ALLC,pre:[...PWs,...PWk1,...PWm,...PWk2,...PWk3,...CT1,...CTN,...CMD1,...CMD2,...CMD3],sol:LAMPS,tests:T_LAMP},
+{id:10,name:'Desafio final: monte tudo',goal:'Monte do zero a partida estrela-triângulo completa: potência, comando, temporizador, térmico e sinalização.',
+ learn:'Parabéns! Você montou uma partida estrela-triângulo automática, igual a um painel de comando real.',
+ tip:'Em ordem: 1) potência K1/F2, 2) K3, 3) K2, 4) comando (F21, térmico, S0, K1), 5) D1 e K3, 6) K2 e intertravamento, 7) lâmpadas.',boss:true,
+ comps:ALLC,pre:[],sol:[...PWs,...PWk1,...PWm,...PWk2,...PWk3,...CT1,...CTN,...CMD1,...CMD2,...CMD3,...LAMPS],tests:[...T_SEQ,...T_LAMP]}
+]};
+/*LV_END*/
+
+const TRAIL={
+1:[{t:'Motor de 6 bornes',p:'Este motor tem <b>3 enrolamentos</b> (U1-U2, V1-V2 e W1-W2) com os 6 terminais na caixa de ligação. Ele é <b>380 V em triângulo</b> e aguenta <b>220 V por enrolamento</b> em estrela. Por isso serve para a partida estrela-triângulo.',fig:'wind:both'},
+   {t:'Ligação estrela (Y)',p:'Em estrela os fins <b>U2, V2 e W2 são unidos</b> num ponto (que <b>não vai ao neutro</b>) e as fases entram em U1, V1 e W1. Cada enrolamento recebe 380/√3 = <b>220 V</b>: a corrente de linha e o torque caem a <b>1/3</b>.'},
+   {t:'Mão na massa',p:'Os cabos da fonte até Q1 e de Q1 até U1, V1 e W1 já estão prontos. Una <b>U2 → V2</b> e <b>V2 → W2</b> e ligue Q1 (clique no disjuntor).'}],
+2:[{t:'Ligação triângulo (Δ)',p:'Em triângulo cada enrolamento fica entre <b>duas fases</b> e recebe <b>380 V</b> (plena tensão): torque e corrente normais. É a ligação de trabalho do motor.',fig:'wind:D'},
+   {t:'Quem liga com quem',p:'<b>U1 com W2</b> (L1), <b>V1 com U2</b> (L2) e <b>W1 com V2</b> (L3). Cada fase vai a dois bornes: um de cada enrolamento vizinho.'},
+   {t:'Mão na massa',p:'Monte 6 cabos: <b>Q1 (2) → U1 e W2</b>, <b>Q1 (4) → V1 e U2</b>, <b>Q1 (6) → W1 e V2</b>.'}],
+3:[{t:'Por que partir em estrela?',p:'Na partida o motor puxa de 5 a 8 vezes a corrente nominal. Em estrela essa corrente cai a <b>1/3</b>, aliviando a rede. Depois de alguns segundos o motor passa para triângulo. Para isso são <b>3 contatores</b>: <b>K1 principal</b>, <b>K3 estrela</b> e <b>K2 triângulo</b>.'},
+   {t:'K1 e o relé térmico',p:'K1 leva a rede até o motor. O térmico <b>F2 fica entre K1 e o motor</b> (antes do motor), então mede a corrente do <b>enrolamento</b>: ajuste em <b>In/√3</b>.',fig:'schem'},
+   {t:'Mão na massa',p:'O motor já vem com uma <b>ponte de estrela provisória</b> (cabos tracejados). Monte <b>9 cabos</b>: Q1 (2-4-6) → K1 (1-3-5), K1 (2-4-6) → F2 (1-3-5) e F2 (2-4-6) → U1, V1, W1.'}],
+4:[{t:'K3 fecha a estrela',p:'K3 une os fins <b>W2, U2 e V2</b>. As entradas 1-3-5 vão a esses bornes e as saídas 2-4-6 são ligadas entre si por uma <b>ponte</b>. Com K1 + K3 o motor parte em estrela.',fig:'schem'},
+   {t:'Ponto de estrela isolado',p:'O ponto de estrela <b>não vai ao neutro nem à terra</b>. K3 sozinho não energiza nada: só ligado com K1 o motor recebe tensão.'},
+   {t:'Mão na massa',p:'A ponte provisória saiu. Monte <b>K3 (1) → W2</b>, <b>K3 (3) → U2</b>, <b>K3 (5) → V2</b> e a ponte <b>K3 (2) → (4)</b> e <b>(4) → (6)</b>. Teste segurando K1 e K3.'}],
+5:[{t:'K2 fecha o triângulo',p:'K2 aplica <b>L1 em W2</b>, <b>L2 em U2</b> e <b>L3 em V2</b>. Com K1 ligado cada fase chega a dois bornes: é o triângulo.',fig:'schem'},
+   {t:'Perigo: K2 + K3',p:'Se K2 e K3 fecharem juntos, K3 une W2, U2 e V2 enquanto K2 aplica as três fases neles: <b>curto trifásico</b>. Por isso o comando terá <b>intertravamento</b> (fase 8).'},
+   {t:'Mão na massa',p:'Monte <b>Q1 (2-4-6) → K2 (1-3-5)</b> e <b>K2 (2) → W2</b>, <b>K2 (4) → U2</b>, <b>K2 (6) → V2</b> (6 cabos). Teste K1+K3, K1+K2 e, só para ver, K2+K3.'}],
+6:[{t:'Revisão: comando com selo',p:'O comando usa <b>220 V (fase-neutro)</b>. A fase sai de Q1, passa pelo <b>fusível (ou disjuntor monopolar) F21</b>, pelo NF 95-96 do térmico e por S0. A bobina vai <b>direto ao neutro</b>. O neutro nunca passa por contato e não se usa contato auxiliar de Q1 no comando.',fig:'schem'},
+   {t:'Como funciona',p:'S1 liga K1; o selo 13-14 de K1 mantém; S0 desliga; o térmico desarmado abre o 95-96 e desliga K1.'},
+   {t:'Mão na massa',p:'Faltam 4 cabos: <b>S0 (12) → S1 (13)</b> e <b>K1 (13)</b>, <b>S1 (14) → K1 (A1)</b> e <b>K1 (14) → K1 (A1)</b>.'}],
+7:[{t:'Temporizador D1',p:'D1 é um relé de <b>retardo na energização</b>. Ao receber tensão ele conta o tempo (aqui, 3 s). No fim, o contato <b>NF 15-16 abre</b> e desliga K3: acabou a estrela.',fig:'schem'},
+   {t:'Circuito da estrela',p:'Com K1 ligado, a fase segue pelo <b>NF 11-12 de K2</b> até a bobina de D1 e pelo <b>NF 15-16 de D1</b> até K3. Assim K1, K3 e D1 ligam juntos. O NA 13-14 de K3 em paralelo reforça o selo de K1 durante a troca.'},
+   {t:'Mão na massa',p:'Monte 6 cabos: <b>K1 A1 → K2 (11)</b>, <b>K2 (12) → D1 A1</b> e <b>D1 (15)</b>, <b>D1 (16) → K3 A1</b>, <b>S0 (12) → K3 (13)</b> e <b>K3 (14) → K1 A1</b>. Depois do tempo o motor vai parar: K2 ainda não foi ligado. Toque em D1 para pular a espera.'}],
+8:[{t:'A troca para triângulo',p:'Quando D1 abre o 15-16, K3 desliga e seu <b>NF 21-22 fecha</b>. Só então K2 pode ligar. O <b>NA 23-24 de K1</b> garante que K2 só liga com K1 ligado.',fig:'schem'},
+   {t:'Intertravamento',p:'<b>NF 21-22 de K3 em série com K2</b> e <b>NF 11-12 de K2 em série com K3</b>: um bloqueia o outro. Ao ligar, K2 abre seu 11-12 e desliga D1, que volta ao repouso.'},
+   {t:'Mão na massa',p:'Monte 3 cabos: <b>S0 (12) → K1 (23)</b>, <b>K1 (24) → K3 (21)</b> e <b>K3 (22) → K2 A1</b>.'}],
+9:[{t:'Quem está fazendo o quê?',p:'<b>H1</b> parado, <b>H2</b> estrela, <b>H3</b> triângulo e <b>H4</b> falha (sobrecarga). Todas ficam entre fase e neutro (220 V).',fig:'schem'},
+   {t:'De onde vem cada lâmpada',p:'<b>H1</b>: NF 31-32 de K1, depois do térmico. <b>H2</b> em paralelo com K3. <b>H3</b> em paralelo com K2. <b>H4</b>: NA 97-98 do térmico, direto do F21.'},
+   {t:'Mão na massa',p:'O comando já está pronto. Monte os 10 cabos das lâmpadas. Todo X2 vai direto ao <b>neutro</b>.'}],
+10:[{t:'Seu plano de montagem',p:'<b>1)</b> potência K1 + F2 + motor, <b>2)</b> K3 e estrela, <b>3)</b> K2 e triângulo, <b>4)</b> comando: F21, térmico, S0 e K1, <b>5)</b> D1 e K3, <b>6)</b> K2 e intertravamento, <b>7)</b> lâmpadas.'},
+   {t:'Diagnóstico de defeitos',p:'<b>Não sai da estrela:</b> confira D1 e o NF 15-16. <b>Motor para na troca:</b> K2 sem bobina ou NF 21-22 de K3 errado. <b>Q1 desarma na troca:</b> K2 e K3 juntos. <b>Motor zumbe:</b> estrela ou triângulo mal fechados.'},
+   {t:'Boa sorte!',p:'São 53 cabos e nada vem pronto. O esquema fica no botão <b>📐 Esquema</b> e abrir conta como 1 dica.'}]};
+
+const $=s=>document.querySelector(s);
+const KEY=GAME.key;
+let S={stars:{},wires:{},sound:true,seen:{}};
+try{S=Object.assign(S,JSON.parse(localStorage.getItem(KEY)||'{}'))}catch(e){}
+S.stars=S.stars||{};S.wires=S.wires||{};S.seen=S.seen||{};
+const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}};
+/* som */
+let AC=null;function beep(f,d=.1,t='sine',v=.05,dl=0){if(!S.sound)return;try{AC=AC||new(window.AudioContext||window.webkitAudioContext)();const o=AC.createOscillator(),g=AC.createGain();o.type=t;o.frequency.value=f;const T=AC.currentTime+dl;g.gain.setValueAtTime(v,T);g.gain.exponentialRampToValueAtTime(.0001,T+d);o.connect(g);g.connect(AC.destination);o.start(T);o.stop(T+d+.02)}catch(e){}}
+const sfx={plug(){beep(500,.05,'square',.03);beep(760,.06,'square',.03,.05)},unplug(){beep(300,.07,'square',.03)},clack(){beep(140,.05,'square',.07);beep(90,.08,'square',.06,.04)},ok(){beep(660,.1,'triangle');beep(880,.15,'triangle',.06,.1)},bad(){beep(200,.25,'sawtooth',.04)},alarm(){[880,660,880,660].forEach((f,i)=>beep(f,.1,'square',.05,i*.12))},win(){[523,659,784,1046].forEach((f,i)=>beep(f,.18,'triangle',.07,i*.12))},tick(){beep(900,.03,'square',.025)}};
+function say(t,mood){$('#bubble').innerHTML='<span>'+t+'</span>';$('#mouth').setAttribute('d',{bad:'M36 60Q45 51 54 60',think:'M38 57H52'}[mood]||'M36 54Q45 63 54 54')}
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+/* ---------- desenho dos componentes ---------- */
+const INK='#2b2250';
+const jk=(n,x,y,l,lp,fill)=>({n,x,y,l,lp:lp||'b',fill:fill||'#ffd23f'});
+const box=(w,h,fill)=>`<rect x="2" y="2" width="${w-4}" height="${h-4}" rx="14" fill="${fill||'#fff'}" stroke="${INK}" stroke-width="3"/>`;
+const T=(x,y,s,sz,anchor,w,col)=>`<text x="${x}" y="${y}" font-size="${sz||11}" font-weight="${w||800}" text-anchor="${anchor||'middle'}" fill="${col||INK}">${s}</text>`;
+const DRAW={
+SRC:c=>({w:330,h:100,svg:box(330,100,'#e4dcff')+T(165,20,'FONTE 380 V · 3~ + NEUTRO',12)+
+ `<g data-act="master" data-id="${c.id}" style="cursor:pointer"><rect x="262" y="34" width="56" height="26" rx="8" fill="#fff" stroke="${INK}" stroke-width="3"/><rect id="${c.id}_mst" x="266" y="38" width="22" height="18" rx="5" fill="#19c37d"/>${T(290,52,'GERAL',9,'middle',900)}</g>`,
+ jacks:[jk('R',40,66,'R','a','#ff7b7b'),jk('S',100,66,'S','a','#ffe066'),jk('T',160,66,'T','a','#8c8c99'),jk('N',220,66,'N','a','#a8d8ff')]}),
+Q:c=>({w:200,h:180,svg:box(200,180,'#fff')+T(100,64,c.id+' · DISJUNTOR 3P',11)+
+ `<g data-act="q" data-id="${c.id}" style="cursor:pointer"><rect x="62" y="66" width="76" height="40" rx="10" fill="#f3efff" stroke="${INK}" stroke-width="3" transform="translate(0,12)"/><g id="${c.id}_lev"><rect x="90" y="86" width="20" height="38" rx="6" fill="#ff9f1c" stroke="${INK}" stroke-width="3"/></g>${T(48,116,'OFF',10)}${T(152,116,'ON',10)}</g>`+`<rect id="${c.id}_trip" x="2" y="2" width="196" height="176" rx="14" fill="none" stroke="#ff4d5e" stroke-width="0"/>`,
+ jacks:[jk('1',40,26,'1','b'),jk('3',100,26,'3','b'),jk('5',160,26,'5','b'),jk('2',40,154,'2','a'),jk('4',100,154,'4','a'),jk('6',160,154,'6','a')]}),
+FU:c=>({w:100,h:170,svg:box(100,170,'#fff')+`<g data-act="fuse" data-id="${c.id}" style="cursor:pointer"><rect x="32" y="56" width="36" height="54" rx="6" fill="#ffe9c7" stroke="${INK}" stroke-width="3"/><path id="${c.id}_link" d="M50 60V106" stroke="${INK}" stroke-width="3"/><text id="${c.id}_x" x="50" y="96" font-size="30" text-anchor="middle" display="none">💥</text></g>`+T(50,122,'F21 · FUSÍVEL',9)+T(50,133,'ou disjuntor mono',7.5,'middle',600)+T(50,143,'(clique p/ trocar)',7.5,'middle',600),
+ jacks:[jk('1',50,24,'1','r'),jk('2',50,150,'2','r')]}),
+K:c=>{const ax=c.aux||[['NA',13,14],['NF',21,22]],w=Math.max(290,205+50*(ax.length-1)+50);
+ const aj=[],al=[];ax.forEach((a,i)=>{const x=205+50*i,na=a[0]==='NA',f=na?'#ffd23f':'#ffc0c0';aj.push(jk(a[1],x,88,String(a[1]),'r',f),jk(a[2],x,150,String(a[2]),'r',f));al.push(T(x,68,a[0],9,'middle',900,na?'#0a7a4b':'#c0182c'))});
+ return{w,h:236,svg:box(w,236,'#fff')+
+ `<g data-act="hold" data-id="${c.id}" style="cursor:pointer"><rect x="16" y="58" width="150" height="118" rx="10" fill="#eef4f8" stroke="${INK}" stroke-width="3"/><rect id="${c.id}_arm" x="34" y="78" width="114" height="34" rx="8" fill="#c3bddb" stroke="${INK}" stroke-width="3"/>${T(91,134,c.label||(c.id+' · CONTATOR'),11)}<text id="${c.id}_stt" x="91" y="152" font-size="10" font-weight="800" text-anchor="middle" fill="${INK}">DESLIGADO</text>${T(91,167,'(segure p/ acionar à mão)',8,'middle',600)}</g>`+al.join(''),
+ jacks:[jk('1',40,26,'1/L1','b'),jk('3',95,26,'3/L2','b'),jk('5',150,26,'5/L3','b'),jk('2',40,210,'2/T1','a'),jk('4',95,210,'4/T2','a'),jk('6',150,210,'6/T3','a'),jk('A1',205,26,'A1','b','#ffb3d1'),jk('A2',205,210,'A2','a','#ffb3d1'),...aj]}},
+D:c=>({w:220,h:200,svg:box(220,200,'#fff')+`<g data-act="skip" data-id="${c.id}" style="cursor:pointer"><rect x="14" y="50" width="130" height="104" rx="10" fill="#eef4f8" stroke="${INK}" stroke-width="3"/>${T(79,72,c.id+' · TEMPORIZADOR',10)}${T(79,85,'retardo na energização · 3 s',8,'middle',600)}<text id="${c.id}_stt" x="79" y="106" font-size="10" font-weight="900" text-anchor="middle" fill="${INK}">REPOUSO</text><rect x="26" y="114" width="106" height="12" rx="6" fill="#fff" stroke="${INK}" stroke-width="2.5"/><rect id="${c.id}_bar" x="27.5" y="115.5" width="0" height="9" rx="4.5" fill="#ff9f1c"/>${T(79,145,'(toque: pular a espera)',8,'middle',600)}</g>`+T(180,68,'NF',9,'middle',900,'#c0182c'),
+ jacks:[jk('A1',40,26,'A1','b','#ffb3d1'),jk('A2',40,174,'A2','a','#ffb3d1'),jk('15',180,88,'15','r','#ffc0c0'),jk('16',180,150,'16','r','#ffc0c0')]}),
+F2:c=>({w:290,h:236,svg:box(290,236,'#fff')+`<rect x="16" y="58" width="150" height="118" rx="10" fill="#eef4f8" stroke="${INK}" stroke-width="3"/>${T(91,84,'F2 · RELÉ TÉRMICO',11)}<path d="M40 112q20-22 40 0t40 0" stroke="${INK}" stroke-width="4" fill="none"/><text id="${c.id}_st" x="91" y="146" font-size="12" font-weight="900" text-anchor="middle" fill="#0a7a4b">OK</text>`+
+ `<g data-act="reset" data-id="${c.id}" style="cursor:pointer"><rect x="186" y="170" width="92" height="24" rx="8" fill="#ffd23f" stroke="${INK}" stroke-width="3"/>${T(232,187,'REARMAR',10,'middle',900)}</g><g data-act="trip" data-id="${c.id}" style="cursor:pointer"><rect x="186" y="200" width="92" height="24" rx="8" fill="#ffc2c8" stroke="${INK}" stroke-width="3"/>${T(232,217,'SOBRECARGA',10,'middle',900)}</g>`+
+ T(205,68,'NF',9,'middle',900,'#c0182c')+T(255,68,'NA',9,'middle',900,'#0a7a4b'),
+ jacks:[jk('1',40,26,'1/L1','b'),jk('3',95,26,'3/L2','b'),jk('5',150,26,'5/L3','b'),jk('2',40,210,'2/T1','a'),jk('4',95,210,'4/T2','a'),jk('6',150,210,'6/T3','a'),jk('95',205,88,'95','r','#ffc0c0'),jk('96',205,138,'96','r','#ffc0c0'),jk('97',255,88,'97','r'),jk('98',255,138,'98','r')]}),
+S0:c=>({w:110,h:180,svg:box(110,180,'#fff')+`<g data-act="press" data-id="${c.id}" style="cursor:pointer"><circle cx="55" cy="90" r="28" fill="#ffc2c8" stroke="${INK}" stroke-width="3"/><circle id="${c.id}_b" cx="55" cy="90" r="20" fill="#ff4d5e" stroke="${INK}" stroke-width="3"/></g>`+T(55,142,'S0 · DESLIGA',10)+T(55,156,'(NF)',9,'middle',600),
+ jacks:[jk('11',55,26,'11','r','#ffc0c0'),jk('12',55,156,'12','r','#ffc0c0')]}),
+SB:c=>{const col=c.color||'#19c37d',w=c.nf?160:110;const j=c.nf?[jk('13',38,26,'13','b'),jk('14',38,156,'14','a'),jk('21',122,26,'21','b','#ffc0c0'),jk('22',122,156,'22','a','#ffc0c0')]:[jk('13',55,26,'13','r'),jk('14',55,156,'14','r')];const cx=w/2;
+ return{w,h:180,svg:box(w,180,'#fff')+`<g data-act="press" data-id="${c.id}" style="cursor:pointer"><circle cx="${cx}" cy="90" r="28" fill="#eef4f8" stroke="${INK}" stroke-width="3"/><circle id="${c.id}_b" cx="${cx}" cy="90" r="20" fill="${col}" stroke="${INK}" stroke-width="3"/></g>`+T(cx,126,c.label||c.id,10)+(c.nf?T(38,70,'NA',9,'middle',900,'#0a7a4b')+T(122,70,'NF',9,'middle',900,'#c0182c'):T(cx,140,'(NA)',9,'middle',600)),jacks:j}},
+H:c=>({w:120,h:170,svg:box(120,170,'#fff')+`<circle id="${c.id}_glow" cx="60" cy="86" r="40" fill="${c.color}" opacity="0"/><circle id="${c.id}_bulb" cx="60" cy="86" r="26" fill="#ddd" stroke="${INK}" stroke-width="3"/>`+T(60,138,c.label||c.id,9),
+ jacks:[jk('X1',60,26,'X1','r'),jk('X2',60,150,'X2','r')]}),
+M:c=>({w:240,h:262,svg:box(240,262,'#e4dcff')+`<circle cx="120" cy="136" r="58" fill="#fff" stroke="${INK}" stroke-width="4"/><g id="${c.id}_fan"><g transform="translate(120 136)"><path d="M0 0L0-44A44 44 0 0 1 38 22Z" fill="#ff9f1c"/><path d="M0 0L38 22A44 44 0 0 1-38 22Z" fill="#7fd8ff"/><path d="M0 0L-38 22A44 44 0 0 1 0-44Z" fill="#ff5fa2"/><circle r="8" fill="${INK}"/></g></g>`+T(120,210,'M1 · MOTOR 3~ 380 V Δ / 660 V Y',9.5)+`<text id="${c.id}_st" x="120" y="72" font-size="11" font-weight="900" text-anchor="middle" fill="${INK}">PARADO</text>`,
+ jacks:[jk('U1',50,26,'U1','b'),jk('V1',120,26,'V1','b'),jk('W1',190,26,'W1','b'),jk('W2',50,236,'W2','a'),jk('U2',120,236,'U2','a'),jk('V2',190,236,'V2','a')]})
+};
+/* ---------- estado do jogo ---------- */
+let LV=null,comps=[],pre=[],wires=[],st=null,res=null,pos={},jpos={},color=null,hist=[],armed=null,drag=null,zoom=1,vbW=1100,vbH=600,lock=false,hints=0,attempts=0,listUsed=false,schemUsed=false,motorAng=0,motorRun=0,motorDir=0;
+const COLORS=['#8e24aa','#43a047','#f57c00','#212121','#eceff1'];
+const PCOL={R:'#e53935',S:'#fdd835',T:'#212121',N:'#4fc3f7'};
+function netLabels(){const uf=UF();allW().forEach(w=>uf.union(w[0],w[1]));
+ const src=comps.find(c=>c.type==='SRC'),lab={};if(src)['R','S','T','N'].forEach(n=>{lab[uf.find(src.id+'.'+n)]=n});
+ const pairs=[];for(const c of comps){const id=c.id,p=(x,y)=>pairs.push([id+'.'+x,id+'.'+y]);
+  if(c.type==='Q'||c.type==='F2'||(c.type==='K'&&c.id!=='K3')){p(1,2);p(3,4);p(5,6)}
+  if(c.type==='FU')p(1,2);if(c.type==='K')(c.aux||[]).forEach(a=>p(a[1],a[2]));if(c.type==='D')p(15,16);
+  if(c.type==='F2'){p(95,96);p(97,98)}if(c.type==='S0')p(11,12);if(c.type==='SB'){p(13,14);if(c.nf)p(21,22)}}
+ for(let it=0;it<8;it++){let ch=false;for(const q of pairs){const a=uf.find(q[0]),b=uf.find(q[1]);if(lab[a]&&!lab[b]){lab[b]=lab[a];ch=true}else if(lab[b]&&!lab[a]){lab[a]=lab[b];ch=true}}if(!ch)break}
+ return t=>lab[uf.find(t)]||null}
+function autoCol(L,w){const l=L(w[0])||L(w[1]);return l?PCOL[l]:'#8d6e63'}
+const svg=$('#bench');
+function layout(){const Wd=1100,gap=16;let x=gap,y=gap,rh=0;pos={};jpos={};for(const c of comps){const d=DRAW[c.type](c);if(x+d.w>Wd-gap&&x>gap){x=gap;y+=rh+gap;rh=0}pos[c.id]={x,y,d};d.jacks.forEach(j=>jpos[c.id+'.'+j.n]={x:x+j.x,y:y+j.y});x+=d.w+gap;rh=Math.max(rh,d.h)}vbW=Wd;vbH=y+rh+gap}
+function termName(t){const[a,b]=t.split('.');const c=comps.find(x=>x.id===a);const d=pos[a]&&pos[a].d.jacks.find(j=>j.n===b);return(c&&c.type==='SRC'?'Fonte ':(a==='FU1'?'F21':a)+' ')+'('+(d?d.l.replace(/\/.*/,''):b)+')'}
+function buildBench(){
+ layout();let h='<defs><filter id="glow"><feGaussianBlur stdDeviation="6"/></filter></defs>',lab='';
+ for(const c of comps){const p=pos[c.id];h+=`<g transform="translate(${p.x},${p.y})">${p.d.svg}`;lab+=`<g transform="translate(${p.x},${p.y})">`;
+  for(const j of p.d.jacks){const lx=j.lp==='b'?[0,23]:j.lp==='a'?[0,-14]:j.lp==='r'?[16,4]:[-16,4];h+=`<circle cx="${j.x}" cy="${j.y}" r="10" fill="${j.fill}" stroke="${INK}" stroke-width="3"/><circle cx="${j.x}" cy="${j.y}" r="3.5" fill="${INK}"/>`;
+   lab+=`<text x="${j.x+lx[0]}" y="${j.y+lx[1]}" font-size="11" font-weight="900" text-anchor="${j.lp==='r'?'start':j.lp==='l'?'end':'middle'}" fill="${INK}" stroke="#fff" stroke-width="3.5" paint-order="stroke" stroke-linejoin="round">${j.l}</text>`}
+  h+='</g>';lab+='</g>'}
+ h+='<g id="wl"></g>'+lab+'<path id="tmpw" d="" fill="none" stroke="#999" stroke-width="5" stroke-dasharray="6 5" pointer-events="none"/><g id="nh" pointer-events="none"></g><g id="hl" pointer-events="none"></g><g id="jh">';
+ for(const k in jpos)h+=`<circle data-t="${k}" cx="${jpos[k].x}" cy="${jpos[k].y}" r="17" fill="transparent" style="cursor:crosshair;touch-action:none"><title>${termName(k)}</title></circle>`;
+ h+='</g>';svg.setAttribute('viewBox',`0 0 ${vbW} ${vbH}`);svg.innerHTML=h;setZoom(zoom);renderWires()}
+function setZoom(z){zoom=Math.max(.4,Math.min(1.6,z));svg.setAttribute('width',Math.round(vbW*zoom));svg.setAttribute('height',Math.round(vbH*zoom))}
+function fit(){const w=$('#scroll').clientWidth-6;setZoom(Math.max(.62,Math.min(1.2,w/vbW)))}
+function wpath(a,b,i){const p=jpos[a],q=jpos[b];if(!p||!q)return'';const d=Math.hypot(p.x-q.x,p.y-q.y),sag=18+d*.1+(i%4)*6,off=((i*7)%5-2)*5;return`M${p.x} ${p.y}C${p.x+off} ${p.y+sag},${q.x+off} ${q.y+sag},${q.x} ${q.y}`}
+function renderWires(){let h='';const L=netLabels();const all=[...pre.map(w=>({w,lock:1})),...wires.map(w=>({w,lock:0}))];
+ all.forEach((o,i)=>{const d=wpath(o.w[0],o.w[1],i),col=o.w[2]||autoCol(L,o.w);h+=`<g class="wg${o.lock?' lk':''}"><path class="wo" d="${d}" fill="none" stroke="${INK}" stroke-width="${o.lock?6:7.5}" stroke-linecap="round"/><path class="wi" d="${d}" fill="none" stroke="${col}" stroke-width="${o.lock?3.4:4.6}" stroke-linecap="round"${o.lock?' stroke-dasharray="9 5"':''}/>`;
+  for(const e of [o.w[0],o.w[1]]){const p=jpos[e];h+=`<circle cx="${p.x}" cy="${p.y}" r="6" fill="${col}" stroke="${INK}" stroke-width="2.5"/>`}
+  if(!o.lock)h+=`<path data-w="${i-pre.length}" d="${d}" fill="none" stroke="transparent" stroke-width="18" style="cursor:pointer"><title>Toque para remover este cabo</title></path>`;h+='</g>'});
+ $('#wl').innerHTML=h;
+ let nh='';if(armed){const uf=UF();allW().forEach(w=>uf.union(w[0],w[1]));const r=uf.find(armed);for(const k in jpos)if(k!==armed&&uf.find(k)===r)nh+=`<circle cx="${jpos[k].x}" cy="${jpos[k].y}" r="15" fill="none" stroke="#6c4cf1" stroke-width="3" stroke-dasharray="4 3"/>`}
+ const hn=document.getElementById('nh');if(hn)hn.innerHTML=nh;
+ document.querySelectorAll('#jh circle').forEach(c=>c.setAttribute('stroke',c.dataset.t===armed?'#6c4cf1':'none'));
+ document.querySelectorAll('#jh circle').forEach(c=>c.setAttribute('stroke-width',3));
+ const a=document.querySelector(`#jh circle[data-t="${armed}"]`);if(a)a.setAttribute('fill','rgba(108,76,241,.25)');}
+function persist(){S.wires[LV.id]=wires;save()}
+function pushHist(){hist.push(JSON.stringify(wires));if(hist.length>60)hist.shift()}
+function addWire(a,b){if(a===b)return;if(wires.some(w=>(w[0]===a&&w[1]===b)||(w[0]===b&&w[1]===a))||pre.some(w=>(w[0]===a&&w[1]===b)||(w[0]===b&&w[1]===a))){say('Esses dois bornes já estão ligados por um cabo.','think');return}
+ pushHist();wires.push([a,b,color]);persist();sfx.plug();renderWires();refresh();clearResult()}
+/* ---------- entrada ---------- */
+function toSvg(e){const pt=svg.createSVGPoint();pt.x=e.clientX;pt.y=e.clientY;return pt.matrixTransform(svg.getScreenCTM().inverse())}
+svg.addEventListener('pointerdown',e=>{
+ if(lock)return;
+ const tj=e.target.closest('[data-t]');
+ if(tj){e.preventDefault();drag={from:tj.dataset.t,moved:false,x:e.clientX,y:e.clientY};try{svg.setPointerCapture(e.pointerId)}catch(_){}return}
+ const wh=e.target.closest('[data-w]');
+ if(wh){pushHist();wires.splice(+wh.dataset.w,1);persist();sfx.unplug();renderWires();refresh();clearResult();return}
+ const act=e.target.closest('[data-act]');
+ if(act){e.preventDefault();const id=act.dataset.id,a=act.dataset.act;
+  if(a==='press'){st.press[id]=true;sfx.tick();held={t:'press',id}}
+  else if(a==='hold'){st.hold[id]=true;sfx.tick();held={t:'hold',id}}
+  else if(a==='q'){st.q[id]=!st.q[id];sfx.clack()}
+  else if(a==='trip'){st.trip[id]=true;sfx.alarm()}
+  else if(a==='reset'){st.trip[id]=false;sfx.tick()}
+  else if(a==='fuse'){if(st.blown[id]){st.blown[id]=false;sfx.ok()}}
+  else if(a==='master'){st.master=!st.master;sfx.clack()}
+  else if(a==='skip'){if(res&&res.loads[id]===220&&!st.dn[id]){st.dnReq[id]=true;sfx.tick()}}
+  refresh()}});
+let held=null;
+let snap=null;
+svg.addEventListener('pointermove',e=>{if(!drag)return;if(Math.hypot(e.clientX-drag.x,e.clientY-drag.y)>6)drag.moved=true;if(drag.moved){const p=toSvg(e),a=jpos[drag.from];let best=null,bd=30;for(const k in jpos){if(k===drag.from)continue;const d=Math.hypot(jpos[k].x-p.x,jpos[k].y-p.y);if(d<bd){bd=d;best=k}}snap=best;const q=best?jpos[best]:p;$('#tmpw').setAttribute('d',`M${a.x} ${a.y}L${q.x} ${q.y}`);$('#tmpw').setAttribute('stroke',color||'#6c4cf1');
+ $('#hl').innerHTML=best?`<circle cx="${jpos[best].x}" cy="${jpos[best].y}" r="16" fill="rgba(25,195,125,.25)" stroke="#19c37d" stroke-width="3"/><text x="${jpos[best].x+20}" y="${jpos[best].y-14}" font-size="12" font-weight="900" fill="#0a7a4b" stroke="#fff" stroke-width="3" paint-order="stroke">${termName(best)}</text>`:''}});
+const endAll=e=>{
+ if(held){if(held.t==='press')st.press[held.id]=false;else st.hold[held.id]=false;held=null;refresh()}
+ if(!drag)return;const d=drag;drag=null;$('#tmpw').setAttribute('d','');
+ const el=document.elementFromPoint(e.clientX,e.clientY),tj=el&&el.closest&&el.closest('[data-t]'),to=snap||(tj&&tj.dataset.t);snap=null;$('#hl').innerHTML='';
+ if(d.moved){if(to&&to!==d.from){addWire(d.from,to);armed=null}else armed=null}
+ else{if(armed&&armed!==d.from){addWire(armed,d.from);armed=null}else if(armed===d.from)armed=null;else{armed=d.from;say(`Borne ${termName(d.from)} escolhido. Toque no outro borne para ligar o cabo.`)}}
+ renderWires()};
+window.addEventListener('pointerup',endAll);window.addEventListener('pointercancel',endAll);
+$('#cols').innerHTML=`<button class="cdot on" data-c="auto" style="background:conic-gradient(#e53935 0 33%,#fdd835 0 66%,#212121 0)" title="Cor automática por fase (R vermelho, S amarelo, T preto, N azul-claro)"></button>`+COLORS.map(c=>`<button class="cdot" data-c="${c}" style="background:${c}" title="cor do cabo"></button>`).join('');
+$('#cols').addEventListener('click',e=>{const b=e.target.closest('.cdot');if(!b)return;color=b.dataset.c==='auto'?null:b.dataset.c;document.querySelectorAll('.cdot').forEach(x=>x.classList.toggle('on',x===b))});
+$('#zin').onclick=()=>setZoom(zoom+.12);$('#zout').onclick=()=>setZoom(zoom-.12);$('#zfit').onclick=fit;
+$('#snd').onclick=()=>{S.sound=!S.sound;save();$('#snd').textContent=S.sound?'🔊':'🔇';sfx.tick()};
+/* ---------- simulação ao vivo ---------- */
+const FMSG={fuse:'💥 O fusível queimou: curto no comando. Remova o cabo errado e clique no fusível para trocar.',trip:'⚡ Curto-circuito! O disjuntor desarmou. Corrija os cabos e ligue o disjuntor de novo.',master:'⚡ Curto direto na fonte! O disjuntor GERAL desarmou. Corrija e clique em GERAL.'};
+let lastK={},flash=null;const TM={},DT=3;
+setInterval(()=>{if(lock||!st||!res)return;for(const c of comps){if(c.type!=='D')continue;const on=res.loads[c.id]===220;if(!on||st.dn[c.id]){if(!on)TM[c.id]=0;continue}TM[c.id]=(TM[c.id]||0)+.1;if(TM[c.id]>=DT){st.dnReq[c.id]=true;refresh()}else{const b=document.getElementById(c.id+'_bar');if(b)b.setAttribute('width',TM[c.id]/DT*104)}}},100);
+function refresh(){
+ res=solve(comps,[...pre,...wires],st);
+ {const s=LV.sol,ok=s.filter(w=>wireSat(allW(),w[0],w[1])).length;$('#cnt').innerHTML=s.length?`🔌 Ligações certas: <b>${ok}/${s.length}</b>`:'';$('#cnt').className=s.length&&ok===s.length?'full':''}
+ const msgs=[];{const nfl=neutralFaults(comps,allW());if(nfl.length){msgs.push(NEUTRO_MSG+' ('+nfl.join(', ')+')')}}
+ (res.faults||[]).forEach(f=>{const k=f.split(':')[0];msgs.push(FMSG[k]);sfx.alarm()});
+ for(const c of comps){const p=document.getElementById.bind(document);
+  if(c.type==='Q'){const on=st.q[c.id];p(c.id+'_lev').setAttribute('transform',`rotate(${on?-26:26} 100 105)`)}
+  else if(c.type==='FU'){p(c.id+'_x').setAttribute('display',st.blown[c.id]?'':'none');p(c.id+'_link').setAttribute('stroke',st.blown[c.id]?'#ff4d5e':INK)}
+  else if(c.type==='K'){const on=st.k[c.id];p(c.id+'_arm').setAttribute('fill',on?'#19c37d':'#c3bddb');p(c.id+'_arm').setAttribute('y',on?84:78);const t=p(c.id+'_stt');t.textContent=on?'LIGADO':'DESLIGADO';if(lastK[c.id]!==undefined&&lastK[c.id]!==on)sfx.clack();lastK[c.id]=on;
+   if(res.loads[c.id]===380)msgs.push(`⚠️ Bobina de ${c.id} ligada em 380 V (entre duas fases): queimaria! Use fase e neutro.`)}
+  else if(c.type==='F2'){const t=p(c.id+'_st');t.textContent=st.trip[c.id]?'DESARMOU':'OK';t.setAttribute('fill',st.trip[c.id]?'#c0182c':'#0a7a4b')}
+  else if(c.type==='H'){const on=res.loads[c.id]===220;p(c.id+'_bulb').setAttribute('fill',on?c.color:'#ddd');p(c.id+'_glow').setAttribute('opacity',on?.55:0);p(c.id+'_glow').setAttribute('filter',on?'url(#glow)':'');if(res.loads[c.id]===380)msgs.push('⚠️ Lâmpada ligada em 380 V: queimaria! Use fase e neutro.')}
+  else if(c.type==='S0'||c.type==='SB'){p(c.id+'_b').setAttribute('transform',st.press[c.id]?'translate(0,3) scale(.94)':'');p(c.id+'_b').style.transformOrigin='center'}
+  else if(c.type==='SRC'){p(c.id+'_mst').setAttribute('fill',st.master?'#19c37d':'#ff4d5e');p(c.id+'_mst').setAttribute('x',st.master?266:292)}
+  else if(c.type==='M'){const m=res.motor,t=p(c.id+'_st');motorRun=m.state==='run'?(m.cfg==='Y'?.45:1):m.state==='phase'?.25:0;motorDir=m.state==='run'?m.dir:1;
+   t.textContent=m.state==='run'?(m.cfg==='Y'?'★ ESTRELA · 220 V':'△ TRIÂNGULO · 380 V')+(m.dir<0?' ↺':''):{off:'PARADO',phase:'🔊 ZUMBINDO (ligação errada)',bad:'⚠️ LIGADO AO NEUTRO'}[m.state]}
+  else if(c.type==='D'){const on=res.loads[c.id]===220,dn=st.dn[c.id];p(c.id+'_stt').textContent=dn?'TEMPO ESGOTADO · NF aberto':on?'CONTANDO…':'REPOUSO';p(c.id+'_bar').setAttribute('width',dn?104:on?Math.min(104,(TM[c.id]||0)/DT*104):0);if(res.loads[c.id]===380)msgs.push('⚠️ Bobina de D1 ligada em 380 V (entre duas fases): queimaria! Use fase e neutro.')}}
+ if(res.motor.state==='phase')msgs.push('🔊 O motor está zumbindo: estrela ou triângulo mal fechados (falta fase, fim solto ou fases repetidas). Confira U1-V1-W1 e W2-U2-V2.');
+ if(res.motor.state==='bad')msgs.push('⚠️ Um terminal do motor foi ligado ao neutro. O ponto de estrela NÃO vai ao neutro.');
+ if(res.osc)msgs.push('Circuito vibrando (oscila). Revise o intertravamento.');
+ if(msgs.length){flash=msgs.join(' ');$('#status').className='bad';$('#status').textContent=flash}
+ else{const m=res.motor;$('#status').className=m.state==='run'?'good':'';$('#status').textContent=m.state==='run'?(m.cfg==='Y'?'✅ Motor em ESTRELA: 220 V por enrolamento, 1/3 da corrente e do torque.':'✅ Motor em TRIÂNGULO: 380 V por enrolamento, plena tensão.'):(m.state==='off'&&res.loads.D1===220?'⏱ D1 contando o tempo…':'Arraste de um borne a outro para ligar um cabo. Toque num cabo para remover. Clique nos botões e no disjuntor para operar.')}
+}
+(function spin(){motorAng+=motorRun*motorDir*7;const f=document.getElementById('M1_fan');if(f){const j=motorRun===.25?(Math.random()*4-2):0;f.setAttribute('transform',`rotate(${motorAng+j} 120 136)`)}requestAnimationFrame(spin)})();
+const CINFO={SRC:['Fonte','Três fases R, S, T (380 V entre fases) e neutro N (220 V entre fase e neutro). O botão GERAL desarma em curto na fonte.'],
+ Q:['Disjuntor-motor Q1','Liga e desliga a potência e protege contra curto. Bornes 1-3-5 (entrada) e 2-4-6 (saída). Clique para ligar.'],
+ FU:['Fusível F21','Protege o comando (fase). Pode ser trocado por um disjuntor monopolar. Queima em curto: clique para trocar.'],
+ K:['Contatores K1, K2 e K3','K1 principal, K2 triângulo, K3 estrela. Potência 1-3-5 / 2-4-6, bobina A1-A2 (220 V) e auxiliares NA e NF (K1: 13-14, 23-24 e 31-32; K2: 11-12; K3: 13-14 e 21-22). Segure o corpo para acionar à mão.'],
+ D:['Temporizador D1','Retardo na energização (3 s). Bobina A1-A2 em 220 V. Passado o tempo, o NF 15-16 abre. Toque nele para pular a espera.'],
+ F2:['Relé térmico F2','Fica entre K1 e o motor, ajustado em In/√3. O NF 95-96 fica em série no comando (na fase, nunca no neutro) e o NA 97-98 sinaliza a falha. SOBRECARGA simula e REARMAR volta.'],
+ S0:['Botão S0 (DESLIGA)','Vermelho, contato NF nos bornes 11-12. Em série com o comando.'],
+ SB:['Botão S1 (LIGA)','Verde, contato NA nos bornes 13-14.'],
+ H:['Lâmpadas de sinalização','220 V: ligue entre fase e neutro (X1 e X2). H1 parado, H2 estrela, H3 triângulo, H4 falha.'],
+ M:['Motor M1 (6 bornes)','Três enrolamentos U1-U2, V1-V2 e W1-W2. 380 V em triângulo ou 220 V por enrolamento em estrela. O ponto de estrela nunca vai ao neutro.']};
+function compInfo(){const seen=new Set(),out=[];for(const c of comps){if(seen.has(c.type))continue;seen.add(c.type);const i=CINFO[c.type];if(i)out.push(`<li><b>${i[0]}:</b> ${i[1]}</li>`)}return '<ul class="ci">'+out.join('')+'</ul><p class="hint">Cores dos cabos (automáticas): R vermelho · S amarelo · T preto · N azul-claro · comando sem fase em marrom. Cabos tracejados já vêm prontos e não podem ser removidos.</p>'}
+/* ---------- fases ---------- */
+function chips(){$('#lv').innerHTML=GAME.levels.map(l=>`<button class="chip${l.id===LV.id?' cur':''}${l.bonus?' bonus':''}${l.boss?' boss':''}" data-i="${l.id}" title="${l.name}">${l.boss?'🏆':l.id}<i>${'★'.repeat(S.stars[l.id]||0)+'☆'.repeat(3-(S.stars[l.id]||0))}</i></button>`).join('')}
+$('#lv').addEventListener('click',e=>{const b=e.target.closest('.chip');if(b&&!lock)openLevel(+b.dataset.i)});
+function openLevel(id){
+ LV=GAME.levels.find(l=>l.id===id);comps=LV.comps;pre=LV.pre.map(w=>[w[0],w[1]]);wires=(S.wires[id]||[]).filter(w=>jposOK(w));hist=[];armed=null;hints=0;attempts=0;listUsed=false;lastK={};for(const k in TM)delete TM[k];st=mkState(comps);
+ $('#resbox').classList.add('hidden');$('#cheat').classList.add('hidden');
+ const sp=(typeof SCH!=='undefined')&&SCH[id];schemUsed=false;
+ $('#lesson').innerHTML=`<h2>${LV.boss?'🏆 ':''}Fase ${id} · ${LV.name}${LV.bonus?' (bônus)':''}</h2><p><b>Missão:</b> ${LV.goal}</p><div class="learn">💡 <b>Aprenda:</b> ${LV.learn}</div><details class="dt"><summary>🔎 Conheça os componentes desta fase</summary>${compInfo()}</details>`;
+ $('#btest').textContent=LV.demo?'⚡ Provocar o curto':'▶ Testar';
+ chips();buildBench();fit();refresh();say(`<b>Fase ${id}:</b> ${LV.goal}`);
+ $('#scroll').scrollTo(0,0);window.scrollTo({top:0});
+ if(typeof TRAIL!=='undefined'&&TRAIL[id]&&!S.seen[id])setTimeout(()=>{if(!lock)openTrail(id,0)},0)}
+function jposOK(w){return comps.some(c=>w[0].startsWith(c.id+'.'))&&comps.some(c=>w[1].startsWith(c.id+'.'))}
+function clearResult(){if(!lock)$('#resbox').classList.add('hidden');if(!$('#cheat').classList.contains('hidden'))renderCheat()}
+/* ---------- dicas, lista, desfazer, limpar ---------- */
+const allW=()=>[...pre,...wires];
+function missing(){return LV.sol.filter(w=>!wireSat(allW(),w[0],w[1]))}
+$('#bhint').onclick=()=>{if(lock)return;hints++;const m=missing();
+ if(hints===1||!m.length){say('💡 '+LV.tip);return}
+ const w=m[0];say(`💡 Falta ligar <b>${termName(w[0])}</b> → <b>${termName(w[1])}</b>. Veja os bornes piscando.`);
+ const hl=$('#hl');hl.innerHTML=[w[0],w[1]].map(t=>`<circle class="blink" cx="${jpos[t].x}" cy="${jpos[t].y}" r="14" fill="none" stroke="#6c4cf1" stroke-width="5"/>`).join('');setTimeout(()=>{hl.innerHTML=''},4000)};
+function renderCheat(){const s=LV.sol;if(!s.length){$('#cheat').innerHTML='<b>Nesta fase não há cabos para ligar.</b>';return}
+ $('#cheat').innerHTML=`<b>📋 Lista de ligações desta fase</b> <span class="hint" style="font-size:12px">(${s.filter(w=>wireSat(allW(),w[0],w[1])).length}/${s.length} feitas)</span><ul>${s.map(w=>`<li class="${wireSat(allW(),w[0],w[1])?'ok':''}">${termName(w[0])} → ${termName(w[1])}</li>`).join('')}</ul>`}
+$('#blist').onclick=()=>{if(lock)return;const c=$('#cheat');if(c.classList.contains('hidden')){if(!listUsed){listUsed=true;hints+=2}renderCheat();c.classList.remove('hidden')}else c.classList.add('hidden')};
+$('#bundo').onclick=()=>{if(lock||!hist.length)return;wires=JSON.parse(hist.pop());persist();sfx.unplug();renderWires();refresh();clearResult()};
+$('#bclear').onclick=()=>{if(lock||!wires.length)return;pushHist();wires=[];persist();sfx.unplug();renderWires();refresh();clearResult()};
+/* ---------- teste animado ---------- */
+$('#btest').onclick=async()=>{
+ if(lock)return;lock=true;attempts++;const box=$('#resbox');box.classList.remove('hidden');
+ const all=allW(),out=[];let firstBad=null;
+ for(const k in TM)delete TM[k];for(const t of LV.tests){st=mkState(comps);refresh();say('Teste: <b>'+t.name+'</b>');let fail=null;const faultsAll=[];
+  await sleep(450);
+  for(const s of t.steps){applyStep(st,s);refresh();(res.faults||[]).forEach(f=>faultsAll.push(f));await sleep(s.ex?650:520);
+   if(s.ex){res.faults=faultsAll.slice();if(!checkEx(s.ex,st,res)){fail=s.msg||'Não saiu como esperado.';break}}}
+  out.push({name:t.name,ok:!fail,msg:fail});if(fail&&!firstBad)firstBad=fail;
+  box.innerHTML=`<b>Resultado dos testes</b><ul>${out.map(r=>`<li class="${r.ok?'ok':'bad'}">${r.ok?'✔':'✘'} ${r.name}${r.ok?'':`<small>🤖 ${r.msg}</small>`}</li>`).join('')}</ul>`}
+ st=mkState(comps);lastK={};for(const k in TM)delete TM[k];refresh();lock=false;
+ if(!firstBad){const stars=hints===0&&attempts<=3?3:hints<=2?2:1;S.stars[LV.id]=Math.max(S.stars[LV.id]||0,stars);save();chips();sfx.win();say(LV.boss?'Chefão derrotado! Você é mestre da bancada! 🏆':'Funcionou! Fase concluída! 🎉');showWin(stars)}
+ else{sfx.bad();say('Quase! '+firstBad,'bad')}};
+function showWin(stars){const i=GAME.levels.findIndex(l=>l.id===LV.id),nx=GAME.levels[i+1];
+ $('#mbody').innerHTML=`<h2>${LV.boss?'🏆':'🎉'} Fase ${LV.id} concluída!</h2><div class="bigstars">${'★'.repeat(stars)+'☆'.repeat(3-stars)}</div><p>${LV.learn}</p><p style="font-size:12px;opacity:.7">3 estrelas: sem dicas e em até 3 testes · 2 estrelas: poucas dicas</p><div class="mbts"><button class="btn rst" id="m-stay">Continuar na bancada</button>${nx?'<button class="btn run" id="m-next">Próxima fase ▶</button>':''}</div>`;
+ $('#modal').classList.remove('hidden');$('#m-stay').onclick=()=>$('#modal').classList.add('hidden');if(nx)$('#m-next').onclick=()=>{$('#modal').classList.add('hidden');openLevel(nx.id)}}
+$('#modal').addEventListener('click',e=>{if(e.target.id==='modal'){e.target.classList.add('hidden');$('#mbody').style.maxWidth=''}});
+$('#snd').textContent=S.sound?'🔊':'🔇';
+window.addEventListener('resize',()=>{});
+openLevel(GAME.levels.find(l=>!S.stars[l.id])?GAME.levels.find(l=>!S.stars[l.id]).id:1);
+
+$('#bsch').onclick=()=>{if(lock)return;const sp=SCH[LV.id];if(!sp)return;if(LV.boss&&!schemUsed){schemUsed=true;hints++}
+ $('#mbody').innerHTML=`<h2>📐 Esquema · Fase ${LV.id}</h2>${schemHTML(sp)}${LV.boss?'<p class="hint">Abrir o esquema nesta fase conta como 1 dica.</p>':''}<div class="mbts"><button class="btn run" id="m-x">Voltar à bancada</button></div>`;
+ $('#mbody').style.maxWidth='980px';$('#modal').classList.remove('hidden');$('#m-x').onclick=()=>{$('#modal').classList.add('hidden');$('#mbody').style.maxWidth=''}};
+
+/* ---------- trilha antes de cada fase ---------- */
+function figPhases(){const C=['#e53935','#fdd835','#212121','#4fc3f7'],N=['R','S','T','N'];let s='';
+ N.forEach((n,i)=>{const x=60+i*70;s+=`<line x1="${x}" y1="40" x2="${x}" y2="130" stroke="${INK}" stroke-width="9" stroke-linecap="round"/><line x1="${x}" y1="40" x2="${x}" y2="130" stroke="${C[i]}" stroke-width="5" stroke-linecap="round"/><text x="${x}" y="30" text-anchor="middle" font-size="14" font-weight="900" fill="${INK}">${n}</text>`});
+ s+=`<path d="M60 150V158H270V150" fill="none" stroke="#19c37d" stroke-width="3.5"/><text x="165" y="178" text-anchor="middle" font-size="12" font-weight="900" fill="#0a7a4b">fase ↔ neutro = 220 V ✔ (lâmpada e bobina)</text>`;
+ s+=`<path d="M60 190V198H130V190" fill="none" stroke="#e53935" stroke-width="3.5"/><text x="200" y="202" font-size="12" font-weight="900" fill="#c0182c">fase ↔ fase = 380 V ✘ (queimaria)</text>`;
+ return `<svg viewBox="0 0 440 215" style="width:100%;max-width:440px;height:auto;display:block;margin:6px auto">${s}</svg>`}
+function figContacts(){const g=(x,it,t1,t2,c)=>`<g transform="translate(${x},52)">${sym(it).svg}</g><text x="${x+38}" y="104" text-anchor="middle" font-size="12" font-weight="900" fill="${c}">${t1}</text><text x="${x+38}" y="120" text-anchor="middle" font-size="11" font-weight="700" fill="${INK}">${t2}</text>`;
+ return `<svg viewBox="0 0 420 140" style="width:100%;max-width:420px;height:auto;display:block;margin:6px auto">${g(30,na('NA','13-14'),'Em repouso: ABERTO','Apertou: FECHA','#0a7a4b')}${g(240,nf('NF','11-12'),'Em repouso: FECHADO','Apertou: ABRE','#c0182c')}</svg>`}
+let trStep=0;
+function openTrail(id,step){
+ const steps=TRAIL[id];if(!steps)return;trStep=step||0;const s=steps[trStep],last=trStep===steps.length-1,lv=GAME.levels.find(l=>l.id===id);
+ const fig=(s.fig||'').startsWith('wind:')?figWind(s.fig.slice(5)):s.fig==='phases'?figPhases():s.fig==='contacts'?figContacts():s.fig==='schem'&&SCH[id]?`<div style="margin:6px 0">${schemHTML(SCH[id])}</div>`:'';
+ const dots=steps.map((_,i)=>`<span style="display:inline-block;width:12px;height:12px;border-radius:50%;border:2px solid ${INK};margin:0 3px;background:${i===trStep?'var(--yellow)':i<trStep?'var(--green)':'#fff'}"></span>`).join('');
+ $('#mbody').innerHTML=`<h2>📖 Trilha · Fase ${id}</h2><div>${dots}</div><h3 style="margin:8px 0 2px">${s.t}</h3><p style="text-align:left">${s.p}</p>${fig}${last?`<p style="background:#f3efff;border-radius:10px;padding:8px"><b>🎯 Missão:</b> ${lv.goal}</p>`:''}<div class="mbts">${trStep>0?'<button class="btn" id="t-prev">◀ Voltar</button>':''}<button class="btn run" id="t-next">${last?'Começar a fase 🚀':'Próximo ▶'}</button></div><p><a href="#" id="t-skip" style="font-size:12px">pular trilha</a></p>`;
+ $('#mbody').style.maxWidth='720px';$('#modal').classList.remove('hidden');
+ const end=()=>{S.seen[id]=1;save();$('#modal').classList.add('hidden')};
+ const pv=document.getElementById('t-prev');if(pv)pv.onclick=()=>openTrail(id,trStep-1);
+ $('#t-next').onclick=()=>{sfx.tick();if(last)end();else openTrail(id,trStep+1)};
+ $('#t-skip').onclick=e=>{e.preventDefault();end()}}
+new MutationObserver(()=>{if($('#modal').classList.contains('hidden'))$('#mbody').style.maxWidth=''}).observe($('#modal'),{attributes:true});
+$('#btrail').onclick=()=>{if(!lock){sfx.tick();openTrail(LV.id,0)}};
+
+</script></body></html>
