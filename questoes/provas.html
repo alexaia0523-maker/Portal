@@ -1,0 +1,171 @@
+<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Provas · Painel do Professor</title>
+<style>
+:root{--ink:#2b2250;--purple:#6c4cf1;--yellow:#ffd23f;--green:#19c37d;--orange:#ff9f1c;--red:#ff4d5e;--grey:#c3bddb}
+*{box-sizing:border-box}body{margin:0;font-family:"Trebuchet MS","Segoe UI",system-ui,sans-serif;color:var(--ink);background:linear-gradient(160deg,#fff3c9,#d9f2ff);background-attachment:fixed;min-height:100vh}
+.card{background:#fff;border:3px solid var(--ink);border-radius:18px;box-shadow:0 4px 0 var(--ink)}
+.btn{font:inherit;font-weight:800;border:3px solid var(--ink);border-radius:12px;padding:6px 12px;background:#fff;color:var(--ink);cursor:pointer;box-shadow:0 3px 0 var(--ink)}
+.btn:active{transform:translateY(3px);box-shadow:none}.btn.pri{background:var(--purple);color:#fff}.btn.ok{background:var(--green);color:#fff}.btn.warn{background:var(--yellow)}.btn.bad{background:var(--red);color:#fff}
+.hidden{display:none!important}
+#app{max-width:1200px;margin:0 auto;padding:10px;display:flex;flex-direction:column;gap:10px}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.sp{flex:1}
+header{padding:10px 14px}h1{margin:0;font-size:19px;color:var(--purple)}
+input,select{font:inherit;font-weight:700;border:3px solid var(--ink);border-radius:10px;padding:6px 8px;background:#fff;color:var(--ink)}
+#login{max-width:420px;margin:40px auto;padding:20px;display:flex;flex-direction:column;gap:10px;text-align:center}
+#login input{width:100%}.err{color:#c0182c;font-weight:800;min-height:20px}
+.tabs{display:flex;gap:6px;flex-wrap:wrap}.tab{font:inherit;font-weight:900;border:3px solid var(--ink);border-radius:12px;padding:5px 12px;background:#fff;cursor:pointer;color:var(--ink)}.tab.cur{background:var(--yellow)}
+.panel{padding:12px;overflow:auto}
+table{border-collapse:collapse;font-size:13px;width:100%}th,td{border:2px solid var(--ink);padding:4px 6px;text-align:center;white-space:nowrap}
+th{background:#e4dcff;position:sticky;top:0}td.nm{text-align:left;font-weight:800;cursor:pointer}td.nm:hover{text-decoration:underline}
+.c4{background:#b8f2d6}.c3{background:#fff0c4}.c2{background:#ffd9a8}.c1{background:#ffc2c8}.c0{background:#f3f0fa;color:#aaa}
+.stat{display:flex;gap:10px;flex-wrap:wrap}.stat div{padding:8px 14px;border:3px solid var(--ink);border-radius:12px;background:#f3efff;font-weight:800}.stat b{font-size:20px;display:block}
+.qrow{display:grid;grid-template-columns:70px 1fr 90px 60px;gap:8px;align-items:center;padding:6px 8px;border-bottom:2px dashed var(--grey);font-size:14px}
+.bar{height:12px;border:2px solid var(--ink);border-radius:8px;background:#fff;overflow:hidden}.bar i{display:block;height:100%;background:var(--green)}
+.ph{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:8px}
+.ph button{font:inherit;font-weight:800;border:3px solid var(--ink);border-radius:12px;padding:8px;cursor:pointer;background:#d6f7e7;text-align:left;color:var(--ink)}.ph button.off{background:#ffdde1}
+.overlay{position:fixed;inset:0;background:rgba(43,34,80,.55);display:grid;place-items:center;z-index:50;padding:12px}.mc{max-width:480px;width:100%;padding:18px}
+.hint{font-size:13px;opacity:.75}
+@media print{.noprint{display:none!important}body{background:#fff}header .row:last-child,.tabs,.btn,#flt{display:none!important}.card{box-shadow:none}}
+</style><style>
+.sub{font-size:12px;opacity:.7}.pill{display:inline-block;border:2px solid var(--ink);border-radius:999px;padding:0 8px;font-size:11px;font-weight:900;background:#e4dcff}
+.pill.t-mc{background:#d6e8ff}.pill.t-vf{background:#d6f7e7}.pill.t-fields{background:#fff0c4}
+.cols{display:grid;grid-template-columns:1fr 1fr;gap:10px}@media(max-width:900px){.cols{grid-template-columns:1fr}}
+.qi{display:flex;gap:8px;align-items:flex-start;padding:6px;border-bottom:2px dashed var(--grey);font-size:14px}.qi:hover{background:#faf8ff}
+.qi .tx{flex:1;cursor:pointer}.list{max-height:62vh;overflow:auto;border:3px solid var(--ink);border-radius:12px;padding:4px}
+.ex{display:flex;gap:8px;align-items:center;flex-wrap:wrap;border:3px solid var(--ink);border-radius:14px;padding:8px 10px;margin-bottom:8px;background:#fbfaff}
+.ex b.t{font-size:16px}.prev{background:#f6f3ff;border:2px solid var(--grey);border-radius:10px;padding:8px;margin:4px 0;font-size:13px}.prev .ok{color:#0a7a4b;font-weight:900}
+.prev img,.tx img{max-width:100%}.w{width:54px;padding:2px 4px}
+.m1{background:#b8f2d6}.m0{background:#ffc2c8}.mp{background:#ffe9a8}.mn{background:#f3f0fa}
+</style></head><body>
+<div id="app">
+ <section id="login" class="card" style="max-width:420px;margin:40px auto;padding:20px;text-align:center;display:flex;flex-direction:column;gap:10px">
+  <h1>📝 Provas</h1><p class="hint">Entre com o mesmo e-mail e senha do painel do professor.</p>
+  <input id="em" type="email" placeholder="Seu e-mail" autocomplete="username"><input id="pw" type="password" placeholder="Sua senha" autocomplete="current-password">
+  <div id="lerr" class="err"></div><button class="btn pri" id="lgo">Entrar</button>
+ </section>
+ <div id="dash" class="hidden" style="display:flex;flex-direction:column;gap:10px">
+  <header class="card noprint"><div class="row"><h1>📝 Provas</h1><span class="sp"></span><a class="btn sm" href="professor.html">📋 Notas</a><button class="btn pri" id="new">➕ Nova prova</button><button class="btn" id="out">Sair</button></div></header>
+  <section class="card panel" id="view"></section>
+ </div>
+</div>
+<div id="modal" class="overlay hidden noprint"><div class="mc card" id="mb" style="max-width:560px"></div></div>
+<script src="config.js"></script><script src="banco.js"></script>
+<script>
+const CFG=Object.assign({},window.QCFG||{});CFG.url=String(CFG.url||'').trim().replace(/\/+$/,'').replace(/\/(rest|auth)\/v1$/,'');CFG.key=String(CFG.key||'').trim();const $=s=>document.querySelector(s);
+const B=window.BANCO,FIG=B.figs,ICON={ladder:'L',ligacoes:'C',partida:'P',reversao:'R'};
+const QS=[];B.games.forEach(g=>g.phases.forEach(p=>p.qs.forEach(q=>QS.push({...q,game:g.id,gname:g.name,pn:p.n,pname:p.name,short:(ICON[g.id]||g.id[0].toUpperCase())+p.num}))));
+const QBY={};QS.forEach(q=>QBY[q.id]=q);
+let TOK=null,REF=null,EXAMS=[],CLASSES=[],ED=null;
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const plain=h=>String(h).replace(/<[^>]+>/g,'');
+const lab=q=>plain(q.q)+(q.t==='vf'&&q.items&&q.items[0]?' · '+plain(q.items[0][0]):'');
+async function authReq(path,body){let r;try{r=await fetch(CFG.url+'/auth/v1/'+path,{method:'POST',headers:{apikey:CFG.key,'Content-Type':'application/json'},body:JSON.stringify(body)})}catch(e){throw new Error('Sem conexão com o servidor.')}const j=await r.json().catch(()=>({}));if(!r.ok)throw new Error(j.error_description||j.msg||j.message||'Falha no login');return j}
+function setTok(j){TOK=j.access_token;REF=j.refresh_token;try{sessionStorage.setItem('qp_ref',REF)}catch(e){}}
+async function rpc(fn,args,retry=true){
+ let r;try{r=await fetch(CFG.url+'/rest/v1/rpc/'+fn,{method:'POST',headers:{apikey:CFG.key,Authorization:'Bearer '+TOK,'Content-Type':'application/json'},body:JSON.stringify(args||{})})}catch(e){throw new Error('Sem conexão com a internet.')}
+ if(r.status===401&&retry&&REF){try{setTok(await authReq('token?grant_type=refresh_token',{refresh_token:REF}));return rpc(fn,args,false)}catch(e){logout();throw new Error('Sessão expirada. Entre de novo.')}}
+ const j=await r.json().catch(()=>null);if(r.status===404)throw new Error(j&&j.code==='PGRST202'?'O banco ainda não tem as funções de provas. Rode o arquivo supabase_provas.sql no Supabase.':'Endereço do Supabase incorreto.');if(!r.ok)throw new Error((j&&j.message)||'Erro '+r.status);return j}
+async function login(){const err=$('#lerr');err.textContent='';$('#lgo').disabled=true;
+ try{setTok(await authReq('token?grant_type=password',{email:$('#em').value.trim(),password:$('#pw').value}));if(!(await rpc('teacher_check')))throw new Error('Esta conta não é de professor.');enter()}catch(e){err.textContent=e.message==='Invalid login credentials'?'E-mail ou senha incorretos.':e.message;TOK=null}$('#lgo').disabled=false}
+function enter(){$('#login').classList.add('hidden');$('#dash').classList.remove('hidden');list()}
+function logout(){TOK=REF=null;try{sessionStorage.removeItem('qp_ref')}catch(e){}$('#dash').classList.add('hidden');$('#login').classList.remove('hidden')}
+$('#lgo').onclick=login;$('#pw').onkeydown=e=>{if(e.key==='Enter')login()};$('#out').onclick=logout;
+(async()=>{let r=null;try{r=sessionStorage.getItem('qp_ref')}catch(e){}if(r&&CFG.url){try{setTok(await authReq('token?grant_type=refresh_token',{refresh_token:r}));if(await rpc('teacher_check'))enter()}catch(e){}}})();
+function modal(h){$('#mb').innerHTML=h;$('#modal').classList.remove('hidden')}function closeM(){$('#modal').classList.add('hidden')}
+$('#modal').onclick=e=>{if(e.target.id==='modal')closeM()};
+/* ---------- lista ---------- */
+async function list(){
+ ED=null;$('#new').classList.remove('hidden');
+ try{EXAMS=await rpc('teacher_exam_list');const o=await rpc('teacher_overview');CLASSES=[...new Set(o.students.map(s=>s.class))].sort()}catch(e){$('#view').innerHTML='<p class="err">'+esc(e.message)+'</p>';return}
+ $('#view').innerHTML=EXAMS.length?EXAMS.map(e=>`<div class="ex" data-id="${e.id}"><div style="flex:1;min-width:220px"><b class="t">${esc(e.title)}</b><div class="sub">${e.total} questões · turma: ${e.class?esc(e.class):'todas'} · ${e.minutes?e.minutes+' min':'sem limite de tempo'} · nota ${e.show_score?'visível':'oculta'} ao aluno<br>${e.started} iniciaram · ${e.finished} terminaram</div></div>
+  <button class="btn ${e.is_open?'ok':'warn'}" data-a="tog">${e.is_open?'🟢 Aberta (clique p/ encerrar)':'🔒 Fechada (clique p/ abrir)'}</button>
+  <button class="btn" data-a="edit">✏️ Editar</button><button class="btn" data-a="res">📊 Resultados</button><button class="btn" data-a="pdf">🖨️ Prova PDF</button><button class="btn" data-a="gab">✅ Gabarito</button><button class="btn bad" data-a="del">🗑️</button></div>`).join(''):'<p>Nenhuma prova ainda. Clique em <b>➕ Nova prova</b> para escolher as questões.</p><p class="hint">A prova só aparece para os alunos quando estiver <b>aberta</b>. O aluno vê uma questão por vez, não volta e não vê a resposta certa.</p>';
+ document.querySelectorAll('.ex button').forEach(b=>b.onclick=()=>act(b.closest('.ex').dataset.id,b.dataset.a))}
+async function act(id,a){const e=EXAMS.find(x=>x.id===id);try{
+ if(a==='tog'){if(e.is_open&&!confirm('Encerrar a prova? Quem ainda estiver fazendo terá a prova finalizada com as respostas já dadas.'))return;await rpc('teacher_exam_set_open',{p_id:id,p_open:!e.is_open});list()}
+ else if(a==='del'){if(!confirm('Excluir a prova e todos os resultados? Não dá para desfazer.'))return;await rpc('teacher_exam_delete',{p_id:id});list()}
+ else if(a==='edit'){const x=await rpc('teacher_exam_get',{p_id:id});openEditor(x,e.started>0)}
+ else if(a==='res')results(id);
+ else{const x=await rpc('teacher_exam_get',{p_id:id});printExam(x,a==='gab')}}catch(er){alert(er.message)}}
+$('#new').onclick=()=>openEditor(null,false);
+/* ---------- editor ---------- */
+function openEditor(x,locked){
+ ED={id:x?x.id:null,title:x?x.title:'',cls:x?x.class||'':'',min:x&&x.minutes?x.minutes:'',show:x?x.show_score:true,locked,sel:x?x.questions.map(q=>({id:q.id,w:q.w||1,q})):[]};
+ ED.sel.forEach(s=>{if(!QBY[s.id])QBY[s.id]={...s.q,short:s.id,gname:'',pname:''}});
+ $('#new').classList.add('hidden');drawEd()}
+function qPrev(q,showAns){const f=q.fig&&FIG[q.fig]?`<img src="${FIG[q.fig]}">`:'';let h=`<div>${q.q}</div>${f}`;
+ if(q.t==='mc')h+=q.o.map((o,i)=>`<div class="${showAns&&i===q.a?'ok':''}">${'ABCDE'[i]}) ${o}${showAns&&i===q.a?' ✔':''}</div>`).join('');
+ else if(q.t==='vf')h+=q.items.map(it=>`<div>${showAns?`<span class="ok">${it[1]?'V':'F'}</span> `:'( ) '}${it[0]}</div>`).join('');
+ else h+=q.f.map(f=>`<div>• ${f.l} ${showAns?`<span class="ok">${f.t==='sel'?esc(f.o[f.a]):f.a+(f.u?' '+f.u:'')}</span>`:(f.t==='sel'?'['+f.o.join(' / ')+']':'____ '+(f.u||''))}</div>`).join('');
+ return h}
+function drawEd(){
+ const games=B.games,tot=ED.sel.reduce((a,s)=>a+(+s.w||0),0);
+ $('#view').innerHTML=`<div class="row"><button class="btn" id="back">◀ Voltar</button><h2 style="margin:0">${ED.id?'Editar prova':'Nova prova'}</h2></div>
+ <div class="row" style="margin:10px 0"><label>Título: <input id="ti" style="min-width:260px" maxlength="120" value="${esc(ED.title)}" placeholder="Ex.: Prova 1 · Partida direta"></label>
+ <label>Turma: <select id="tc"><option value="">Todas as turmas</option>${CLASSES.map(c=>`<option ${c===ED.cls?'selected':''}>${esc(c)}</option>`).join('')}${ED.cls&&!CLASSES.includes(ED.cls)?`<option selected>${esc(ED.cls)}</option>`:''}</select></label>
+ <label>Tempo (min): <input id="tm" type="number" min="1" max="600" class="w" style="width:80px" value="${ED.min}" placeholder="livre"></label>
+ <label><input type="checkbox" id="ts" ${ED.show?'checked':''}> mostrar a nota ao aluno no final</label></div>
+ ${ED.locked?'<p class="err" style="min-height:0">⚠️ Já há alunos que iniciaram esta prova: só título, turma, tempo e nota podem mudar. As questões ficam como estão.</p>':''}
+ <div class="cols"><div><h3 style="margin:4px 0">Banco de questões (${QS.length})</h3>
+  <div class="row" style="margin-bottom:6px"><select id="fg"><option value="">Todos os jogos</option>${games.map(g=>`<option value="${g.id}">${esc(g.name)}</option>`).join('')}</select><select id="fp"><option value="">Todas as fases</option></select><select id="ft"><option value="">Todos os tipos</option><option value="mc">Múltipla escolha</option><option value="vf">V ou F</option><option value="fields">Preencher</option></select><input id="fs" placeholder="buscar no texto" style="width:150px"></div>
+  <div class="row" style="margin-bottom:6px"><button class="btn sm" id="addall">➕ Adicionar todas as filtradas</button><span class="sp"></span><label>Sortear <input id="rn" type="number" min="1" value="5" class="w"> das filtradas <button class="btn sm warn" id="rand">🎲 Sortear</button></label></div>
+  <div class="list" id="bank"></div></div>
+ <div><h3 style="margin:4px 0">Prova (<span id="cnt">${ED.sel.length}</span> questões · <span id="pts">${tot}</span> pontos)</h3><div class="list" id="sel"></div>
+  <div class="row" style="margin-top:8px"><button class="btn ok" id="save">💾 Salvar prova</button><span id="msg" class="err"></span></div></div></div>`;
+ $('#back').onclick=list;
+ const fillP=()=>{const g=B.games.find(x=>x.id===$('#fg').value);$('#fp').innerHTML='<option value="">Todas as fases</option>'+(g?g.phases.map(p=>`<option value="${p.n}">Fase ${p.num} · ${esc(p.name)}</option>`).join(''):'')};
+ $('#fg').onchange=()=>{fillP();bank()};['fp','ft'].forEach(i=>$('#'+i).onchange=bank);$('#fs').oninput=bank;
+ $('#addall').onclick=()=>{if(ED.locked)return;filtered().forEach(add);selList()};
+ $('#rand').onclick=()=>{if(ED.locked)return;const f=filtered().filter(q=>!ED.sel.some(s=>s.id===q.id));const n=Math.min(+$('#rn').value||0,f.length);for(let i=f.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[f[i],f[j]]=[f[j],f[i]]}f.slice(0,n).forEach(add);selList()};
+ $('#save').onclick=saveEd;bank();selList()}
+function filtered(){const g=$('#fg').value,p=$('#fp').value,t=$('#ft').value,s=$('#fs').value.trim().toLowerCase();return QS.filter(q=>(!g||q.game===g)&&(!p||q.pn==p)&&(!t||q.t===t)&&(!s||plain(q.q).toLowerCase().includes(s)))}
+function add(q){if(ED.locked||ED.sel.some(s=>s.id===q.id))return;const c={...q};['game','gname','pn','pname','short'].forEach(k=>delete c[k]);ED.sel.push({id:q.id,w:1,q:c})}
+const TN={mc:'Múltipla',vf:'V/F',fields:'Preencher'};
+function bank(){const f=filtered();$('#bank').innerHTML=f.map(q=>{const on=ED.sel.some(s=>s.id===q.id);return `<div class="qi" data-id="${q.id}"><button class="btn sm ${on?'':'ok'}" data-a="add" ${on||ED.locked?'disabled':''}>${on?'✔':'➕'}</button><div class="tx"><span class="pill t-${q.t}">${TN[q.t]}</span> <b>${q.short}</b> ${esc(lab(q).slice(0,150))}<div class="prev hidden"></div></div></div>`}).join('')||'<p style="padding:8px">Nenhuma questão com esses filtros.</p>';
+ document.querySelectorAll('#bank .qi').forEach(r=>{const q=QBY[r.dataset.id];r.querySelector('[data-a=add]').onclick=()=>{add(q);selList();bank()};r.querySelector('.tx').onclick=()=>{const p=r.querySelector('.prev');p.innerHTML=qPrev(q,true);p.classList.toggle('hidden')}})}
+function selList(){
+ $('#cnt').textContent=ED.sel.length;$('#pts').textContent=ED.sel.reduce((a,s)=>a+(+s.w||0),0);
+ $('#sel').innerHTML=ED.sel.map((s,i)=>{const q=s.q;return `<div class="qi" data-i="${i}"><b>${i+1}.</b><div class="tx"><span class="pill t-${q.t}">${TN[q.t]}</span> <b>${esc(QBY[s.id]?QBY[s.id].short:s.id)}</b> ${esc(lab(q).slice(0,110))}<div class="prev hidden"></div></div>
+  <span class="row" style="flex-wrap:nowrap"><label class="sub">peso <input class="w" type="number" min="0.5" step="0.5" value="${s.w}" data-a="w" ${ED.locked?'disabled':''}></label><button class="btn sm" data-a="up" ${ED.locked?'disabled':''}>▲</button><button class="btn sm" data-a="dn" ${ED.locked?'disabled':''}>▼</button><button class="btn sm bad" data-a="rm" ${ED.locked?'disabled':''}>✖</button></span></div>`}).join('')||'<p style="padding:8px">Escolha questões no banco ao lado.</p>';
+ document.querySelectorAll('#sel .qi').forEach(r=>{const i=+r.dataset.i;r.querySelector('.tx').onclick=()=>{const p=r.querySelector('.prev');p.innerHTML=qPrev(ED.sel[i].q,true);p.classList.toggle('hidden')};
+  r.querySelector('[data-a=w]').onchange=e=>{ED.sel[i].w=Math.max(.5,+e.target.value||1);selList()};
+  r.querySelector('[data-a=up]').onclick=()=>{if(i>0){[ED.sel[i-1],ED.sel[i]]=[ED.sel[i],ED.sel[i-1]];selList()}};
+  r.querySelector('[data-a=dn]').onclick=()=>{if(i<ED.sel.length-1){[ED.sel[i+1],ED.sel[i]]=[ED.sel[i],ED.sel[i+1]];selList()}};
+  r.querySelector('[data-a=rm]').onclick=()=>{ED.sel.splice(i,1);selList();bank()}})}
+async function saveEd(){const m=$('#msg');m.textContent='';const t=$('#ti').value.trim();if(!t){m.textContent='Dê um título à prova.';return}if(!ED.sel.length){m.textContent='Escolha pelo menos uma questão.';return}
+ const mins=parseInt($('#tm').value)||null;
+ try{const id=await rpc('teacher_exam_save',{p_id:ED.id,p_title:t,p_class:$('#tc').value,p_minutes:mins,p_show:$('#ts').checked,p_questions:ED.sel.map(s=>({...s.q,w:+s.w||1}))});
+  ED.id=id;m.style.color='#0a7a4b';m.textContent='Prova salva! Para os alunos verem, abra a prova na lista.';setTimeout(list,900)}catch(e){m.style.color='';m.textContent=e.message}}
+/* ---------- resultados ---------- */
+async function results(id){
+ const r=await rpc('teacher_exam_results',{p_id:id});$('#new').classList.add('hidden');
+ const N=r.total,cell=v=>`<td class="${v>=.999?'m1':v>0?'mp':'m0'}">${v>=.999?'✔':v>0?'½':'✖'}</td>`;
+ const rows=r.rows;const done=rows.filter(x=>x.finished_at);const avg=done.length?Math.round(done.reduce((a,b)=>a+b.pct,0)/done.length):null;
+ const hit=Array.from({length:N},(_,i)=>{const v=done.map(x=>x.scores[i]).filter(z=>z!==undefined);return v.length?Math.round(v.reduce((a,b)=>a+b,0)/v.length*100):null});
+ $('#view').innerHTML=`<div class="row"><button class="btn" id="back">◀ Voltar</button><h2 style="margin:0">Resultados · ${esc(r.title)}</h2><span class="sp"></span><button class="btn" id="csv">📊 Exportar Excel (CSV)</button><button class="btn" id="prt">🖨️ Imprimir</button></div>
+ <div class="stat" style="margin:10px 0"><div>Iniciaram<b>${rows.length}</b></div><div>Terminaram<b>${done.length}</b></div><div>Média<b>${avg===null?'—':avg+'%'}</b></div></div>
+ <div style="overflow:auto"><table><tr><th>Aluno</th><th>Turma</th><th>Situação</th><th>Nota (0–10)</th><th>%</th>${Array.from({length:N},(_,i)=>`<th>${i+1}</th>`).join('')}<th></th></tr>
+ ${rows.map(x=>`<tr><td style="text-align:left;font-weight:800">${esc(x.name)}</td><td>${esc(x.class)}</td><td>${x.finished_at?'Finalizada':'Na questão '+(x.idx+1)+'/'+N}</td><td><b>${x.finished_at?(x.pct/10).toFixed(1):''}</b></td><td>${x.finished_at?x.pct:''}</td>${Array.from({length:N},(_,i)=>x.scores[i]===undefined?'<td class="mn"></td>':cell(x.scores[i])).join('')}<td><button class="btn sm warn" data-s="${x.student_id}" title="Apaga a tentativa para o aluno refazer">↺ Refazer</button></td></tr>`).join('')||`<tr><td colspan="${N+6}">Ninguém iniciou ainda.</td></tr>`}
+ <tr><th colspan="5">% de acerto por questão</th>${hit.map(h=>`<th>${h===null?'':h}</th>`).join('')}<th></th></tr></table></div>`;
+ $('#back').onclick=list;$('#prt').onclick=()=>window.print();
+ $('#csv').onclick=()=>{const L=[['Aluno','Turma','Situação','Nota','%',...Array.from({length:N},(_,i)=>'Q'+(i+1))]];rows.forEach(x=>L.push([x.name,x.class,x.finished_at?'Finalizada':'Em andamento',x.finished_at?(x.pct/10).toFixed(1).replace('.',','):'',x.finished_at?x.pct:'',...Array.from({length:N},(_,i)=>x.scores[i]===undefined?'':String(x.scores[i]).replace('.',','))]));
+  const csv='\ufeff'+L.map(r=>r.map(c=>'"'+String(c).replace(/"/g,'""')+'"').join(';')).join('\r\n');const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));a.download='prova_'+r.title.replace(/[^\w]+/g,'_')+'.csv';a.click()};
+ document.querySelectorAll('[data-s]').forEach(b=>b.onclick=async()=>{if(!confirm('Apagar a tentativa deste aluno para ele refazer a prova?'))return;try{await rpc('teacher_exam_reset',{p_id:id,p_student:b.dataset.s});results(id)}catch(e){alert(e.message)}})}
+/* ---------- PDF (impressão) ---------- */
+function printExam(x,gab){
+ const Q=x.questions,img=k=>k&&FIG[k]?`<div class="fg"><img src="${FIG[k]}"></div>`:'';
+ const body=Q.map((q,i)=>{let h=`<div class="q"><p><b>${i+1}.</b> ${q.q} <span class="pt">(${q.w||1} pt${(q.w||1)==1?'':'s'})</span></p>${img(q.fig)}`;
+  if(q.t==='mc')h+=q.o.map((o,k)=>`<div class="o">( ${gab&&k===q.a?'<b>X</b>':'&nbsp;&nbsp;'} ) ${'ABCDE'[k]}) ${o}</div>`).join('');
+  else if(q.t==='vf')h+=q.items.map(it=>`<div class="o">( ${gab?`<b>${it[1]?'V':'F'}</b>`:'&nbsp;&nbsp;'} ) ${it[0]}</div>`).join('');
+  else h+=q.f.map(f=>`<div class="o">${f.l} ${gab?`<b class="g">${f.t==='sel'?esc(f.o[f.a]):f.a+(f.u?' '+f.u:'')}</b>`:(f.t==='sel'?'&nbsp;'+f.o.map(o=>'( ) '+o).join(' &nbsp; '):'______ '+(f.u||''))}</div>`).join('');
+  if(gab){h+=img(q.af);if(q.exp)h+=`<div class="ex2">${q.exp}</div>`}
+  return h+'</div>'}).join('');
+ const tot=Q.reduce((a,q)=>a+(q.w||1),0);
+ const w=window.open('','_blank');if(!w){alert('Permita pop-ups para imprimir.');return}
+ w.document.write(`<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><title>${esc(x.title)}${gab?' · Gabarito':''}</title><style>
+ body{font:14px/1.4 Arial,sans-serif;color:#000;margin:18mm 16mm}h1{font-size:18px;margin:0 0 4px}.cab{border:2px solid #000;padding:8px 10px;margin-bottom:14px}.cab div{margin:6px 0}
+ .q{break-inside:avoid;margin:0 0 14px}.o{margin:3px 0 3px 18px}.pt{font-size:11px;color:#444}.fg img{max-width:100%;max-height:200px;margin:4px 0}.g{color:#0a6}
+ .ex2{margin:4px 0 0 18px;font-size:12px;color:#333;border-left:3px solid #999;padding-left:6px}@media print{.np{display:none}}</style></head><body>
+ <button class="np" onclick="print()">🖨️ Imprimir / Salvar PDF</button>
+ <div class="cab"><h1>${esc(x.title)}${gab?' — GABARITO':''}</h1><div>Aluno: ______________________________________ Turma: ${x.class?esc(x.class):'__________'} Data: ____/____/______</div><div>${Q.length} questões · valor total: ${tot} ponto${tot==1?'':'s'}${x.minutes?' · tempo: '+x.minutes+' min':''} · Nota: ________</div></div>${body}</body></html>`);
+ w.document.close()}
+</script></body></html>

@@ -34,3 +34,13 @@ Arquivos
 - O aluno corrige no próprio navegador; um aluno muito técnico poderia forjar a nota pela API.
   Para uso em sala de aula isso costuma bastar; para prova valendo nota, acompanhe presencialmente.
 - Plano gratuito do Supabase pausa o projeto após 1 semana sem uso: antes de uma aula, abra o painel do Supabase e clique em *Restore* se estiver pausado.
+
+## Provas (novo)
+Arquivos: `provas.html` (painel de provas do professor), `banco.js` (banco de questões da plataforma) e `supabase_provas.sql`.
+1. No SQL Editor do Supabase rode **uma vez** o `supabase_provas.sql` (depois do `supabase.sql`).
+2. No painel do professor clique em **📝 Provas** → **➕ Nova prova**: filtre o banco por jogo, fase, tipo ou texto, marque as questões (ou use **🎲 Sortear**), defina peso, turma, tempo e se o aluno vê a nota. Salve.
+3. Na lista, clique para **abrir** a prova. O aluno entra no site, clica em **📝 Provas** e faz.
+- O aluno vê **uma questão por vez**, **não volta** e **não vê a resposta certa**. A correção é feita no servidor (o gabarito nunca vai para o aluno).
+- Se sair, ele continua da mesma questão; o tempo (se houver) continua correndo. Encerrar a prova finaliza quem ainda está fazendo.
+- **Resultados**: nota, acerto por questão, CSV, e botão ↺ Refazer. **🖨️ Prova PDF** e **✅ Gabarito** abrem a versão para imprimir/salvar em PDF.
+- Questões de montar o circuito Ladder não entram nas provas (só múltipla escolha, V/F e preencher).
