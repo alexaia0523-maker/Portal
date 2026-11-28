@@ -383,7 +383,7 @@ async function doSave(){
 }
 /* ---- conta do aluno ---- */
 let modalLock=false;
-function logout(){try{sessionStorage.removeItem('qs_user')}catch(e){}U=null;CLOSED=[];P.stars={};P.best={};P.tries={};authScreen()}
+function logout(){try{sessionStorage.removeItem('qs_user')}catch(e){}try{localStorage.removeItem('fr_user')}catch(e){}U=null;CLOSED=[];P.stars={};P.best={};P.tries={};authScreen()}
 function authScreen(mode){
  mode=mode||'in';modalLock=true;
  const cfgOk=CFG.url&&CFG.key;
@@ -402,7 +402,7 @@ function authScreen(mode){
   if(!/^[0-9]{4}$/.test(pin)){err.textContent='O PIN tem 4 números.';return}
   $('#a-go').disabled=true;err.textContent='Aguarde…';
   try{const j=await rpc(mode==='in'?'student_login':'student_signup',{p_name:name,p_class:cls,p_pin:pin});
-   U={pin};applyUser(j);U.pin=pin;try{sessionStorage.setItem('qs_user',JSON.stringify({name:U.name,cls:U.cls,pin}))}catch(e){}
+   U={pin};applyUser(j);U.pin=pin;try{sessionStorage.setItem('qs_user',JSON.stringify({name:U.name,cls:U.cls,pin}))}catch(e){}try{localStorage.setItem('fr_user',JSON.stringify({name:U.name,cls:U.cls,pin}))}catch(e){}
    modalLock=false;closeModal();renderTop();say(`Oi, <b>${U.name}</b>! Escolha uma fase e vamos lá.`,'happy')}
   catch(e){err.textContent=e.message;$('#a-go').disabled=false}
  };

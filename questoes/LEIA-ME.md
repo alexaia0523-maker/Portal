@@ -44,3 +44,10 @@ Arquivos: `provas.html` (painel de provas do professor), `banco.js` (banco de qu
 - Se sair, ele continua da mesma questão; o tempo (se houver) continua correndo. Encerrar a prova finaliza quem ainda está fazendo.
 - **Resultados**: nota, acerto por questão, CSV, e botão ↺ Refazer. **🖨️ Prova PDF** e **✅ Gabarito** abrem a versão para imprimir/salvar em PDF.
 - Questões de montar o circuito Ladder não entram nas provas (só múltipla escolha, V/F e preencher).
+
+
+## Progresso por usuário (nuvem)
+1. No Supabase (SQL Editor) rode **`supabase_progresso.sql`** uma vez.
+2. Os jogos e o portal já carregam `sync.js`: aparece o botão **👤 Entrar para salvar na nuvem** no canto inferior esquerdo. O aluno entra com o mesmo nome + turma + PIN da Sala de Questões (ou cria o usuário ali mesmo) e o progresso (estrelas) passa a seguir a conta em qualquer computador. O que ele já tinha jogado naquele navegador é guardado na conta.
+3. Ao **sair**, o progresso local do navegador é apagado (bom para computadores compartilhados do laboratório).
+4. Professor: aba **🎮 Jogos** (fases concluídas por jogo e aluno). Clique no nome do aluno para ✏️ editar nome/turma, ♻️ zerar jogos, 🔑 novo PIN ou 🗑️ excluir.
